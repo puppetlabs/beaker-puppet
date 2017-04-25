@@ -1,5 +1,6 @@
-[ 'aio_defaults', 'foss_defaults', 'windows_utils' ].each do |lib|
-  require "beaker/dsl/install_utils/#{lib}"
+require "beaker/dsl/install_utils/windows_utils"
+[ 'aio', 'foss' ].each do |lib|
+  require "beaker-puppet/install_utils/#{lib}_defaults"
 end
 require "beaker-puppet/install_utils/puppet_utils"
 module Beaker

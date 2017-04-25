@@ -4,6 +4,9 @@ require 'beaker-puppet/helpers'
 require 'beaker-puppet/version'
 require 'beaker-puppet/wrappers'
 
+[ 'aio', 'foss' ].each do |lib|
+  require "beaker-puppet/install_utils/#{lib}_defaults"
+end
 [ 'foss', 'puppet', 'ezbake', 'module' ].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_utils"
 end
@@ -14,6 +17,9 @@ end
 
 module BeakerPuppet
   module InstallUtils
+    include Beaker::DSL::InstallUtils::FOSSDefaults
+    include Beaker::DSL::InstallUtils::AIODefaults
+
     include Beaker::DSL::InstallUtils::PuppetUtils
     include Beaker::DSL::InstallUtils::FOSSUtils
     include Beaker::DSL::InstallUtils::EZBakeUtils
