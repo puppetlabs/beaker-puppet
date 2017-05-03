@@ -57,6 +57,14 @@ Run the puppet beaker acceptance tests on a puppet package install.
       beaker_test(:pkg)
     end
 
+    desc <<-EOS
+Run the puppet beaker acceptance tests on a base system (no install).
+#{USAGE}
+    EOS
+    task :base => 'gen_hosts' do
+      beaker_test()
+    end
+
     desc 'Generate Beaker Host Config File'
     task :gen_hosts do
       if hosts_file_env
