@@ -1,6 +1,5 @@
 require 'stringify-hash'
 require 'in_parallel'
-require 'beaker-puppet/helpers'
 require 'beaker-puppet/version'
 require 'beaker-puppet/wrappers'
 
