@@ -3,7 +3,6 @@ log/*
 !.gitignore
 junit
 acceptance-tests
-pkg
 Gemfile.lock
 options.rb
 test.cfg
