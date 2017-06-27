@@ -13,6 +13,8 @@ end
   require "beaker-puppet/helpers/#{lib}_helpers"
 end
 
+require 'beaker-puppet/install_utils/puppet5'
+
 
 module BeakerPuppet
   module InstallUtils
@@ -23,6 +25,8 @@ module BeakerPuppet
     include Beaker::DSL::InstallUtils::FOSSUtils
     include Beaker::DSL::InstallUtils::EZBakeUtils
     include Beaker::DSL::InstallUtils::ModuleUtils
+
+    include BeakerPuppet::Install::Puppet5
   end
 
   module Helpers
