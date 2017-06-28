@@ -1114,8 +1114,8 @@ module Beaker
 
             case variant
             when /^(fedora|el|centos|debian|ubuntu|cumulus|huaweios|cisco_nexus|cisco_ios_xr)$/
-              if arch == 's390x'
-                logger.trace("#install_puppet_agent_dev_repo_on: s390x arch detected for host #{host}. using dev package")
+              if arch== 's390x' || host['hypervisor'] == 'ec2'
+                logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
               else
                 opts[:dev_builds_repos] ||= [ opts[:puppet_collection] ]
                 install_puppetlabs_dev_repo( host, 'puppet-agent', puppet_agent_version, nil, opts )
@@ -1125,7 +1125,7 @@ module Beaker
               end
             when /^(eos|osx|windows|solaris|sles|aix)$/
               # Download installer package file & run install manually.
-              # Done below, so that el hosts with s390x arch can use this
+              # Done below, so that el hosts with s390x arch or on ec2 can use this
               # workflow as well
             else
               raise "No repository installation step for #{variant} yet..."
@@ -1147,7 +1147,7 @@ module Beaker
             case variant
             when /^eos/
               host.install_from_file( release_file )
-            when /^(sles|aix|el)$/
+            when /^(sles|aix|fedora|el|centos)$/
               # NOTE: AIX does not support repo management. This block assumes
               # that the desired rpm has been mirrored to the 'repos' location.
               # NOTE: the AIX 7.1 package will only install on 7.2 with
