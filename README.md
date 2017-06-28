@@ -53,3 +53,10 @@ file, or you can provide a beaker-hostgenerator value to the `TEST_TARGET`
 environment variable. You can also specify the tests that get executed with the
 `TESTS` environment variable.
 
+# This is a pretend change, DO NOT MERGE
+
+This change is for testing the CI testing of PRs, and should, under no
+circumstances, be merged. Woot!
+
+1. Amendment making even more changes!
+2. Rebase just happened!
