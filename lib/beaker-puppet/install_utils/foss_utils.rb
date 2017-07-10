@@ -331,7 +331,7 @@ module Beaker
         # @option opts [String] :puppet_gem_version Version of puppet to install via gem if no puppet-agent package is available
         # @option opts [String] :mac_download_url Url to download msi pattern of %url%/puppet-agent-%version%.msi
         # @option opts [String] :win_download_url Url to download dmg pattern of %url%/puppet-agent-%version%.msi
-        # @option opts [String] :puppet_collection Defaults to 'pc1'
+        # @option opts [String] :puppet_collection Defaults to nil
         # @option opts [Boolean] :run_in_parallel Whether to run on each host in parallel.
         #
         # @return nil
@@ -339,7 +339,6 @@ module Beaker
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
           opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
-          opts[:puppet_collection] ||= 'pc1' #hi!  i'm case sensitive!  be careful!
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
 
           run_in_parallel = run_in_parallel? opts, @options, 'install'
@@ -438,11 +437,7 @@ module Beaker
         # @api private
         def install_puppet_from_rpm_on( hosts, opts )
           block_on hosts do |host|
-            if host[:type] == 'aio'
-              install_puppetlabs_release_repo(host,'pc1',opts)
-            else
-              install_puppetlabs_release_repo(host,nil,opts)
-            end
+            install_puppetlabs_release_repo(host,opts[:puppet_collection],opts)
 
             if opts[:facter_version]
               host.install_package("facter-#{opts[:facter_version]}")
@@ -703,12 +698,15 @@ module Beaker
         # @param [Hash{Symbol=>String}] opts An options hash
         # @option opts [String] :puppet_agent_version The version of Puppet Agent to install, defaults to latest
         # @option opts [String] :mac_download_url Url to download msi pattern of %url%/puppet-%version%.dmg
-        # @option opts [String] :puppet_collection Defaults to 'PC1'
+        # @option opts [String] :puppet_collection Defaults to nil
         #
         # @return nil
         # @api private
         def install_puppet_agent_from_dmg_on(hosts, opts)
-          opts[:puppet_collection] ||= 'PC1'
+          # TODO: this should default to nil, but we haven't enabled the rolling
+          # 'puppet' repos for mac yet. Remove the following line when those are
+          # available.
+          opts[:puppet_collection] ||= '5'
           opts[:puppet_collection] = opts[:puppet_collection].upcase #needs to be upcase, more lovely consistency
           block_on hosts do |host|
 
@@ -716,7 +714,13 @@ module Beaker
 
             variant, version, arch, codename = host['platform'].to_array
 
-            download_url = "#{opts[:mac_download_url]}/#{version}/#{opts[:puppet_collection]}/#{arch}"
+            # TODO: (Next Major Version) Remove the ability to install the
+            # pc1 package once puppet-agent 1.x has reached EOL
+            if opts[:puppet_collection] == 'PC1'
+              download_url = "#{opts[:mac_download_url]}/#{version}/#{opts[:puppet_collection]}/#{arch}"
+            else
+              download_url = "#{opts[:mac_download_url]}/puppet#{opts[:puppet_collection]}/#{version}/#{arch}"
+            end
 
             latest = get_latest_puppet_agent_build_from_url(download_url)
 
@@ -903,17 +907,20 @@ module Beaker
         alias_method :install_puppet_from_gem,          :install_puppet_from_gem_on
         alias_method :install_puppet_agent_from_gem_on, :install_puppet_from_gem_on
 
-        # Install official puppetlabs release repository configuration on host(s).
+        # Install official Puppet, Inc. release repository configuration on host(s).
         #
         # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
         #                            or a role (String or Symbol) that identifies one or more hosts.
+        # @param [String] repo    Optional, which major-version series puppet repos to enable. Only
+        #                           available for puppet5 and later. If left blank or set to nil, it
+        #                           will enable the latest by default.
         #
         # @note This method only works on redhat-like and debian-like hosts.
         #
         def install_puppetlabs_release_repo_on( hosts, repo = nil, opts = options )
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
-            repo_name = repo.nil? ? '' : '-' + repo
+            repo_name = repo.nil? ? '' : repo
             opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
 
             case variant
@@ -927,8 +934,15 @@ module Beaker
                 variant_url_value = 'cisco-wrlinux'
                 version = '7'
               end
-              remote = "%s/puppetlabs-release%s-%s-%s.noarch.rpm" %
-                [opts[:release_yum_repo_url], repo_name, variant_url_value, version]
+              # TODO: (Next Major Version) Remove the ability to install the
+              # pc1 release package once puppet-agent 1.x has reached EOL
+              if repo_name == 'pc1'
+                remote = "%s/puppetlabs-release-%s-%s-%s.noarch.rpm" %
+                  [opts[:release_yum_repo_url], repo_name, variant_url_value, version]
+              else
+                remote = "%s/puppet%s/puppet%s-release-%s-%s.noarch.rpm" %
+                  [opts[:release_yum_repo_url], repo_name, repo_name, variant_url_value, version]
+              end
 
               if variant == 'cisco_nexus'
                 # cisco nexus requires using yum to install the repo
@@ -943,7 +957,13 @@ module Beaker
               end
 
             when /^(debian|ubuntu|cumulus|huaweios)$/
-              deb = "puppetlabs-release%s-%s.deb" % [repo_name, codename]
+              # TODO: (Next Major Version) Remove the ability to install the
+              # pc1 release package once puppet-agent 1.x has reached EOL
+              if repo_name == 'pc1'
+                deb = "puppetlabs-release-%s-%s.deb" % [repo_name, codename]
+              else
+                deb = "puppet%s-release-%s.deb" % [repo_name, codename]
+              end
 
               remote = URI.join( opts[:release_apt_repo_url], deb )
 
@@ -1096,7 +1116,7 @@ module Beaker
         # @option opts [String] :copy_dir_external Directory where puppet-agent
         #                       artifact will be pushed to on the external machine
         #                       (default: '/root')
-        # @option opts [String] :puppet_collection Defaults to 'PC1'
+        # @option opts [String] :puppet_collection Defaults to nil
         # @option opts [String] :dev_builds_url Base URL to pull artifacts from
         # @option opts [String] :copy_base_local Directory where puppet-agent artifact
         #                       will be stored locally
@@ -1129,7 +1149,6 @@ module Beaker
             opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
             opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{ puppet_agent_version }/repos/"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
-            opts[:puppet_collection]  ||= 'PC1'
 
             release_path = opts[:download_url]
 
@@ -1210,7 +1229,7 @@ module Beaker
         # @option opts [String] :copy_dir_external Directory where puppet-agent
         #                       artifact will be pushed to on the external machine
         #                       (default: '/root')
-        # @option opts [String] :puppet_collection Defaults to 'PC1'
+        # @option opts [String] :puppet_collection Defaults to nil
         # @option opts [String] :pe_promoted_builds_url Base URL to pull artifacts from
         #
         # @note on windows, the +:ruby_arch+ host parameter can determine in addition
@@ -1229,12 +1248,15 @@ module Beaker
             opts[:download_url] = "#{opts[:pe_promoted_builds_url]}/puppet-agent/#{ pe_ver }/#{ opts[:puppet_agent_version] }/repos"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:copy_dir_external]  ||= host.external_copy_base
-            opts[:puppet_collection] ||= 'PC1'
             add_role(host, 'aio') #we are installing agent, so we want aio role
             release_path = opts[:download_url]
             variant, version, arch, codename = host['platform'].to_array
             copy_dir_local = File.join(opts[:copy_base_local], variant)
             onhost_copy_base = opts[:copy_dir_external]
+
+            # TODO: allow pe_puppet_agent_promoted_package_info to take nil
+            # as an argument for puppet_collection
+            opts[:puppet_collection] ||= '5'
 
             release_path_end, release_file, download_file =
               host.pe_puppet_agent_promoted_package_info(
