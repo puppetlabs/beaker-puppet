@@ -1090,23 +1090,27 @@ module Beaker
         #   install_puppet_agent_dev_repo_on(host, { :puppet_agent_sha => 'd3377feaeac173aada3a2c2cedd141eb610960a7', :puppet_agent_version => '1.1.1.225.gd3377fe'  })
         #
         # @return nil
-        def install_puppet_agent_dev_repo_on( hosts, opts )
+        def install_puppet_agent_dev_repo_on( hosts, global_opts )
 
-          opts[:puppet_agent_version] ||= opts[:version] #backward compatability
-          if not opts[:puppet_agent_version]
+          global_opts[:puppet_agent_version] ||= global_opts[:version] #backward compatability
+          if not global_opts[:puppet_agent_version]
             raise "must provide :puppet_agent_version (puppet-agent version) for install_puppet_agent_dev_repo_on"
           end
-          # TODO consolidate these values as they serve no purpose from beaker's side
-          # you could provide any values you could to one to the other
-          puppet_agent_version = opts[:puppet_agent_sha] || opts[:puppet_agent_version]
-
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
-          opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{ puppet_agent_version }/repos/"
-          opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
-          opts[:puppet_collection]  ||= 'PC1'
-          release_path = opts[:download_url]
 
           block_on hosts do |host|
+            opts = global_opts.dup
+
+            # TODO consolidate these values as they serve no purpose from beaker's side
+            # you could provide any values you could to one to the other
+            puppet_agent_version = opts[:puppet_agent_sha] || opts[:puppet_agent_version]
+
+            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{ puppet_agent_version }/repos/"
+            opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
+            opts[:puppet_collection]  ||= 'PC1'
+
+            release_path = opts[:download_url]
+
             variant, version, arch, codename = host['platform'].to_array
             add_role(host, 'aio') #we are installing agent, so we want aio role
             copy_dir_local = File.join(opts[:copy_base_local], variant)
