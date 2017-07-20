@@ -1267,7 +1267,7 @@ module Beaker
             cmdline_args = ''
             # query packages
             case host[:platform]
-            when /cumulus|huaweios/
+            when /cumulus|huaweios|ubuntu/
               pkgs = on(host, "dpkg-query -l  | awk '{print $2}' | grep -E '(^pe-|puppet)'", :acceptable_exit_codes => [0,1]).stdout.chomp.split(/\n+/)
             when /aix|sles|el|redhat|centos|oracle|scientific/
               pkgs = on(host, "rpm -qa  | grep -E '(^pe-|puppet)'", :acceptable_exit_codes => [0,1]).stdout.chomp.split(/\n+/)

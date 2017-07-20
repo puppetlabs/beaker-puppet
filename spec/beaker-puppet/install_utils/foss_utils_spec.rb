@@ -1300,7 +1300,8 @@ describe ClassMixedWithDSLInstallUtils do
                               'scientific-7-x86_64',
                               'sles-10-x86_64',
                               'sles-11-x86_64',
-                              'sles-12-s390x'
+                              'sles-12-s390x',
+                              'ubuntu-16.04-power8'
                             ]
 
     supported_platforms.each do |platform|
@@ -1322,9 +1323,9 @@ describe ClassMixedWithDSLInstallUtils do
       end
     end
 
-    let(:ubuntu12) { make_host('ubuntu-1204-amd64', :platform => 'ubuntu-1204-amd64') }
+    let(:debian6) { make_host('debian-6-amd64', :platform => 'debian-6-amd64') }
     it 'raises error on unsupported platforms' do
-      expect { subject.remove_puppet_on( ubuntu12 ) }.to raise_error(RuntimeError, /unsupported platform/)
+      expect { subject.remove_puppet_on( debian6 ) }.to raise_error(RuntimeError, /unsupported platform/)
     end
 
   end
