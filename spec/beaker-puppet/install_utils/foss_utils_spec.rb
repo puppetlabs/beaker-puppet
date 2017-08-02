@@ -305,6 +305,7 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'installs puppet on cygwin windows' do
       allow(subject).to receive(:link_exists?).and_return( true )
+      allow(winhost).to receive(:is_x86_64?).and_return( false )
       expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.7.1.msi\" -O http://downloads.puppetlabs.com/windows/puppet-3.7.1.msi")
       expect(subject).to receive(:on).with(winhost, " echo 'export PATH=$PATH:\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\"' > /etc/bash.bashrc ")
       expect(subject).to receive(:install_msi_on).with(winhost, "#{win_temp}\\puppet-3.7.1.msi", {}, {:debug => nil})
@@ -1048,6 +1049,7 @@ describe ClassMixedWithDSLInstallUtils do
       host = winhost
       external_copy_base = 'tmp_install_windows_copy_base_1325'
       allow( host ).to receive( :external_copy_base ).and_return( external_copy_base )
+      allow( host ).to receive( :is_x86_64? ).and_return( false )
       host['platform'] = platform
       opts = { :version => '0.1.0' }
       allow( subject ).to receive( :options ).and_return( {} )
@@ -1159,6 +1161,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect( subject ).to receive( :install_msi_on ).with( any_args )
       copy_base = 'copy_base_cygwin'
       allow( host ).to receive( :external_copy_base ).and_return( copy_base )
+      allow( host ).to receive( :is_x86_64? ).and_return( false )
       expect( subject ).to receive( :scp_to ).with( host, /puppet-agent-1\.0\.0-x86\.msi/, /#{copy_base}/ )
       expect( subject ).to receive( :configure_type_defaults_on ).with(host)
       expect( subject ).to receive( :fetch_http_file ).with( /[^\/]\z/, anything, anything )
