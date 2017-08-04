@@ -602,7 +602,7 @@ module Beaker
 
             if host.is_cygwin?
               # NOTE: it is critical that -o be before -O on Windows
-              on host, "curl -o \"#{msi_download_path}\" -O #{link}"
+              on host, "export http_proxy=#{opts[:package_proxy]}  && curl -o \"#{msi_download_path}\" -O #{link}"
 
               #Because the msi installer doesn't add Puppet to the environment path
               #Add both potential paths for simplicity
