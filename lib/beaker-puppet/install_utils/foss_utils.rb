@@ -997,11 +997,6 @@ module Beaker
         #                                  pushing them to the given host.
         # @param [Hash{Symbol=>String}] opts Options to alter execution.
         # @option opts [String] :dev_builds_url The URL to look for dev builds.
-        # @option opts [String, Array<String>] :dev_builds_repos The repo(s)
-        #                                       to check for dev builds in.
-        #
-        # @note puppet-agent requires :dev_builds_repos to be set to the
-        #   puppet collection(s) to set the build server URL appropriately.
         #
         # @note This method only works on redhat-like and debian-like hosts.
         #
@@ -1121,7 +1116,6 @@ module Beaker
               if arch== 's390x' || host['hypervisor'] == 'ec2'
                 logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
               else
-                opts[:dev_builds_repos] ||= [ opts[:puppet_collection] ]
                 install_puppetlabs_dev_repo( host, 'puppet-agent', puppet_agent_version, nil, opts )
                 host.install_package('puppet-agent')
                 logger.trace("#install_puppet_agent_dev_repo_on: install_puppetlabs_dev_repo finished")
