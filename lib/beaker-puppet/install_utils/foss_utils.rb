@@ -744,17 +744,26 @@ module Beaker
         #                             Empty string if none found.
         # @api private
         def get_latest_puppet_agent_build_from_url(url)
-          require 'nokogiri'
-          require 'open-uri'
-          page = Nokogiri::HTML(open("#{url}/?C=M;O=A"))
-          agents = page.css('a').children.select{ |link| link.to_s.include? 'puppet-agent' }
-          re =  /puppet-agent-(.*)-1/
-          latest_match = agents[-1].to_s.match re
+          require 'oga'
+          require 'net/http'
+          body = Net::HTTP.get(URI.parse("#{url}/index_by_lastModified_reverse.html"))
+          document = Oga.parse_html(body)
+          agents = document.xpath('//a[contains(@href, "puppet-agent")]')
+
+          latest_match = agents.shift.attributes[0].value
+          while (latest_match =~ /puppet-agent-\d(.*)/).nil?
+            latest_match = agents.shift.attributes[0].value
+          end
+
+          re  =  /puppet-agent-(.*)-/
+          latest_match = latest_match.match re
+
           if latest_match
             latest = latest_match[1]
           else
             latest = ''
           end
+          return latest
         end
 
         # Installs Puppet and dependencies from OpenBSD packages

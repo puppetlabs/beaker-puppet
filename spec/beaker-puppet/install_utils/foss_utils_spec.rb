@@ -2,6 +2,7 @@ require 'spec_helper'
 
 class ClassMixedWithDSLInstallUtils
   include Beaker::DSL::InstallUtils
+  include Beaker::DSL::InstallUtils::FOSSUtils
   include Beaker::DSL::Wrappers
   include Beaker::DSL::Helpers
   include Beaker::DSL::Structure
@@ -1325,6 +1326,20 @@ describe ClassMixedWithDSLInstallUtils do
       expect { subject.remove_puppet_on( debian6 ) }.to raise_error(RuntimeError, /unsupported platform/)
     end
 
+  end
+
+  describe '#get_latest_puppet_agent_build_from_url' do
+    let(:urls) {['https://downloads.puppetlabs.com/mac/10.9/PC1/x86_64',
+            'https://downloads.puppetlabs.com/mac/10.10/PC1/x86_64',
+            'https://downloads.puppetlabs.com/mac/10.11/PC1/x86_64',
+            'https://downloads.puppetlabs.com/mac/10.12/PC1/x86_64',
+            'https://downloads.puppetlabs.com/windows']}
+
+    it "gets the right version" do
+      urls.each do |url|
+        expect(subject.get_latest_puppet_agent_build_from_url(url)).to match(/\d*.\d*.\d*/)
+      end
+    end
   end
 
 end
