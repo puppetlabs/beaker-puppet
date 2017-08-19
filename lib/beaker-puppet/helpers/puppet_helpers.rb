@@ -427,8 +427,9 @@ module Beaker
         #                      by the caller; this can be used for additional
         #                      validation, etc.
         #
-        # @return [Array<Result>, Result, nil] An array of results, a result object,
-        #   or nil. Check {#run_block_on} for more details on this.
+        # @return [Array<Result>, Result, nil] An array of results, a result
+        #   object, or nil. Check {Beaker::Shared::HostManager#run_block_on} for
+        #   more details on this.
         def apply_manifest_on(host, manifest, opts = {}, &block)
           block_on host, opts do | host |
             on_options = {}

@@ -972,9 +972,27 @@ module Beaker
           repo_config_folder_url = "%s/%s/%s/repo_configs/%s/" %
             [ buildserver_url, package_name, build_version, host.repo_type ]
 
-          repo = fetch_http_file( repo_config_folder_url,
-                                  repo_filename,
-                                  copy_dir )
+          repo_config_url = "#{ repo_config_folder_url }/#{ repo_filename }"
+          install_repo_configs_from_url( host, repo_config_url, copy_dir )
+        end
+
+        # Installs the repo configs on a given host
+        #
+        # @param [Beaker::Host] host Host to install configs on
+        # @param [String] repo_config_url URL to the repo configs
+        # @param [String] copy_dir Local directory to fetch files into & SCP out of
+        #
+        # @return nil
+        def install_repo_configs_from_url(host, repo_config_url, copy_dir = nil)
+          copy_dir ||= Dir.mktmpdir
+          repoconfig_filename = File.basename(  repo_config_url )
+          repoconfig_folder   = File.dirname(   repo_config_url )
+
+          repo = fetch_http_file(
+            repoconfig_folder,
+            repoconfig_filename,
+            copy_dir
+          )
 
           if host[:platform] =~ /cisco_nexus/
             to_path = "#{host.package_config_dir}/#{File.basename(repo)}"
