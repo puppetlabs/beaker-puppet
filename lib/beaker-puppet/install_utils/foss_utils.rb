@@ -609,7 +609,12 @@ module Beaker
               puppetbin_path = "\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\""
               on host, %Q{ echo 'export PATH=$PATH:#{puppetbin_path}' > /etc/bash.bashrc }
             else
-              on host, powershell("$webclient = New-Object System.Net.WebClient; $webclient.Proxy = New-Object System.Net.WebProxy('#{opts[:package_proxy]}',$true); $webclient.DownloadFile('#{link}','#{msi_download_path}')")
+              if opts[:package_proxy]
+                on host, powershell("$webclient = New-Object System.Net.WebClient; $webclient.Proxy = New-Object System.Net.WebProxy('#{opts[:package_proxy]}',$true); $webclient.DownloadFile('#{link}','#{msi_download_path}')")
+              else
+                on host, powershell("$webclient = New-Object System.Net.WebClient; $webclient.DownloadFile('#{link}','#{msi_download_path}')")
+
+              end
             end
 
             opts = { :debug => host[:pe_debug] || opts[:pe_debug] }
