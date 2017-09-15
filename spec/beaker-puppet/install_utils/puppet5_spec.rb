@@ -234,6 +234,28 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_from_build_data_url( 'project_name', 'project_sha' )
     end
 
+    it 'calls #configure_type_defaults_on one host if set' do
+      allow( subject ).to receive( :fetch_build_details )
+      allow( subject ).to receive( :host_urls )
+      allow( subject ).to receive( :install_artifact_on )
+
+      expect( subject ).to receive( :configure_type_defaults_on ).with( hosts[0] ).once
+      subject.install_from_build_data_url( 'project_name', 'project_sha', host[0] )
+    end
+
+    it 'calls #configure_type_defaults_on custom array of hosts if set' do
+      allow( subject ).to receive( :fetch_build_details )
+      allow( subject ).to receive( :host_urls )
+      allow( subject ).to receive( :install_artifact_on )
+
+      custom_host_list = hosts.sample(1 + rand(hosts.count))
+
+      custom_host_list do |host|
+        expect( subject ).to receive( :configure_type_defaults_on ).with( host ).once
+      end
+      subject.install_from_build_data_url( 'project_name', 'project_sha', custom_host_list )
+    end
+
     it 'passes the artifact_url from #hosts_artifact_url to #install_artifact_on' do
       allow( subject ).to receive( :fetch_build_details )
       allow( subject ).to receive( :configure_type_defaults_on )

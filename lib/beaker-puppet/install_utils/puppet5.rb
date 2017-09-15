@@ -139,11 +139,13 @@ module BeakerPuppet
       # @param [String] project_name Name of the project to install
       # @param [String] sha_yaml_url URL to the <SHA>.yaml file containing the
       #    build details
+      # @param [String or Array] hosts Optional string or array of host or hosts to
+      #    install on
       #
       # @note This install method only works for Puppet versions >= 5.0
       #
       # @return nil
-      def install_from_build_data_url(project_name, sha_yaml_url)
+      def install_from_build_data_url(project_name, sha_yaml_url, local_hosts = nil)
         if !link_exists?( sha_yaml_url )
           message = <<-EOF
             <SHA>.yaml URL '#{ sha_yaml_url }' does not exist.
@@ -153,7 +155,10 @@ module BeakerPuppet
         end
 
         base_url, build_details = fetch_build_details( sha_yaml_url )
-        hosts.each do |host|
+
+        install_targets = local_hosts.nil? ? hosts : Array(local_hosts)
+
+        install_targets.each do |host|
           artifact_url, repoconfig_url = host_urls( host, build_details, base_url )
           if repoconfig_url.nil?
             install_artifact_on( host, artifact_url, project_name )
