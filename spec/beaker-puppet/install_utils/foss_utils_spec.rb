@@ -270,16 +270,10 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   context 'install_puppet_from_rpm_on' do
-    it 'installs PC1 release repo when AIO' do
-      expect(subject).to receive(:install_puppetlabs_release_repo).with(el6hostaio,'pc1',{})
+    it 'installs puppet release repo' do
+      expect(subject).to receive(:install_puppetlabs_release_repo).with(el6hostaio,nil,{})
 
       subject.install_puppet_from_rpm_on( el6hostaio, {}  )
-    end
-
-    it 'installs non-PC1 package when not-AIO' do
-      expect(subject).to receive(:install_puppetlabs_release_repo).with(el6hostfoss,nil,{})
-
-      subject.install_puppet_from_rpm_on( el6hostfoss, {}  )
     end
   end
 
@@ -449,7 +443,7 @@ describe ClassMixedWithDSLInstallUtils do
     context 'on el-6' do
       let(:platform) { Beaker::Platform.new('el-6-i386') }
       it 'installs' do
-        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppetlabs-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppet-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
         expect(hosts[0]).to receive(:install_package).with('puppet')
         subject.install_puppet
       end
@@ -457,7 +451,7 @@ describe ClassMixedWithDSLInstallUtils do
         InParallel::InParallelExecutor.logger = logger
         FakeFS.deactivate!
         hosts.each{ |host|
-          allow(host).to receive(:install_package_with_rpm).with(/puppetlabs-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+          allow(host).to receive(:install_package_with_rpm).with(/puppet-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
           allow(host).to receive(:install_package).with('puppet')
         }
         opts[:run_in_parallel] = true
@@ -479,7 +473,7 @@ describe ClassMixedWithDSLInstallUtils do
     context 'on el-5' do
       let(:platform) { Beaker::Platform.new('el-5-i386') }
       it 'installs' do
-        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppetlabs-release-el-5\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppet-release-el-5\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
         expect(hosts[0]).to receive(:install_package).with('puppet')
         subject.install_puppet
       end
@@ -487,7 +481,7 @@ describe ClassMixedWithDSLInstallUtils do
     context 'on fedora' do
       let(:platform) { Beaker::Platform.new('fedora-18-x86_84') }
       it 'installs' do
-        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppetlabs-release-fedora-18\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppet-release-fedora-18\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
         expect(hosts[0]).to receive(:install_package).with('puppet')
         subject.install_puppet
       end
@@ -669,12 +663,46 @@ describe ClassMixedWithDSLInstallUtils do
       let( :platform ) { Beaker::Platform.new('debian-7-i386') }
 
       it "downloads a deb file, installs, and updates the apt cache." do
-        expect(subject).to receive(:on).with( host, /wget .*/ ).ordered
+        expect(subject).to receive(:on).with( host, /wget .*puppet-release-.*\.deb/ ).ordered
         expect(subject).to receive(:on).with( host, /dpkg .*/ ).ordered
         expect(subject).to receive(:on).with( host, "apt-get update" ).ordered
         subject.install_puppetlabs_release_repo host
       end
 
+    end
+
+    describe "when a repo name is passed" do
+      describe "on yum-based platforms" do
+        let( :platform ) { Beaker::Platform.new('el-7-x86_64') }
+
+        it "installs the old style puppetlabs-release-pc1 packages if repo = 'pc1'" do
+          expect(host).to receive(:execute).with( /rpm .*puppetlabs-release-pc1-el-7\.noarch\.rpm/ )
+          subject.install_puppetlabs_release_repo( host, 'pc1' )
+        end
+
+        it "installed the correct specified major version series release packages" do
+          expect(host).to receive(:execute).with( /rpm .*puppet9-release-el-7\.noarch\.rpm/ )
+          subject.install_puppetlabs_release_repo( host, '9' )
+        end
+      end
+
+      describe "on apt-based platforms" do
+        let( :platform ) { Beaker::Platform.new('debian-8-i386') }
+
+        it "installs the old style puppetlabs-release-pc1 packages if repo = 'pc1'" do
+          expect(subject).to receive(:on).with( host, /wget .*puppetlabs-release-pc1-jessie\.deb/ ).ordered
+          expect(subject).to receive(:on).with( host, /dpkg .*/ ).ordered
+          expect(subject).to receive(:on).with( host, "apt-get update" ).ordered
+          subject.install_puppetlabs_release_repo( host, 'pc1' )
+        end
+
+        it "installed the correct specified major version series release packages" do
+          expect(subject).to receive(:on).with( host, /wget .*puppet9-release-jessie\.deb/ ).ordered
+          expect(subject).to receive(:on).with( host, /dpkg .*/ ).ordered
+          expect(subject).to receive(:on).with( host, "apt-get update" ).ordered
+          subject.install_puppetlabs_release_repo( host, '9' )
+        end
+      end
     end
 
   end
@@ -693,7 +721,7 @@ describe ClassMixedWithDSLInstallUtils do
         let( :platform ) { Beaker::Platform.new( 'cisco_nexus-7-x86_64' ) }
 
         it 'calls host.install_package' do
-          expect( host ).to receive( :install_package ).with( /\.rpm$/ )
+          expect( host ).to receive( :install_package ).with( /puppet-release.*\.rpm$/ )
           subject.install_puppetlabs_release_repo_on( host )
         end
       end
@@ -702,7 +730,7 @@ describe ClassMixedWithDSLInstallUtils do
         let( :platform ) { Beaker::Platform.new( 'cisco_ios_xr-6-x86_64' ) }
 
         it 'uses yum localinstall to install the package' do
-          expect( subject ).to receive( :on ).with( host, /^yum.*localinstall.*\.rpm$/ )
+          expect( subject ).to receive( :on ).with( host, /^yum.*localinstall.*puppet-release.*\.rpm$/ )
           subject.install_puppetlabs_release_repo_on( host )
         end
       end
