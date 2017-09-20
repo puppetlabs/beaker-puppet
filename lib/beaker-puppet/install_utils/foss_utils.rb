@@ -332,6 +332,7 @@ module Beaker
         # @option opts [String] :mac_download_url Url to download msi pattern of %url%/puppet-agent-%version%.msi
         # @option opts [String] :win_download_url Url to download dmg pattern of %url%/puppet-agent-%version%.msi
         # @option opts [String] :puppet_collection Defaults to 'pc1'
+        # @option opts [String] :cmdline_args Defaults to ''
         # @option opts [Boolean] :run_in_parallel Whether to run on each host in parallel.
         #
         # @return nil
@@ -341,6 +342,7 @@ module Beaker
           opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
           opts[:puppet_collection] ||= 'pc1' #hi!  i'm case sensitive!  be careful!
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
+          opts[:cmdline_args] ||= ''
 
           run_in_parallel = run_in_parallel? opts, @options, 'install'
           block_on hosts, { :run_in_parallel => run_in_parallel } do |host|
@@ -370,7 +372,7 @@ module Beaker
 
             if package_name
               install_puppetlabs_release_repo( host, opts[:puppet_collection] )
-              host.install_package( package_name )
+              host.install_package( package_name, opts[:cmdline_args] )
             end
           end
         end
