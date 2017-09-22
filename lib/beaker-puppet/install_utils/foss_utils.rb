@@ -438,7 +438,9 @@ module Beaker
         # @api private
         def install_puppet_from_rpm_on( hosts, opts )
           block_on hosts do |host|
-            if host[:type] == 'aio'
+            if opts[:puppet_collection] && opts[:puppet_collection].match(/puppet\d*/)
+              install_puppetlabs_release_repo(host,opts[:puppet_collection],opts)
+            elsif host[:type] == 'aio'
               install_puppetlabs_release_repo(host,'pc1',opts)
             else
               install_puppetlabs_release_repo(host,nil,opts)
@@ -590,14 +592,22 @@ module Beaker
         end
 
         # @api private
+        def msi_link_path(host, opts)
+          if opts[:puppet_collection] && opts[:puppet_collection].match(/puppet\d*/)
+            link = "#{opts[:win_download_url]}/#{opts[:puppet_collection]}/#{host['dist']}.msi"
+          else
+            link = "#{opts[:win_download_url]}/#{host['dist']}.msi"
+          end
+          if not link_exists?( link )
+            raise "Puppet MSI at #{link} does not exist!"
+          end
+          link
+        end
+
+        # @api private
         def install_a_puppet_msi_on(hosts, opts)
           block_on hosts do |host|
-            link = "#{opts[:win_download_url]}/#{host['dist']}.msi"
-            if not link_exists?( link )
-              raise "Puppet MSI at #{link} does not exist!"
-            end
-
-
+            link = msi_link_path(host, opts)
             msi_download_path = "#{host.system_temp_path}\\#{host['dist']}.msi"
 
             if host.is_cygwin?
@@ -709,14 +719,18 @@ module Beaker
         # @api private
         def install_puppet_agent_from_dmg_on(hosts, opts)
           opts[:puppet_collection] ||= 'PC1'
-          opts[:puppet_collection] = opts[:puppet_collection].upcase #needs to be upcase, more lovely consistency
+          opts[:puppet_collection] = opts[:puppet_collection].upcase if opts[:puppet_collection].match(/pc1/i)
           block_on hosts do |host|
 
             add_role(host, 'aio') #we are installing agent, so we want aio role
 
             variant, version, arch, codename = host['platform'].to_array
 
-            download_url = "#{opts[:mac_download_url]}/#{version}/#{opts[:puppet_collection]}/#{arch}"
+            if opts[:puppet_collection].match(/puppet\d*/)
+              download_url = "#{opts[:mac_download_url]}/#{opts[:puppet_collection]}/#{version}/#{arch}"
+            else
+              download_url = "#{opts[:mac_download_url]}/#{version}/#{opts[:puppet_collection]}/#{arch}"
+            end
 
             latest = get_latest_puppet_agent_build_from_url(download_url)
 
@@ -913,7 +927,7 @@ module Beaker
         def install_puppetlabs_release_repo_on( hosts, repo = nil, opts = options )
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
-            repo_name = repo.nil? ? '' : '-' + repo
+            repo_name = repo || opts[:puppet_collection] || ''
             opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
 
             case variant
@@ -927,8 +941,14 @@ module Beaker
                 variant_url_value = 'cisco-wrlinux'
                 version = '7'
               end
-              remote = "%s/puppetlabs-release%s-%s-%s.noarch.rpm" %
-                [opts[:release_yum_repo_url], repo_name, variant_url_value, version]
+              if repo_name.match(/puppet\d*/)
+                remote = "%s/%s/%s-release-%s-%s.noarch.rpm" %
+                  [opts[:release_yum_repo_url], repo_name, repo_name, variant_url_value, version]
+              else
+                repo_name = '-' + repo_name unless repo_name.empty?
+                remote = "%s/puppetlabs-release%s-%s-%s.noarch.rpm" %
+                  [opts[:release_yum_repo_url], repo_name, variant_url_value, version]
+              end
 
               if variant == 'cisco_nexus'
                 # cisco nexus requires using yum to install the repo
@@ -943,7 +963,12 @@ module Beaker
               end
 
             when /^(debian|ubuntu|cumulus|huaweios)$/
-              deb = "puppetlabs-release%s-%s.deb" % [repo_name, codename]
+              if repo_name.match(/puppet\d*/)
+                deb = "%s-release-%s.deb" % [repo_name, codename]
+              else
+                repo_name = '-' + repo_name unless repo_name.empty?
+                deb = "puppetlabs-release%s-%s.deb" % [repo_name, codename]
+              end
 
               remote = URI.join( opts[:release_apt_repo_url], deb )
 

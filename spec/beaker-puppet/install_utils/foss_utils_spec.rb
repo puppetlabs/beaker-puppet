@@ -270,6 +270,12 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   context 'install_puppet_from_rpm_on' do
+    it 'installs puppet release repo when set' do
+      expect(subject).to receive(:install_puppetlabs_release_repo).with(el6hostaio,'puppet',{:puppet_collection => 'puppet'})
+
+      subject.install_puppet_from_rpm_on( el6hostaio, {:puppet_collection => 'puppet'}  )
+    end
+
     it 'installs PC1 release repo when AIO' do
       expect(subject).to receive(:install_puppetlabs_release_repo).with(el6hostaio,'pc1',{})
 
@@ -688,6 +694,55 @@ describe ClassMixedWithDSLInstallUtils do
       allow( subject ).to receive( :options ) { opts }
     end
 
+    context 'on el 7' do
+      let( :platform ) { Beaker::Platform.new( 'el-7-x86_64' ) }
+      it 'returns the correct url when repo is set to puppet8' do
+        expect( host ).to receive( :install_package_with_rpm ).with( /puppet8\/puppet8-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
+        subject.install_puppetlabs_release_repo_on( host, 'puppet8')
+      end
+      it 'returns the correct url when opts[:puppet_collection] is set to puppet14' do
+        expect( host ).to receive( :install_package_with_rpm ).with( /puppet14\/puppet14-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
+        subject.install_puppetlabs_release_repo_on( host, nil, {:puppet_collection => 'puppet14'})
+      end
+      it 'returns the correct url when both repo and opts[:puppet_collection] are nil' do
+        expect( host ).to receive( :install_package_with_rpm ).with( /puppetlabs-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
+        subject.install_puppetlabs_release_repo_on( host )
+      end
+      it 'returns the correct url when repo is set to pc1' do
+        expect( host ).to receive( :install_package_with_rpm ).with( /puppetlabs-release-pc1-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
+        subject.install_puppetlabs_release_repo_on( host, 'pc1' )
+      end
+    end
+
+    context 'on debian 8' do
+      let( :platform ) { Beaker::Platform.new( 'debian-8-i386' ) }
+      it 'returns the correct url when repo is set to puppet4' do
+        expect( subject ).to receive( :on ).with( host, /puppet4-release-jessie\.deb$/ ).once
+        expect( subject ).to receive( :on ).with( host, "dpkg -i --force-all /tmp/puppet.deb" ).once
+        expect( subject ).to receive( :on ).with( host, "apt-get update" ).once
+        subject.install_puppetlabs_release_repo_on( host, 'puppet4' )
+      end
+      it 'returns the correct url when opts[:puppet_collection] is set to puppet7' do
+        expect( subject ).to receive( :on ).with( host, /puppet7-release-jessie\.deb$/ ).once
+        expect( subject ).to receive( :on ).with( host, "dpkg -i --force-all /tmp/puppet.deb" ).once
+        expect( subject ).to receive( :on ).with( host, "apt-get update" ).once
+        subject.install_puppetlabs_release_repo_on( host, nil, {:puppet_collection => 'puppet7'} )
+      end
+      it 'returns the correct url when both repo and opts[:puppet_collection] are nil' do
+        expect( subject ).to receive( :on ).with( host, /puppetlabs-release-jessie\.deb$/ ).once
+        expect( subject ).to receive( :on ).with( host, "dpkg -i --force-all /tmp/puppet.deb" ).once
+        expect( subject ).to receive( :on ).with( host, "apt-get update" ).once
+        subject.install_puppetlabs_release_repo_on( host )
+      end
+      it 'returns the correct url when both repo is set to pc1' do
+        expect( subject ).to receive( :on ).with( host, /puppetlabs-release-pc1-jessie\.deb$/ ).once
+        expect( subject ).to receive( :on ).with( host, "dpkg -i --force-all /tmp/puppet.deb" ).once
+        expect( subject ).to receive( :on ).with( host, "apt-get update" ).once
+        subject.install_puppetlabs_release_repo_on( host, 'pc1' )
+      end
+    end
+
+
     context 'on cisco platforms' do
       context 'version 5' do
         let( :platform ) { Beaker::Platform.new( 'cisco_nexus-7-x86_64' ) }
@@ -817,19 +872,36 @@ describe ClassMixedWithDSLInstallUtils do
 
   end
 
+  describe '#msi_link_path' do
+    let( :opts )     { { :puppet_agent_version => 'VERSION', :win_download_url => 'http://downloads.puppetlabs.com/windows' } }
+    let( :platform ) { 'windows' }
+    let( :host )     { { :platform => platform, 'dist' => 'puppet-agent-VERSION-x64' } }
+
+    it 'returns the right link when puppet collection is set' do
+      allow(subject).to receive(:link_exists?).with(anything()).and_return( true )
+
+      expect(subject.msi_link_path( host, opts.merge({:puppet_collection => 'puppet'}) )).to eq "#{opts[:win_download_url]}/puppet/puppet-agent-VERSION-x64.msi"
+    end
+
+    it 'returns the right link when puppet collection is not set' do
+      expect(subject).to receive(:link_exists?).with(anything()).and_return( true )
+
+      expect(subject.msi_link_path( host, opts )).to eq "#{opts[:win_download_url]}/puppet-agent-VERSION-x64.msi"
+    end
+
+    it 'returns error when link incorrect' do
+      allow(subject).to receive(:link_exists?).with(anything()).and_return( false )
+
+      expect{
+        subject.msi_link_path( host, opts )
+      }.to raise_error(RuntimeError, /Puppet MSI at http:\/\/downloads.puppetlabs.com\/windows\/puppet-agent-VERSION-x64.msi does not exist!/)
+    end
+  end
+
   describe '#install_puppet_agent_from_msi_on' do
     let( :opts )     { { :puppet_agent_version => 'VERSION', :win_download_url => 'http://downloads.puppetlabs.com/windows' } }
     let( :platform ) { 'windows' }
     let( :host )     { { :platform => platform } }
-
-    it 'returns error when link incorrect' do
-      allow(subject).to receive(:link_exists?).with(anything()).and_return( false )
-      expect( host ).to receive( :is_x86_64? ).and_return( true )
-
-      expect{
-        subject.install_puppet_agent_from_msi_on( host, opts )
-      }.to raise_error(RuntimeError, /Puppet MSI at http:\/\/downloads.puppetlabs.com\/windows\/puppet-agent-VERSION-x64.msi does not exist!/)
-    end
 
     it 'uses x86 msi when host is_x86_64 and install_32 is set on the host' do
       host['install_32'] = true
