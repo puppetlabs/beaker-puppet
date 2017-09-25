@@ -16,7 +16,7 @@ end
 
 
 group :test do
-  gem "beaker", *location_for(ENV['BEAKER_VERSION'] || '~> 3.0')
+  gem "beaker", *location_for(ENV['BEAKER_VERSION'] || '~> 3.24')
 end
 
 
