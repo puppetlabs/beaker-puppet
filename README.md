@@ -53,3 +53,6 @@ file, or you can provide a beaker-hostgenerator value to the `TEST_TARGET`
 environment variable. You can also specify the tests that get executed with the
 `TESTS` environment variable.
 
+# Contributing
+
+Please refer to puppetlabs/beaker's [contributing](https://github.com/puppetlabs/beaker/blob/master/CONTRIBUTING.md) guide.
