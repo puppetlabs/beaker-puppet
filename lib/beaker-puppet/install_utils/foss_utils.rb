@@ -597,20 +597,24 @@ module Beaker
               raise "Puppet MSI at #{link} does not exist!"
             end
 
-
             msi_download_path = "#{host.system_temp_path}\\#{host['dist']}.msi"
 
             if host.is_cygwin?
               # NOTE: it is critical that -o be before -O on Windows
-              on host, "curl -o \"#{msi_download_path}\" -O #{link}"
-
+              proxy = opts[:package_proxy] ? "-x #{opts[:package_proxy]}" : ''
+              on host, "curl --connect-timeout 5 --retry 20 --retry-delay 10 #{proxy} -o \"#{msi_download_path}\" -O #{link}"
               #Because the msi installer doesn't add Puppet to the environment path
               #Add both potential paths for simplicity
               #NOTE - this is unnecessary if the host has been correctly identified as 'foss' during set up
               puppetbin_path = "\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\""
               on host, %Q{ echo 'export PATH=$PATH:#{puppetbin_path}' > /etc/bash.bashrc }
             else
-              on host, powershell("$webclient = New-Object System.Net.WebClient;  $webclient.DownloadFile('#{link}','#{msi_download_path}')")
+              if opts[:package_proxy]
+                on host, powershell("$webclient = New-Object System.Net.WebClient; $webclient.Proxy = New-Object System.Net.WebProxy('#{opts[:package_proxy]}',$true); $webclient.DownloadFile('#{link}','#{msi_download_path}')")
+              else
+                on host, powershell("$webclient = New-Object System.Net.WebClient; $webclient.DownloadFile('#{link}','#{msi_download_path}')")
+
+              end
             end
 
             opts = { :debug => host[:pe_debug] || opts[:pe_debug] }
