@@ -347,7 +347,7 @@ module Beaker
             add_role(host, 'aio') #we are installing agent, so we want aio role
             package_name = nil
             case host['platform']
-            when /el-|fedora|sles|centos|cisco_/
+            when /el-|redhat|fedora|sles|centos|cisco_/
               package_name = 'puppet-agent'
               package_name << "-#{opts[:puppet_agent_version]}" if opts[:puppet_agent_version]
             when /debian|ubuntu|cumulus|huaweios/
@@ -931,8 +931,8 @@ module Beaker
             opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
 
             case variant
-            when /^(fedora|el|centos|sles|cisco_nexus|cisco_ios_xr)$/
-              variant_url_value = (($1 == 'centos') ? 'el' : $1)
+            when /^(fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
+              variant_url_value = ((['redhat','centos'].include?($1)) ? 'el' : $1)
               if variant == 'cisco_nexus'
                 variant_url_value = 'cisco-wrlinux'
                 version = '5'
@@ -1056,7 +1056,7 @@ module Beaker
                                   repo_configs_dir = nil,
                                   opts = options )
           variant, version, arch, codename = host['platform'].to_array
-          if variant !~ /^(fedora|el|centos|debian|ubuntu|cumulus|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
+          if variant !~ /^(fedora|el|redhat|centos|debian|ubuntu|cumulus|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
             raise "No repository installation step for #{variant} yet..."
           end
           repo_configs_dir ||= 'tmp/repo_configs'
@@ -1069,7 +1069,7 @@ module Beaker
           # url type
           _, protocol, hostname = opts[:dev_builds_url].partition /.*:\/\//
           dev_builds_url = protocol + hostname
-          dev_builds_url = opts[:dev_builds_url] if variant =~ /^(fedora|el|centos)$/
+          dev_builds_url = opts[:dev_builds_url] if variant =~ /^(fedora|el|redhat|centos)$/
 
           install_repo_configs( host, dev_builds_url, package_name,
                                 build_version, platform_configs_dir )
@@ -1091,7 +1091,7 @@ module Beaker
           if host['platform'] =~ /debian|ubuntu|cumulus|huaweios/
             find_filename = '*.deb'
             find_command  = 'dpkg -i'
-          elsif host['platform'] =~ /fedora|el|centos/
+          elsif host['platform'] =~ /fedora|el|redhat|centos/
             find_filename = '*.rpm'
             find_command  = 'rpm -ivh'
           else
@@ -1164,7 +1164,7 @@ module Beaker
             onhost_copy_base = opts[:copy_dir_external] || host.external_copy_base
 
             case variant
-            when /^(fedora|el|centos|debian|ubuntu|cumulus|huaweios|cisco_nexus|cisco_ios_xr)$/
+            when /^(fedora|el|redhat|centos|debian|ubuntu|cumulus|huaweios|cisco_nexus|cisco_ios_xr)$/
               if arch== 's390x' || host['hypervisor'] == 'ec2'
                 logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
               else
@@ -1197,12 +1197,12 @@ module Beaker
             case variant
             when /^eos/
               host.install_from_file( release_file )
-            when /^(sles|aix|fedora|el|centos)$/
+            when /^(sles|aix|fedora|el|redhat|centos)$/
               # NOTE: AIX does not support repo management. This block assumes
               # that the desired rpm has been mirrored to the 'repos' location.
               # NOTE: the AIX 7.1 package will only install on 7.2 with
               # --ignoreos. This is a bug in package building on AIX 7.1's RPM
-              if variant == "aix" and version == "7.2"
+              if variant == "aix" && version == "7.2"
                 aix_72_ignoreos_hack = "--ignoreos"
               end
               on host, "rpm -ivh #{aix_72_ignoreos_hack} #{onhost_copied_file}"
