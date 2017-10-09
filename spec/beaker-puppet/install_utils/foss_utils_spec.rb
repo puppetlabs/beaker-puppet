@@ -1365,6 +1365,7 @@ describe ClassMixedWithDSLInstallUtils do
                               'cumulus-2.2-amd64',
                               'el-6-x86_64',
                               'redhat-7-x86_64',
+                              'rhel-7-x86_64',
                               'centos-7-x86_64',
                               'oracle-7-x86_64',
                               'scientific-7-x86_64',

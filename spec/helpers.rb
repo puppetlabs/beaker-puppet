@@ -135,6 +135,7 @@ module PlatformHelpers
   SYSTEMDPLATFORMS = ['el-7',
                       'centos-7',
                       'redhat-7',
+                      'rhel-7',
                       'oracle-7',
                       'scientific-7',
                       'eos-7'].concat(FEDORASYSTEMD)
@@ -145,6 +146,7 @@ module PlatformHelpers
                       'centos',
                       'fedora',
                       'redhat',
+                      'rhel',
                       'oracle',
                       'scientific',
                       'eos'].concat(FEDORASYSTEMV)

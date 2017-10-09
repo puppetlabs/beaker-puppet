@@ -69,7 +69,7 @@ module Beaker
         # @api private
         def ezbake_validate_support host
           variant, version, _, _ = host['platform'].to_array
-          unless variant =~ /^(fedora|el|centos|debian|ubuntu)$/
+          unless variant =~ /^(fedora|el|rhel|redhat|centos|debian|ubuntu)$/
             raise RuntimeError,
                   "No support for #{variant} within ezbake_utils ..."
           end
