@@ -98,7 +98,9 @@ module BeakerPuppet
           onhost_package_file = "#{ project_name }*"
         end
 
-        if variant == 'eos'
+        if variant == 'windows'
+          install_msi_on(host, artifact_url)
+        elsif variant == 'eos'
           # TODO Will be refactored into {Beaker::Host#install_local_package}
           #   immediately following this work. The release timing makes it
           #   necessary to have this here separately for a short while
