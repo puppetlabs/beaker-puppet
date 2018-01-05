@@ -86,37 +86,30 @@ module BeakerPuppet
       # @return nil
       def install_artifact_on(host, artifact_url, project_name)
         variant, _, _, _ = host[:platform].to_array
-        onhost_package_file = nil
-        if variant == 'eos'
-          host.get_remote_file( artifact_url )
-          onhost_package_file = File.basename( artifact_url )
-        elsif variant == 'solaris'
-          artifact_filename = File.basename( artifact_url )
-          artifact_folder = File.dirname( artifact_url )
-          fetch_http_file( artifact_folder, artifact_filename, '.' )
-          onhost_package_dir = host.tmpdir( 'puppet_installer' )
-          scp_to host, artifact_filename, onhost_package_dir
-          onhost_package_file = "#{ onhost_package_dir }/#{ artifact_filename }"
-        elsif variant == 'osx'
-          on host, "curl -O #{ artifact_url }"
-          onhost_package_file = "#{ project_name }*"
-        end
-
-        if variant == 'windows'
-          install_msi_on(host, artifact_url)
-        elsif variant == 'eos'
+        case variant
+        when 'eos'
+          host.get_remote_file(artifact_url)
+          onhost_package_file = File.basename(artifact_url)
           # TODO Will be refactored into {Beaker::Host#install_local_package}
           #   immediately following this work. The release timing makes it
           #   necessary to have this here separately for a short while
-          host.install_from_file( onhost_package_file )
-        elsif onhost_package_file
-          if onhost_package_dir
-            host.install_local_package( onhost_package_file, '.' )
-          else
-            host.install_local_package( onhost_package_file )
-          end
+          host.install_from_file(onhost_package_file)
+        when 'solaris'
+          artifact_filename = File.basename(artifact_url)
+          artifact_folder = File.dirname(artifact_url)
+          fetch_http_file(artifact_folder, artifact_filename, '.')
+          onhost_package_dir = host.tmpdir('puppet_installer')
+          scp_to host, artifact_filename, onhost_package_dir
+          onhost_package_file = "#{onhost_package_dir}/#{artifact_filename}"
+          host.install_local_package(onhost_package_file, '.')
+        when 'osx'
+          on host, "curl -O #{artifact_url}"
+          onhost_package_file = "#{project_name}*"
+          host.install_local_package(onhost_package_file)
+        when 'windows'
+          install_msi_on(host, artifact_url)
         else
-          host.install_package( artifact_url )
+          host.install_package(artifact_url)
         end
       end
 
