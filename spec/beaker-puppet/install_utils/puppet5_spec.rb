@@ -159,6 +159,15 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_artifact_on( host, artifact_url, 'project_name' )
     end
 
+    it 'installs from a file on EOS' do
+      @platform = 'eos'
+
+      expect(host).to receive(:get_remote_file).with(artifact_url)
+      expect(host).to receive(:install_from_file).with(File.basename(artifact_url))
+
+      subject.install_artifact_on(host, artifact_url, 'project_name')
+    end
+
     it 'install an MSI from a URL on Windows' do
       @platform = 'windows'
 
