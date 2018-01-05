@@ -24,10 +24,6 @@ module BeakerPuppet
         )
         file_hash = YAML.load_file( sha_yaml_file_local_path )
 
-        logger.debug("YAML HASH BELOW:")
-        logger.debug(file_hash)
-        logger.debug("PLATFORM_DATA BELOW:")
-        logger.debug(file_hash[:platform_data])
         return sha_yaml_folder_url, file_hash[:platform_data]
       end
 
