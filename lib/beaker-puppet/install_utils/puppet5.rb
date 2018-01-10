@@ -81,7 +81,7 @@ module BeakerPuppet
       #
       # @return nil
       def install_artifact_on(host, artifact_url, project_name)
-        variant, _, _, _ = host[:platform].to_array
+        variant, version, _, _ = host[:platform].to_array
         case variant
         when 'eos'
           host.get_remote_file(artifact_url)
@@ -104,6 +104,23 @@ module BeakerPuppet
           host.install_local_package(onhost_package_file)
         when 'windows'
           install_msi_on(host, artifact_url)
+        when 'aix'
+          artifact_filename = File.basename(artifact_url)
+          artifact_folder = File.dirname(artifact_url)
+          fetch_http_file(artifact_folder, artifact_filename, '.')
+          onhost_package_dir = host.tmpdir('puppet_installer')
+          scp_to host, artifact_filename, onhost_package_dir
+          onhost_package_file = "#{onhost_package_dir}/#{artifact_filename}"
+
+          # TODO Will be refactored into {Beaker::Host#install_local_package}
+          #   immediately following this work. The release timing makes it
+          #   necessary to have this here seperately for a short while
+          # NOTE: the AIX 7.1 package will only install on 7.2 with
+          # --ignoreos. This is a bug in package building on AIX 7.1's RPM
+          if version == "7.2"
+            aix_72_ignoreos_hack = "--ignoreos"
+          end
+          on host, "rpm -ivh #{aix_72_ignoreos_hack} #{onhost_package_file}"
         else
           host.install_package(artifact_url)
         end
