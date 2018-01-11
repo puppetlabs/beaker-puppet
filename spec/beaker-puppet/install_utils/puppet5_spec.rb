@@ -139,9 +139,10 @@ describe ClassMixedWithDSLInstallUtils do
 
     let( :artifact_url ) { 'url://in/the/jungle/lies/the/prize.pnc' }
     let( :platform ) { @platform || 'linux' }
+    let( :version ) { @version || '' }
     let( :mock_platform ) {
       mock_platform = Object.new
-      allow( mock_platform ).to receive( :to_array ) { [platform, '', '', ''] }
+      allow( mock_platform ).to receive( :to_array ) { [platform, version, '', ''] }
       mock_platform
     }
     let( :host ) {
@@ -197,6 +198,33 @@ describe ClassMixedWithDSLInstallUtils do
 
         expect( subject ).to receive( :on ).with( host, /^curl.*#{artifact_url}$/ )
         run_shared_test_steps()
+      end
+
+      it 'AIX: fetches the file & runs local install' do
+        @platform = 'aix'
+        @version = '7.2'
+
+        expect( subject ).to receive( :fetch_http_file ).once
+        expect( subject ).to receive( :scp_to ).once
+        expect( subject ).to receive( :on ).with( host, /^rpm -ivh --ignoreos .*#{File.basename(artifact_url)}$/ ).once
+
+        expect( host ).to receive( :install_local_package ).never
+        expect( host ).to receive( :install_package ).never
+        subject.install_artifact_on( host, artifact_url, 'project_name' )
+      end
+
+      it 'AIX 6.1: fetches the file & runs local install' do
+        @platform = 'aix'
+        @version = '6.1'
+
+        expect( subject ).to receive( :fetch_http_file ).once
+        expect( subject ).to receive( :scp_to ).once
+        expect( subject ).to receive( :on ).with( host, /^rpm -ivh .*#{File.basename(artifact_url)}$/ ).once
+        expect( subject ).not_to receive( :on ).with( host, /^rpm -ivh --ignoreos .*#{File.basename(artifact_url)}$/ )
+
+        expect( host ).to receive( :install_local_package ).never
+        expect( host ).to receive( :install_package ).never
+        subject.install_artifact_on( host, artifact_url, 'project_name' )
       end
 
     end
