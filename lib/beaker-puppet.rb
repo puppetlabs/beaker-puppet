@@ -3,6 +3,8 @@ require 'in_parallel'
 require 'beaker-puppet/version'
 require 'beaker-puppet/wrappers'
 
+require 'beaker-puppet/helpers/rake_helpers'
+
 [ 'aio', 'foss' ].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_defaults"
 end
