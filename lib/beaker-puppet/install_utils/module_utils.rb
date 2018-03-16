@@ -107,17 +107,17 @@ module Beaker
         #
         def copy_module_to(one_or_more_hosts, opts = {})
           block_on one_or_more_hosts do |host|
-            opts = {:source => './',
-                    :target_module_path => host['distmoduledir'],
-                    :ignore_list => PUPPET_MODULE_INSTALL_IGNORE}.merge(opts)
+            host_opts = {:source => './',
+                         :target_module_path => host['distmoduledir'],
+                         :ignore_list => PUPPET_MODULE_INSTALL_IGNORE}.merge(opts)
 
-            ignore_list = build_ignore_list(opts)
-            target_module_dir = on( host, "echo #{opts[:target_module_path]}" ).stdout.chomp
-            source_path = File.expand_path( opts[:source] )
+            ignore_list = build_ignore_list(host_opts)
+            target_module_dir = on( host, "echo #{host_opts[:target_module_path]}" ).stdout.chomp
+            source_path = File.expand_path( host_opts[:source] )
             source_dir = File.dirname(source_path)
             source_name = File.basename(source_path)
-            if opts.has_key?(:module_name)
-              module_name = opts[:module_name]
+            if host_opts.has_key?(:module_name)
+              module_name = host_opts[:module_name]
             else
               _, module_name = parse_for_modulename( source_path )
             end
@@ -127,8 +127,8 @@ module Beaker
               target_path = target_path.gsub(/\//,'\\')
             end
 
-            opts[:protocol] ||= 'scp'
-            case opts[:protocol]
+            host_opts[:protocol] ||= 'scp'
+            case host_opts[:protocol]
             when 'scp'
               #move to the host
               logger.debug "Using scp to transfer #{source_path} to #{target_path}"
