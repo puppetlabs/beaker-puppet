@@ -22,7 +22,6 @@ where <target> is one of:
   ci:test:git
   ci:test:aio
   ci:test:gem
-  ci:test:quick
 
 See `bundle exec rake -D <target>` for information about each target. Each rake
 task accepts the following environment variables:
@@ -33,7 +32,7 @@ REQUIRED
 SHA:
     The git SHA of either the puppet-agent package or component repo must be
     specified depending on the target. The `git` and `gem` use the component
-    SHA, where as `aio` and `quick` use the puppet-agent package SHA.
+    SHA, where as `aio` uses the puppet-agent package SHA.
 
 OPTIONAL
 --------
@@ -47,8 +46,7 @@ HOSTS:
 
 TESTS:
     A comma-delimited list of files/directories containing tests to run.
-    Defaults to running all tests, except for `ci:test:quick` which defaults
-    to running a predefined set of tests.
+    Defaults to running all tests.
 
     TESTS=tests/cycle_detection.rb
     TESTS=tests/pluginsync,tests/language
