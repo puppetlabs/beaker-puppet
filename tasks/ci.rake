@@ -196,7 +196,8 @@ def beaker_suite(type)
 end
 
 def pre_suites(type)
-  beaker_root = File.dirname(__dir__)
+  beaker_root = Pathname.new(File.dirname(__dir__)).relative_path_from(Pathname.new(Dir.pwd))
+
   presuites = case type
   when :aio
     [
