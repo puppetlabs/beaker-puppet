@@ -964,13 +964,13 @@ module Beaker
 
             when /^(debian|ubuntu|cumulus|huaweios)$/
               if repo_name.match(/puppet\d*/)
-                deb = "%s-release-%s.deb" % [repo_name, codename]
+                remote = "%s/%s-release-%s.deb" %
+                  [opts[:release_apt_repo_url], repo_name, codename]
               else
                 repo_name = '-' + repo_name unless repo_name.empty?
-                deb = "puppetlabs-release%s-%s.deb" % [repo_name, codename]
+                remote = "%s/puppetlabs-release%s-%s.deb" %
+                  [opts[:release_apt_repo_url], repo_name, codename]
               end
-
-              remote = URI.join( opts[:release_apt_repo_url], deb )
 
               on host, "wget -O /tmp/puppet.deb #{remote}"
               on host, "dpkg -i --force-all /tmp/puppet.deb"

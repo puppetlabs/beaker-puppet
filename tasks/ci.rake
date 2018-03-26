@@ -202,7 +202,9 @@ def pre_suites(type)
   when :aio
     [
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
-      "#{beaker_root}/setup/aio/010_Install.rb",
+      "#{beaker_root}/setup/aio/010_Install_Puppet_Agent.rb",
+      "#{beaker_root}/setup/aio/011_Install_Puppet_Server.rb",
+      "#{beaker_root}/setup/aio/012_Finalize_Installs.rb",
       "#{beaker_root}/setup/aio/020_InstallCumulusModules.rb",
       "#{beaker_root}/setup/aio/021_InstallAristaModule.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",
