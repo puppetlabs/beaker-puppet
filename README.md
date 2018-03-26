@@ -56,3 +56,13 @@ environment variable. You can also specify the tests that get executed with the
 # Contributing
 
 Please refer to puppetlabs/beaker's [contributing](https://github.com/puppetlabs/beaker/blob/master/CONTRIBUTING.md) guide.
+
+# Releasing
+
+To release new versions of beaker-puppet, please use the [jenkins job](https://cinext-jenkinsmaster-sre-prod-1.delivery.puppetlabs.net/job/qe_beaker-puppet_init-multijob_master/). This job
+lives on internal infrastructure.
+
+To run the job, click on `Build with Parameters` in the menu on the left. Make
+sure you check the box next to `PUBLIC` and enter the appropriate version. The
+version should adhere to semantic version standards. When in doubt, consult the
+maintainers of Beaker for guidance.
