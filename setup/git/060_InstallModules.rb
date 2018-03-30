@@ -62,6 +62,8 @@ def install_scp_module(mod, hosts)
   scp_to hosts, mod[:url].split(':', 2)[1], target
 end
 
+test_name 'Install Puppet Modules'
+
 modules = PuppetModules.new(options[:modules]).list
 
 step "Masters: Install Puppet Modules"
