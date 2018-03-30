@@ -191,6 +191,7 @@ def beaker_suite(type)
   beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
   beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(type))
+  beaker(:exec, 'pre-suite')
   beaker(:exec, ENV['TESTS'])
   beaker(:destroy)
 end
