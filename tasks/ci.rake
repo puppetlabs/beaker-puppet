@@ -11,6 +11,11 @@ REPO_CONFIGS_DIR = 'repo-configs'
 CLEAN.include('*.tar', REPO_CONFIGS_DIR, 'tmp', '.beaker')
 
 # Default test target if none specified
+# TODO There are some projects that do not need to test against a master. It
+# might be worth it to distinguish between these two scenarios so that we are
+# maximizing our available resources. As it, we are allocating a master for all
+# runs. Luckily, that master is also classified as an agent, so it's not a total
+# waste of resources.
 DEFAULT_MASTER_TEST_TARGET = 'redhat7-64m'
 DEFAULT_TEST_TARGETS = "#{DEFAULT_MASTER_TEST_TARGET}a-windows2012r2-64a"
 
