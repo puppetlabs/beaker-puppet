@@ -193,6 +193,7 @@ def beaker_suite(type)
   beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(type))
   beaker(:exec, 'pre-suite')
   beaker(:exec, ENV['TESTS'])
+  beaker(:exec, 'post-suite')
   beaker(:destroy)
 end
 
