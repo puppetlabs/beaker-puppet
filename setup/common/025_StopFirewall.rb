@@ -1,4 +1,5 @@
 test_name "Stop firewall" do
+  skip_test 'not testing with puppetserver' unless @options['is_puppetserver']
   hosts.each do |host|
     case host['platform']
     when /debian/

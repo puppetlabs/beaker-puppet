@@ -11,6 +11,11 @@ REPO_CONFIGS_DIR = 'repo-configs'
 CLEAN.include('*.tar', REPO_CONFIGS_DIR, 'tmp', '.beaker')
 
 # Default test target if none specified
+# TODO There are some projects that do not need to test against a master. It
+# might be worth it to distinguish between these two scenarios so that we are
+# maximizing our available resources. As it, we are allocating a master for all
+# runs. Luckily, that master is also classified as an agent, so it's not a total
+# waste of resources.
 DEFAULT_MASTER_TEST_TARGET = 'redhat7-64m'
 DEFAULT_TEST_TARGETS = "#{DEFAULT_MASTER_TEST_TARGET}a-windows2012r2-64a"
 
@@ -191,7 +196,9 @@ def beaker_suite(type)
   beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
   beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(type))
+  beaker(:exec, 'pre-suite')
   beaker(:exec, ENV['TESTS'])
+  beaker(:exec, 'post-suite')
   beaker(:destroy)
 end
 
@@ -206,7 +213,8 @@ def pre_suites(type)
       "#{beaker_root}/setup/aio/011_Install_Puppet_Server.rb",
       "#{beaker_root}/setup/aio/012_Finalize_Installs.rb",
       "#{beaker_root}/setup/aio/020_InstallCumulusModules.rb",
-      "#{beaker_root}/setup/aio/021_InstallAristaModule.rb",
+      "#{beaker_root}/setup/aio/021_InstallAristaModuleMasters.rb",
+      "#{beaker_root}/setup/aio/022_InstallAristaModuleAgents.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",
       "#{beaker_root}/setup/common/030_StopSssd.rb",
       "#{beaker_root}/setup/common/040_ValidateSignCert.rb",
@@ -222,6 +230,7 @@ def pre_suites(type)
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
       "#{beaker_root}/setup/git/000_EnvSetup.rb",
       "#{beaker_root}/setup/git/010_TestSetup.rb",
+      "#{beaker_root}/setup/git/011_SetMaster.rb",
       "#{beaker_root}/setup/git/020_PuppetUserAndGroup.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",
       "#{beaker_root}/setup/git/030_PuppetMasterSanity.rb",

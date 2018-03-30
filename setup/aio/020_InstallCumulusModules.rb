@@ -1,5 +1,6 @@
 platforms = hosts.map{|val| val[:platform]}
 skip_test "No cumulus hosts present" unless platforms.any? { |val| /cumulus/ =~ val }
+skip_test "not testing with puppetserver" unless @options['is_puppetserver']
 confine :to, {}, hosts.select { |host| host[:roles].include?('master') }
 
 step 'install Cumulus Modules on masters' do
