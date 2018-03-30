@@ -64,6 +64,8 @@ end
 
 test_name 'Install Puppet Modules'
 
+skip_test 'not testing with puppetserver' unless @options['is_puppetserver']
+
 modules = PuppetModules.new(options[:modules]).list
 
 step "Masters: Install Puppet Modules"

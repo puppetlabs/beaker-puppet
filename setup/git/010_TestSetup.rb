@@ -77,21 +77,6 @@ END
     end
   end
 
-  step "Hosts: create basic puppet.conf" do
-    hosts.each do |host|
-      confdir = host.puppet['confdir']
-      on host, "mkdir -p #{confdir}"
-      puppetconf = File.join(confdir, 'puppet.conf')
-
-      if host['roles'].include?('agent')
-        on host, "echo '[agent]' > '#{puppetconf}' && " +
-                 "echo server=#{master} >> '#{puppetconf}'"
-      else
-        on host, "touch '#{puppetconf}'"
-      end
-    end
-  end
-
   step "Hosts: create environments directory like AIO does" do
     hosts.each do |host|
       codedir = host.puppet['codedir']

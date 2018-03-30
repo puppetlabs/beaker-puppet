@@ -2,6 +2,8 @@ extend BeakerPuppet::Install::Puppet5
 extend Beaker::DSL::InstallUtils::FOSSUtils
 
 test_name "Install Puppet Server" do
+  skip_test "not testing with puppetserver" unless @options['is_puppetserver']
+
   server_version = ENV['SERVER_VERSION'] || 'latest'
   release_stream = ENV['RELEASE_STREAM'] || 'puppet'
   nightly_builds_url = ENV['NIGHTLY_BUILDS_URL'] || 'http://nightlies.puppet.com'
