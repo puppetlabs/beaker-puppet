@@ -73,6 +73,43 @@ MASTER_TEST_TARGET:
     Override the default master test target. Should only be used with
     TEST_TARGET, and is only intended to be used in CI. Defaults to
     #{DEFAULT_MASTER_TEST_TARGET}.
+
+DEV_BUILDS_URL:
+    Override the url where we look for development builds of packages to test.
+    Defaults to https://builds.delivery.puppetlabs.net
+
+NIGHTLY_BUILDS_URL:
+    Override the url where we look for nightly builds of packages to test.
+    Defaults to https://nightlies.puppet.com
+
+RELEASE_STREAM
+    The release stream for the puppet family you want to test. This defaults to 'puppet',
+    which is the current latest release stream. Other options are currently published streams
+    like 'puppet5' or 'puppet6'. This is currently only used when accessing repos on
+    nightlies.puppet.com
+
+SERVER_VERSION:
+    The version of puppetserver to test against. This defaults to 'latest' if unset.
+    When it defaults to latest, it will attept to pull packages from NIGHTLY_BUILDS_URL
+    from the RELEASE_STREAM repo.
+
+FORK:
+    Used to build a github url. If unset, this defaults to 'puppetlabs'. This can be used to
+    point acceptance to pull a repo to test from a personal fork.
+
+$project_FORK:
+    Similar to FORK, but project specific. If you have only one project (i.e., hiera) that you
+    wanted to test from a different fork then all the others, you could set HIERA_FORK=melissa,
+    you would get back 'https://github.com/melissa/hiera.git'.
+
+SERVER:
+    Used to build a github url. If unset, this defaults to 'github.com'. This can be used to
+    pull a github repo from a unique server location.
+
+$project_SERVER:
+    Similar to SERVER, but project specific. If you have only one project (i.e., hiera) that you
+    want to pull from a different server then all the others, you could set HIERA_SERVER=179.0.0.1,
+    and you would get back 'https://179.0.0.1/puppetlabs-hiera.git'.
 EOS
 
 namespace :ci do
