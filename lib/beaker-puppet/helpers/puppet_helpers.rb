@@ -726,13 +726,6 @@ module Beaker
         def stop_agent_on(agent, opts = {})
           block_on agent, opts do | host |
             vardir = host.puppet_configprint['vardir']
-            agent_running = true
-            while agent_running
-              agent_running = host.file_exist?("#{vardir}/state/agent_catalog_run.lock")
-              if agent_running
-                sleep 2
-              end
-            end
 
             # In 4.0 this was changed to just be `puppet`
             agent_service = 'puppet'
@@ -757,6 +750,16 @@ module Beaker
             else
               on host, puppet_resource('service', agent_service, 'ensure=stopped')
             end
+
+            #Ensure that a puppet run that was started before the last lock check is completed
+            agent_running = true
+            while agent_running
+              agent_running = host.file_exist?("#{vardir}/state/agent_catalog_run.lock")
+              if agent_running
+                sleep 2
+              end
+            end
+
           end
         end
 
