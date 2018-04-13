@@ -24,9 +24,7 @@ module Beaker
         # @see install_dev_puppet_module
         def install_dev_puppet_module_on( host, opts )
           if options[:forge_host]
-            with_forge_stubbed_on( host ) do
-              install_puppet_module_via_pmt_on( host, opts )
-            end
+            install_puppet_module_via_pmt_on( host, opts )
           else
             copy_module_to( host, opts )
           end
@@ -73,6 +71,14 @@ module Beaker
             puppet_opts = {}
             if host[:default_module_install_opts].respond_to? :merge
               puppet_opts = host[:default_module_install_opts].merge( puppet_opts )
+            end
+
+            if options[:forge_host]
+              if options[:forge_host] =~ /^http/
+                puppet_opts[:module_repository] = options[:forge_host]
+              else
+                puppet_opts[:module_repository] = "https://#{options[:forge_host]}"
+              end
             end
 
             on h, puppet("module install #{modname} #{version_info}", puppet_opts)

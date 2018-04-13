@@ -617,6 +617,9 @@ module Beaker
         # forge api v1 canonical source is forge.puppetlabs.com
         # forge api v3 canonical source is forgeapi.puppetlabs.com
         #
+        # @deprecated this method should not be used because stubbing the host
+        # breaks TLS validation.
+        #
         # @param machine [String] the host to perform the stub on
         # @param forge_host [String] The URL to use as the forge alias, will default to using :forge_host in the
         #                             global options hash
@@ -638,6 +641,9 @@ module Beaker
         # forge api v1 canonical source is forge.puppetlabs.com
         # forge api v3 canonical source is forgeapi.puppetlabs.com
         #
+        # @deprecated this method should not be used because stubbing the host
+        # breaks TLS validation.
+        #
         # @param host [String] the host to perform the stub on
         # @param forge_host [String] The URL to use as the forge alias, will default to using :forge_host in the
         #                             global options hash
@@ -653,12 +659,18 @@ module Beaker
 
         # This wraps `with_forge_stubbed_on` and provides it the default host
         # @see with_forge_stubbed_on
+        #
+        # @deprecated this method should not be used because stubbing the host
+        # breaks TLS validation.
         def with_forge_stubbed( forge_host = nil, &block )
           with_forge_stubbed_on( default, forge_host, &block )
         end
 
         # This wraps the method `stub_hosts` and makes the stub specific to
         # the forge alias.
+        #
+        # @deprecated this method should not be used because stubbing the host
+        # breaks TLS validation.
         #
         # @see #stub_forge_on
         def stub_forge(forge_host = nil)

@@ -34,15 +34,12 @@ describe ClassMixedWithDSLInstallUtils do
         master = hosts.first
         allow( subject ).to receive( :options ).and_return( {:forge_host => 'ahost.com'} )
 
-        expect( subject ).to receive( :with_forge_stubbed_on )
-
         subject.install_dev_puppet_module_on( master, {:source => '/module', :module_name => 'test'} )
       end
 
       it 'installs via #install_puppet_module_via_pmt' do
         master = hosts.first
         allow( subject ).to receive( :options ).and_return( {:forge_host => 'ahost.com'} )
-        allow( subject ).to receive( :with_forge_stubbed_on ).and_yield
 
         expect( subject ).to receive( :install_puppet_module_via_pmt_on )
 
@@ -78,6 +75,7 @@ describe ClassMixedWithDSLInstallUtils do
   describe '#install_puppet_module_via_pmt_on' do
     it 'installs module via puppet module tool' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
+      allow( subject ).to receive( :options ).and_return( {} )
       master = hosts.first
 
       allow( subject ).to receive( :on ).once
@@ -88,12 +86,37 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'takes the trace option and passes it down correctly' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
+      allow( subject ).to receive( :options ).and_return( {} )
       master = hosts.first
       trace_opts = { :trace => nil }
       master['default_module_install_opts'] = trace_opts
 
       allow( subject ).to receive( :on ).once
       expect( subject ).to receive( :puppet ).with('module install test ', trace_opts).once
+
+      subject.install_puppet_module_via_pmt_on( master, {:module_name => 'test'} )
+    end
+
+    it 'takes the forge_host option as a hostname and passes it down correctly' do
+      allow( subject ).to receive( :hosts ).and_return( hosts )
+      allow( subject ).to receive( :options ).and_return( {:forge_host => 'forge.example.com'} )
+      master = hosts.first
+      forge_opts = { :module_repository => 'https://forge.example.com' }
+
+      allow( subject ).to receive( :on ).once
+      expect( subject ).to receive( :puppet ).with('module install test ', forge_opts).once
+
+      subject.install_puppet_module_via_pmt_on( master, {:module_name => 'test'} )
+    end
+
+    it 'takes the forge_host option as a url and passes it down correctly' do
+      allow( subject ).to receive( :hosts ).and_return( hosts )
+      allow( subject ).to receive( :options ).and_return( {:forge_host => 'http://forge.example.com'} )
+      master = hosts.first
+      forge_opts = { :module_repository => 'http://forge.example.com' }
+
+      allow( subject ).to receive( :on ).once
+      expect( subject ).to receive( :puppet ).with('module install test ', forge_opts).once
 
       subject.install_puppet_module_via_pmt_on( master, {:module_name => 'test'} )
     end
