@@ -8,7 +8,7 @@ require 'beaker/dsl/install_utils'
 extend Beaker::DSL::InstallUtils
 
 REPO_CONFIGS_DIR = 'repo-configs'
-CLEAN.include('*.tar', REPO_CONFIGS_DIR, 'tmp', '.beaker')
+CLEAN.include('*.tar', REPO_CONFIGS_DIR, 'tmp', '.beaker', 'log', 'junit')
 
 # Default test target if none specified
 # TODO There are some projects that do not need to test against a master. It
