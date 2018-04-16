@@ -190,7 +190,9 @@ EOS
       beaker(:provision)
       beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(:gem))
       beaker(:exec, "#{File.dirname(__dir__)}/setup/gem/010_GemInstall.rb")
-      beaker(:destroy) unless ENV['OPTIONS'].include?('--preserve-hosts=always')
+
+      preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
+      beaker(:destroy) unless preserve_hosts
     end
 
     desc <<-EOS
@@ -236,7 +238,9 @@ def beaker_suite(type)
   beaker(:exec, 'pre-suite')
   beaker(:exec, ENV['TESTS'])
   beaker(:exec, 'post-suite')
-  beaker(:destroy) unless ENV['OPTIONS'].include?('--preserve-hosts=always')
+
+  preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
+  beaker(:destroy) unless preserve_hosts
 end
 
 def pre_suites(type)
