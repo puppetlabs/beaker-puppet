@@ -14,17 +14,13 @@ test_name "Validate Sign Cert" do
   step "Clear SSL on all hosts"
   hosts.each do |host|
     ssldir = on(host, puppet('agent --configprint ssldir')).stdout.chomp
-    on(host, "rm -rf '#{ssldir}'")
+    on(host, "rm -rf '#{ssldir}/*'")
   end
 
   step "Master: Start Puppet Master" do
     master_opts = {
       :main => {
         :dns_alt_names => "puppet,#{hostname},#{fqdn}",
-      },
-      :__service_args__ => {
-        # apache2 service scripts can't restart if we've removed the ssl dir
-        :bypass_service_script => true,
       },
     }
     with_puppet_running_on(master, master_opts) do

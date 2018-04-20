@@ -43,32 +43,19 @@ describe ClassMixedWithDSLHelpers do
     context 'with no user argument' do
 
       context 'with no path name argument' do
-        context 'without puppet installed on host' do
-          it 'raises an error' do
-            cmd = "the command"
-            allow(result).to receive(:exit_code).and_return(1)
-            expect(Beaker::Command).to receive(:new).with(/puppet master --configprint user/, [], {"ENV"=>{}, :cmdexe=>true}).and_return(cmd)
-            expect(subject).to receive(:on).with(host, cmd).and_return(result)
-            expect{
-              subject.create_tmpdir_for_user host
-            }.to raise_error(RuntimeError, /`puppet master --configprint` failed,/)
-          end
-        end
-        context 'with puppet installed on host' do
-          it 'executes chown once' do
-            cmd = "the command"
-            expect(Beaker::Command).to receive(:new).with(/puppet master --configprint user/, [], {"ENV"=>{}, :cmdexe=>true}).and_return(cmd)
-            expect(subject).to receive(:on).with(host, cmd).and_return(result)
-            expect(subject).to receive(:create_tmpdir_on).with(host, /\/tmp\/beaker/, /puppet/)
-            subject.create_tmpdir_for_user(host)
-          end
+        it 'executes chown once' do
+          cmd = "the command"
+          expect(Beaker::Command).to receive(:new).with(/puppet config print user --section master/, [], {"ENV"=>{}, :cmdexe=>true}).and_return(cmd)
+          expect(subject).to receive(:on).with(host, cmd).and_return(result)
+          expect(subject).to receive(:create_tmpdir_on).with(host, /\/tmp\/beaker/, /puppet/)
+          subject.create_tmpdir_for_user(host)
         end
       end
 
       context 'with path name argument' do
         it 'executes chown once' do
           cmd = "the command"
-          expect(Beaker::Command).to receive(:new).with(/puppet master --configprint user/, [], {"ENV"=>{}, :cmdexe=>true}).and_return(cmd)
+          expect(Beaker::Command).to receive(:new).with(/puppet config print user --section master/, [], {"ENV"=>{}, :cmdexe=>true}).and_return(cmd)
           expect(subject).to receive(:on).with(host, cmd).and_return(result)
           expect(subject).to receive(:create_tmpdir_on).with(host, /\/tmp\/bogus/, /puppet/)
           subject.create_tmpdir_for_user(host, "/tmp/bogus")
@@ -748,11 +735,9 @@ describe ClassMixedWithDSLHelpers do
         stub_post_setup
         allow( subject ).to receive( :options) .and_return( {:is_puppetserver => true})
         allow( subject ).to receive( :modify_tk_config)
-        allow( host ).to receive(:puppet).with( any_args ).and_return({
-          'confdir' => default_confdir,
-          'vardir' => default_vardir,
-          'config' => "#{default_confdir}/puppet.conf"
-        })
+        allow( subject ).to receive(:puppet_config).with(host, 'confdir', anything).and_return(default_confdir)
+        allow( subject ).to receive(:puppet_config).with(host, 'vardir', anything).and_return(default_vardir)
+        allow( subject ).to receive(:puppet_config).with(host, 'config', anything).and_return("#{default_confdir}/puppet.conf")
       end
 
       describe 'when the global option for :is_puppetserver is false' do
@@ -973,7 +958,7 @@ describe ClassMixedWithDSLHelpers do
             execution = 0
             expect do
               subject.with_puppet_running_on(host, {}) do
-                expect(host).to execute_commands_matching(/^puppet master/).exactly(4).times
+                expect(host).to execute_commands_matching(/^puppet master/).once
                 execution += 1
               end
             end.to change { execution }.by(1)
@@ -990,7 +975,7 @@ describe ClassMixedWithDSLHelpers do
             execution = 0
             expect do
               subject.with_puppet_running_on(host, { :restart_when_done => true }) do
-                expect(host).to execute_commands_matching(/^puppet master/).exactly(4).times
+                expect(host).to execute_commands_matching(/^puppet master/).once
                 execution += 1
               end
             end.to change { execution }.by(1)
@@ -1002,19 +987,17 @@ describe ClassMixedWithDSLHelpers do
 
       describe 'backup and restore of puppet.conf' do
         before :each do
-          mock_puppetconf_reader = Object.new
-          allow( mock_puppetconf_reader ).to receive( :[] ).with( 'config' ).and_return( '/root/mock/puppet.conf' )
-          allow( mock_puppetconf_reader ).to receive( :[] ).with( 'confdir' ).and_return( '/root/mock' )
-          allow( host ).to receive( :puppet ).with( any_args ).and_return( mock_puppetconf_reader )
+          allow(subject).to receive(:puppet_config).with(host, 'confdir', anything).and_return('/root/mock')
+          allow(subject).to receive(:puppet_config).with(host, 'config', anything).and_return('/root/mock/puppet.conf')
         end
 
-        let(:original_location) { host.puppet['config'] }
+        let(:original_location) { '/root/mock/puppet.conf' }
         let(:backup_location) {
-          filename = File.basename(host.puppet['config'])
+          filename = File.basename(original_location)
           File.join(tmpdir_path, "#{filename}.bak")
         }
         let(:new_location) {
-          filename = File.basename(host.puppet['config'])
+          filename = File.basename(original_location)
           File.join(tmpdir_path, filename)
         }
 
