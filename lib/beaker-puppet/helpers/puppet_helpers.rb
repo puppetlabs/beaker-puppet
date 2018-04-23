@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'timeout'
 require 'inifile'
 require 'resolv'
@@ -47,6 +48,18 @@ module Beaker
         #     running the command.
         #
 
+        # Read a setting from the puppet master config
+        #
+        # @param [Host] host The host
+        # @param [String] setting The setting to read
+        #
+        def puppet_config(host, setting, section: nil)
+          command = "config print #{setting}"
+          command += " --section #{section}" if section
+
+          on(host, puppet(command)).stdout.strip
+        end
+
         # Return the name of the puppet user.
         #
         # @param [Host] host One object that acts like a Beaker::Host
@@ -54,7 +67,7 @@ module Beaker
         # @note This method assumes puppet is installed on the host.
         #
         def puppet_user(host)
-          return host.puppet('master')['user']
+          puppet_config(host, 'user', section: 'master')
         end
 
         # Return the name of the puppet group.
@@ -64,7 +77,7 @@ module Beaker
         # @note This method assumes puppet is installed on the host.
         #
         def puppet_group(host)
-          return host.puppet('master')['group']
+          puppet_config(host, 'group', section: 'master')
         end
 
         # Test Puppet running in a certain run mode with specific options.
@@ -135,10 +148,10 @@ module Beaker
         #                             :master => {:masterlog => '/elswhere'},
         #                             :agent => {:server => 'localhost'} ) do
         #
-        #       ...tests to be ran...
+        #       ...tests to be run...
         #     end
         #
-        def with_puppet_running_on host, conf_opts, testdir = host.tmpdir(File.basename(@path)), &block
+        def with_puppet_running_on(host, conf_opts, testdir = host.tmpdir(File.basename(@path)), &block)
           raise(ArgumentError, "with_puppet_running_on's conf_opts must be a Hash. You provided a #{conf_opts.class}: '#{conf_opts}'") if !conf_opts.kind_of?(Hash)
           cmdline_args = conf_opts[:__commandline_args__]
           service_args = conf_opts[:__service_args__] || {}
@@ -151,8 +164,8 @@ module Beaker
           logger.debug "Setting curl retries to #{curl_retries}"
 
           if options[:is_puppetserver] || host[:is_puppetserver]
-            confdir = host.puppet('master')['confdir']
-            vardir = host.puppet('master')['vardir']
+            confdir = puppet_config(host, 'confdir', section: 'master')
+            vardir = puppet_config(host, 'vardir', section: 'master')
 
             if cmdline_args
               split_args = cmdline_args.split()
@@ -176,7 +189,10 @@ module Beaker
             modify_tk_config(host, puppetserver_conf, puppetserver_opts)
           end
           begin
-            backup_file = backup_the_file(host, host.puppet('master')['confdir'], testdir, 'puppet.conf')
+            backup_file = backup_the_file(host,
+                                          puppet_config(host, 'confdir', section: 'master'),
+                                          testdir,
+                                          'puppet.conf')
             lay_down_new_puppet_conf host, conf_opts, testdir
 
             if host.use_service_scripts? && !service_args[:bypass_service_script]
@@ -250,7 +266,7 @@ module Beaker
 
         # @!visibility private
         def restore_puppet_conf_from_backup( host, backup_file )
-          puppet_conf = host.puppet('master')['config']
+          puppet_conf = puppet_config(host, 'config', section: 'master')
 
           if backup_file
             host.exec( Command.new( "if [ -f '#{backup_file}' ]; then " +
@@ -278,7 +294,7 @@ module Beaker
 
         # @!visibility private
         def stop_puppet_from_source_on( host )
-          pid = host.exec( Command.new('cat `puppet master --configprint pidfile`') ).stdout.chomp
+          pid = host.exec( Command.new('cat `puppet config print --section master pidfile`') ).stdout.chomp
           host.exec( Command.new( "kill #{pid}" ) )
           Timeout.timeout(10) do
             while host.exec( Command.new( "kill -0 #{pid}"), :acceptable_exit_codes => [0,1] ).exit_code == 0 do
@@ -305,7 +321,7 @@ module Beaker
 
         # @!visibility private
         def lay_down_new_puppet_conf( host, configuration_options, testdir )
-          puppetconf_main = host.puppet('master')['config']
+          puppetconf_main = puppet_config(host, 'config', section: 'master')
           puppetconf_filename = File.basename(puppetconf_main)
           puppetconf_test = File.join(testdir, puppetconf_filename)
 
@@ -321,7 +337,7 @@ module Beaker
 
         # @!visibility private
         def puppet_conf_for host, conf_opts
-          puppetconf = host.exec( Command.new( "cat #{host.puppet('master')['config']}" ) ).stdout
+          puppetconf = host.exec( Command.new( "cat #{puppet_config(host, 'config', section: 'master')}" ) ).stdout
           new_conf   = IniFile.new(content: puppetconf).merge( conf_opts )
 
           new_conf
@@ -845,24 +861,15 @@ module Beaker
         # @param [String] name A remote path prefix for the new temp
         # directory. Default value is '/tmp/beaker'
         # @param [String] user The name of user that should own the temp
-        # directory. If no username is specified, use `puppet master
-        # --configprint user` to obtain username from master. Raise RuntimeError
+        # directory. If no username is specified, use `puppet config print user
+        # --section master` to obtain username from master. Raise RuntimeError
         # if this puppet command returns a non-zero exit code.
         #
         # @return [String] Returns the name of the newly-created dir.
         def create_tmpdir_for_user(host, name='/tmp/beaker', user=nil)
-          if not user
-            result = on host, puppet("master --configprint user")
-            if not result.exit_code == 0
-              raise "`puppet master --configprint` failed, check that puppet is installed on #{host} or explicitly pass in a user name."
-            end
-            user = result.stdout.strip
-          end
-
+          user ||= puppet_config(host, 'user', section: 'master')
           create_tmpdir_on(host, name, user)
-
         end
-
       end
     end
   end
