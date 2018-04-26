@@ -103,7 +103,11 @@ module BeakerPuppet
           onhost_package_file = "#{project_name}*"
           host.install_local_package(onhost_package_file)
         when 'windows'
-          generic_install_msi_on(host, artifact_url)
+          if project_name == 'puppet-agent'
+            install_msi_on(host, artifact_url)
+          else
+            generic_install_msi_on(host, artifact_url)
+          end
         when 'aix'
           artifact_filename = File.basename(artifact_url)
           artifact_folder = File.dirname(artifact_url)

@@ -169,6 +169,14 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_artifact_on(host, artifact_url, 'project_name')
     end
 
+    it 'install a puppet-agent MSI from a URL on Windows' do
+      @platform = 'windows'
+
+      expect(subject).to receive(:install_msi_on).with(host, artifact_url)
+
+      subject.install_artifact_on(host, artifact_url, 'puppet-agent')
+    end
+
     it 'install an MSI from a URL on Windows' do
       @platform = 'windows'
 
