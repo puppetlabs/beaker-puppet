@@ -950,6 +950,15 @@ module Beaker
                   [opts[:release_yum_repo_url], repo_name, variant_url_value, version]
               end
 
+              # sles 11 doesn't handle gpg keys well. We can't automatically
+              # import the keys because of sad things, so we have to manually
+              # import it once we install the release package. We'll have to
+              # remember to update this block when we update the signing keys
+              if variant == 'sles' && version == '11'
+                on host, "wget -O /tmp/puppet-gpg-key http://yum.puppetlabs.com/RPM-GPG-KEY-puppet"
+                on host, "rpm --import /tmp/puppet-gpg-key"
+              end
+
               if variant == 'cisco_nexus'
                 # cisco nexus requires using yum to install the repo
                 host.install_package( remote )
