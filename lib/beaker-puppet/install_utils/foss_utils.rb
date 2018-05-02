@@ -594,7 +594,12 @@ module Beaker
         # @api private
         def msi_link_path(host, opts)
           if opts[:puppet_collection] && opts[:puppet_collection].match(/puppet\d*/)
-            link = "#{opts[:win_download_url]}/#{opts[:puppet_collection]}/#{host['dist']}.msi"
+            url = if opts[:puppet_collection].match(/-nightly$/)
+                    opts[:nightly_win_download_url]
+                  else
+                    opts[:win_download_url]
+                  end
+            link = "#{url}/#{opts[:puppet_collection]}/#{host['dist']}.msi"
           else
             link = "#{opts[:win_download_url]}/#{host['dist']}.msi"
           end
@@ -727,7 +732,12 @@ module Beaker
             variant, version, arch, codename = host['platform'].to_array
 
             if opts[:puppet_collection].match(/puppet\d*/)
-              download_url = "#{opts[:mac_download_url]}/#{opts[:puppet_collection]}/#{version}/#{arch}"
+              url = if opts[:puppet_collection].match(/-nightly$/)
+                      opts[:nightly_mac_download_url]
+                    else
+                      opts[:mac_download_url]
+                    end
+              download_url = "#{url}/#{opts[:puppet_collection]}/#{version}/#{arch}"
             else
               download_url = "#{opts[:mac_download_url]}/#{version}/#{opts[:puppet_collection]}/#{arch}"
             end
@@ -942,8 +952,13 @@ module Beaker
                 version = '7'
               end
               if repo_name.match(/puppet\d*/)
+                url = if repo_name.match(/-nightly$/)
+                        opts[:nightly_yum_repo_url]
+                      else
+                        opts[:release_yum_repo_url]
+                      end
                 remote = "%s/%s/%s-release-%s-%s.noarch.rpm" %
-                  [opts[:release_yum_repo_url], repo_name, repo_name, variant_url_value, version]
+                  [url, repo_name, repo_name, variant_url_value, version]
               else
                 repo_name = '-' + repo_name unless repo_name.empty?
                 remote = "%s/puppetlabs-release%s-%s-%s.noarch.rpm" %
@@ -973,8 +988,13 @@ module Beaker
 
             when /^(debian|ubuntu|cumulus|huaweios)$/
               if repo_name.match(/puppet\d*/)
+                url = if repo_name.match(/-nightly$/)
+                        opts[:nightly_apt_repo_url]
+                      else
+                        opts[:release_apt_repo_url]
+                      end
                 remote = "%s/%s-release-%s.deb" %
-                  [opts[:release_apt_repo_url], repo_name, codename]
+                  [url, repo_name, codename]
               else
                 repo_name = '-' + repo_name unless repo_name.empty?
                 remote = "%s/puppetlabs-release%s-%s.deb" %
