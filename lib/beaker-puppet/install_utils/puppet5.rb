@@ -172,6 +172,14 @@ module BeakerPuppet
 
         install_targets.each do |host|
           artifact_url, repoconfig_url = host_urls( host, build_details, base_url )
+
+          # apt-get update on Ubuntu 18.04 fails when using our unsigned repos, so
+          # enable this apt config here instead of having to add a cmdline flag for
+          # every invocation of apt-get update:
+          if host['platform'] == 'ubuntu-18.04-amd64'
+            on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
+          end
+
           if repoconfig_url.nil?
             install_artifact_on( host, artifact_url, project_name )
           else
