@@ -1177,6 +1177,10 @@ module Beaker
               if arch== 's390x' || host['hypervisor'] == 'ec2'
                 logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
               else
+                if variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18
+                  # Allow the use of unsigned repos with Ubuntu 18.04+
+                  on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
+                end
                 install_puppetlabs_dev_repo( host, 'puppet-agent', puppet_agent_version, nil, opts )
                 host.install_package('puppet-agent')
                 logger.trace("#install_puppet_agent_dev_repo_on: install_puppetlabs_dev_repo finished")
