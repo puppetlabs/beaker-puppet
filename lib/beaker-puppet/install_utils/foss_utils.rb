@@ -252,7 +252,7 @@ module Beaker
         # @return nil
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
-        def install_puppet_on(hosts, opts={})
+        def install_puppet_on(hosts, opts = options)
           opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
 
           # If version isn't specified assume the latest in the 3.x series
