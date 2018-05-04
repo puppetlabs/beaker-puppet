@@ -1035,6 +1035,11 @@ module Beaker
           end
           scp_to( host, repo, to_path )
 
+          variant, version, arch, codename = host['platform'].to_array
+          if variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18
+            # Allow the use of unsigned repos with Ubuntu 18.04+
+            on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
+          end
           on( host, 'apt-get update' ) if host['platform'] =~ /ubuntu-|debian-|cumulus-|huaweios-/
           nil
         end
@@ -1079,6 +1084,11 @@ module Beaker
           _, protocol, hostname = opts[:dev_builds_url].partition /.*:\/\//
           dev_builds_url = protocol + hostname
           dev_builds_url = opts[:dev_builds_url] if variant =~ /^(fedora|el|centos)$/
+
+          if variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18
+            # Allow the use of unsigned repos with Ubuntu 18.04+
+            on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
+          end
 
           install_repo_configs( host, dev_builds_url, package_name,
                                 build_version, platform_configs_dir )
@@ -1177,10 +1187,6 @@ module Beaker
               if arch== 's390x' || host['hypervisor'] == 'ec2'
                 logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
               else
-                if variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18
-                  # Allow the use of unsigned repos with Ubuntu 18.04+
-                  on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
-                end
                 install_puppetlabs_dev_repo( host, 'puppet-agent', puppet_agent_version, nil, opts )
                 host.install_package('puppet-agent')
                 logger.trace("#install_puppet_agent_dev_repo_on: install_puppetlabs_dev_repo finished")
