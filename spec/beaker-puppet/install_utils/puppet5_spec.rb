@@ -78,6 +78,10 @@ describe ClassMixedWithDSLInstallUtils do
       details
     }
 
+    before :each do
+      allow( subject ).to receive( :host_packaging_platform ) { packaging_platform }
+    end
+
     it 'fails if there\'s no artifact value for the given platform' do
       allow( artifact_path ).to receive( :nil? ) { true }
       expect {
@@ -133,6 +137,41 @@ describe ClassMixedWithDSLInstallUtils do
       expect( repoconfig_url ).to be_nil
     end
 
+  end
+
+  describe "#host_packaging_platform" do
+    let( :default_platform ) { 'default-platform' }
+    let( :overridden_platform ) { 'overridden-platform' }
+    let( :overrides ) { 'default-platform=overridden-platform' || @overrides }
+    let( :host ) {
+      host = hosts[0]
+      allow( host ).to receive( :[] ).with( :packaging_platform ) { default_platform }
+      allow( host ).to receive( :[] ).with( :platform ) { default_platform }
+      host
+    }
+
+    before :each do
+      @original_platforms = ENV['BEAKER_PACKAGING_PLATFORMS']
+    end
+
+    after :each do
+      ENV['BEAKER_PACKAGING_PLATFORMS'] = @original_platforms
+    end
+
+    it "applies an override to a platform" do
+      ENV['BEAKER_PACKAGING_PLATFORMS'] = overrides
+      expect(subject.host_packaging_platform(host)).to eq(overridden_platform)
+    end
+
+    it "applies a list of overrides to a platform" do
+      ENV['BEAKER_PACKAGING_PLATFORMS'] = "aix-7.1-power=aix-6.1-power,#{overrides}"
+      expect(subject.host_packaging_platform(host)).to eq(overridden_platform)
+    end
+
+    it "doesn't apply overrides if the current host's platform isn't overridden" do
+      ENV['BEAKER_PACKAGING_PLATFORMS'] = "aix-7.1-power=aix-6.1-power"
+      expect(subject.host_packaging_platform(host)).to eq(default_platform)
+    end
   end
 
   describe '#install_artifact_on' do

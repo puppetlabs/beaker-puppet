@@ -27,7 +27,29 @@ module BeakerPuppet
         return sha_yaml_folder_url, file_hash[:platform_data]
       end
 
-      # gets the artifact & repo_config URLs for this host in the build
+      # Get the host's packaging platform, based on beaker-hostgenerator's
+      # osinfo hash and the environment. Set ENV['BEAKER_PACKAGING_PLATFORMS']
+      # to override the default packaging platform specified by
+      # beaker-hostgenerator. This should be a comma-separated string with
+      # entries of the format `<host-platform>=<override-platform>`
+      #
+      # @param [Host] host Host whose packaging platform to determine
+      # @return [String] The packaging platform
+      def host_packaging_platform(host)
+        packaging_platform = host[:packaging_platform]
+        if ENV['BEAKER_PACKAGING_PLATFORMS']
+          overrides = Hash[ENV['BEAKER_PACKAGING_PLATFORMS'].split(',').map { |e| e.split('=') }]
+          logger.debug("Found packaging platform overrides: #{overrides}")
+          if overrides[host[:platform]]
+            platform = overrides[host[:platform]]
+            logger.debug("Default beaker packaging platform '#{host[:packaging_platform]}' for '#{host[:platform]}' overridden as '#{platform}'")
+            packaging_platform = platform
+          end
+        end
+        packaging_platform
+      end
+
+      # Gets the artifact & repo_config URLs for this host in the build.
       #
       # @param [Host] host Host to get artifact URL for
       # @param [Hash] build_details Details of the build in a hash
@@ -36,7 +58,7 @@ module BeakerPuppet
       # @return [String, String] URL to the build artifact, URL to the repo_config
       #   (nil if there is no repo_config for this platform for this build)
       def host_urls(host, build_details, build_url)
-        packaging_platform = host[:packaging_platform]
+        packaging_platform = host_packaging_platform(host)
         if packaging_platform.nil?
           message = <<-EOF
             :packaging_platform not provided for host '#{host}', platform '#{host[:platform]}'
