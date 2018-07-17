@@ -1,4 +1,4 @@
-require "beaker/dsl/install_utils/windows_utils"
+require "beaker-puppet/install_utils/windows_utils"
 [ 'aio', 'foss' ].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_defaults"
 end

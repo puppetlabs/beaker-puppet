@@ -8,7 +8,7 @@ require 'beaker-puppet/helpers/rake_helpers'
 [ 'aio', 'foss' ].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_defaults"
 end
-[ 'foss', 'puppet', 'ezbake', 'module' ].each do |lib|
+[ 'windows', 'foss', 'puppet', 'ezbake', 'module' ].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_utils"
 end
 [ 'tk', 'facter', 'puppet' ].each do |lib|
@@ -23,6 +23,7 @@ module BeakerPuppet
     include Beaker::DSL::InstallUtils::FOSSDefaults
     include Beaker::DSL::InstallUtils::AIODefaults
 
+    include Beaker::DSL::InstallUtils::WindowsUtils
     include Beaker::DSL::InstallUtils::PuppetUtils
     include Beaker::DSL::InstallUtils::FOSSUtils
     include Beaker::DSL::InstallUtils::EZBakeUtils
