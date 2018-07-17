@@ -5,7 +5,7 @@ class ClassMixedWithDSLHelpers
   include Beaker::DSL::Wrappers
   include Beaker::DSL::Roles
   include Beaker::DSL::Patterns
-  # include Beaker::DSL::Helpers::FacterHelpers
+  include Beaker::DSL::Helpers::FacterHelpers
   # include Beaker::DSL::Wrappers
   # include BeakerTestHelpers
 
