@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class ClassMixedWithDSLInstallUtils
   include Beaker::DSL::Outcomes
-  include BeakerPuppet::Install::Puppet5
+  include Beaker::DSL::InstallUtils::Puppet5
 
   def logger
     @logger ||= RSpec::Mocks::Double.new('logger').as_null_object
