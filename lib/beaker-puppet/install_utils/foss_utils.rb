@@ -1414,6 +1414,7 @@ module Beaker
             :solaris_11    => /solaris-11/,
             :windows       => /windows/,
             :eos           => /^eos-/,
+            :sles          => /sles/,
           }.freeze
 
           check_if_exists = options[:check_if_exists]
