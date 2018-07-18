@@ -1,3 +1,5 @@
+require 'beaker-puppet'
+
 test_name "puppet install smoketest"
 
 step 'puppet install smoketest: verify \'facter --help\' can be successfully called on all hosts'

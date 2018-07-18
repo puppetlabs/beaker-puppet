@@ -1,11 +1,4 @@
-begin
-  $LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'lib'))
-
-  require 'helpers/test_helper'
-
-  require 'beaker/acceptance/install_utils'
-  extend Beaker::Acceptance::InstallUtils
-end
+require 'beaker-puppet'
 
 confine :except, :platform => /^solaris-10/
 
@@ -40,6 +33,7 @@ test_name 'Clone from git' do
   # implicitly tests build_giturl() and lookup_in_env()
   hosts.each do |host|
     on host, "echo #{GitHubSig} >> $HOME/.ssh/known_hosts"
+    # TODO: fix this when BKR-496 is done
     testdir = tmpdir_on(host, File.basename(__FILE__))
 
     step 'should be able to successfully clone a git repo' do

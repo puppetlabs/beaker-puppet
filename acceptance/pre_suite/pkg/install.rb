@@ -1,3 +1,5 @@
+require 'beaker-puppet'
+
 # the version is required on windows
 # all versions are required for osx
 install_puppet({

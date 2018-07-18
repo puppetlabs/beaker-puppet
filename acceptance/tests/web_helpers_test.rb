@@ -1,3 +1,5 @@
+require 'beaker-puppet'
+
 require 'webrick'
 require 'webrick/https'
 
