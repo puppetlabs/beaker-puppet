@@ -45,7 +45,7 @@ module Beaker
         options[:cmdexe] = true
         # we assume that an invocation with `puppet()` will have it's first argument
         # a face or sub command
-        if @options[:type] == 'git'
+        if @options && @options[:type] == 'git'
           cmd = "bundle exec puppet #{args.shift}"
         else
           cmd = "puppet #{args.shift}"
