@@ -75,7 +75,7 @@ step "Install puppet-runtime" do
   `git clone --depth 1 git@github.com:puppetlabs/puppet-runtime.git #{runtime_dir}`
   runtime_tag = nil
   Dir.chdir runtime_dir do
-    runtime_tag = `git describe --abbrev=0`.chomp
+    runtime_tag = `git describe --first-parent --abbrev=0`.chomp
   end
 
   step 'construct the runtime url'
