@@ -1,5 +1,3 @@
-require "helpers/test_helper"
-
 test_name "dsl::helpers::host_helpers #create_tmpdir_on" do
   step "#create_tmpdir_on returns a temporary directory on the remote system" do
     tmpdir = create_tmpdir_on default
