@@ -33,22 +33,39 @@ describe ClassMixedWithDSLHelpers do
 
   describe '#fact_on' do
     it 'retrieves a fact on a single host' do
-      result.stdout = "family\n"
-      expect( subject ).to receive(:facter).with('osfamily',{}).once
+      result.stdout = "{\"osfamily\": \"family\"}\n"
+      expect( subject ).to receive(:facter).with('osfamily',{json: nil}).once
       expect( subject ).to receive(:on).and_return(result)
 
-      expect( subject.fact_on('host','osfamily') ).to be === result.stdout.chomp
+      expect( subject.fact_on('host','osfamily') ).to be === JSON.parse(result.stdout)['osfamily']
     end
 
-    it 'chomps correctly when it receives an array of results from #on' do
-      result.stdout = "family\n"
+    it 'converts each element to a structured fact when it receives an array of results from #on' do
+      result.stdout = "{\"os\": {\"name\":\"name\", \"family\": \"family\"}}\n"
       times = hosts.length
       results_array = [result] * times
-      chomped_array = [result.stdout.chomp] * times
+      parsed_array = [JSON.parse(result.stdout)['os']] * times
       allow( subject ).to receive( :on ).and_return( results_array )
 
-      expect( subject.fact_on(hosts,'osfamily') ).to be === chomped_array
+      expect( subject.fact_on(hosts,'os') ).to be === parsed_array
+    end
 
+    it 'returns a single result for single host' do
+      result.stdout = "{\"osfamily\": \"family\"}\n"
+      parsed_result = JSON.parse(result.stdout)['osfamily']
+      allow( subject ).to receive( :on ).and_return( result )
+
+      expect( subject.fact_on('host','osfamily') ).to be === parsed_result
+    end
+
+    it 'preserves data types' do
+      result.stdout = "{\"identity\": { \"uid\": 0, \"user\": \"root\", \"privileged\": true }}"
+      allow( subject ).to receive( :on ).and_return( result )
+      structured_fact = subject.fact_on('host','identity')
+
+      expect(structured_fact['uid'].class).to be Fixnum
+      expect(structured_fact['user'].class).to be String
+      expect(structured_fact['privileged'].class).to be (TrueClass or FalseClass)
     end
   end
 

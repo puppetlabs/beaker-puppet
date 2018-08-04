@@ -37,11 +37,17 @@ module Beaker
         # @return String The value of the fact 'name' on the provided host
         # @raise  [FailTest] Raises an exception if call to facter fails
         def fact_on(host, name, opts = {})
+          if opts.kind_of?(Hash)
+            opts.merge!({json: nil})
+          else
+            opts << ' --json'
+          end
+
           result = on host, facter(name, opts)
           if result.kind_of?(Array)
-            result.map { |res| res.stdout.chomp }
+            result.map { |res| JSON.parse(res.stdout)[name] }
           else
-            result.stdout.chomp
+            JSON.parse(result.stdout)[name]
           end
         end
 
