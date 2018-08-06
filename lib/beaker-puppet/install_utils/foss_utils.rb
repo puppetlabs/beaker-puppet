@@ -1293,7 +1293,7 @@ module Beaker
             opts[:download_url] = "#{opts[:pe_promoted_builds_url]}/puppet-agent/#{ pe_ver }/#{ opts[:puppet_agent_version] }/repos"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:copy_dir_external]  ||= host.external_copy_base
-            opts[:puppet_collection] ||= 'PC1'
+            opts[:puppet_collection] ||= get_puppet_collection(opts[:puppet_agent_version])
             add_role(host, 'aio') #we are installing agent, so we want aio role
             release_path = opts[:download_url]
             variant, version, arch, codename = host['platform'].to_array

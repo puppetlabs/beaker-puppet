@@ -136,4 +136,20 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
   end
+
+  describe "get_puppet_collection" do
+    it "receives agent_version 'latest' and return collection 'PC1'" do
+      expect(subject.get_puppet_collection('latest')).to eq('PC1')
+    end
+    it "receives agent_version between 5.5.4 and 5.99 and return collection 'puppet5'" do
+      expect(subject.get_puppet_collection('5.5.4')).to eq('puppet5')
+    end
+    it "receives agent_version greater than 5.99 and return collection 'puppet6'" do
+      expect(subject.get_puppet_collection('6.0')).to eq('puppet6')
+    end
+    it "receives agent_version less than 5.5.4 and return collection 'PC1'" do
+      expect(subject.get_puppet_collection('3.0')).to eq('PC1')
+    end
+  end
+
 end

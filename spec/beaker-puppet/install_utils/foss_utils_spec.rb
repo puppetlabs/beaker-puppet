@@ -957,12 +957,6 @@ describe ClassMixedWithDSLInstallUtils do
     end
   end
 
-  describe '#install_puppet_agent_pe_promoted_repo_on' do
-
-
-
-  end
-
   describe '#install_cert_on_windows' do
     before do
       allow(subject).to receive(:on).and_return(Beaker::Result.new({},''))
@@ -1352,6 +1346,62 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'calls fetch_http_file with no ending slash' do
       test_fetch_http_file_no_ending_slash( 'debian-5-x86_64' )
+    end
+
+    context 'when setting different agent versions' do
+      let( :host ) { basic_hosts.first }
+      let( :platform ) { Object.new() }
+      let( :downloadurl ) { 'http://pm.puppetlabs.com' }
+      before :each do
+        allow( platform ).to receive( :to_array ) { ['el', '6', 'x4'] }
+        allow( subject ).to receive( :options ).and_return( opts )
+        allow( subject ).to receive( :scp_to )
+        allow( subject ).to receive( :configure_type_defaults_on ).with( host )
+      end
+
+      it 'sets correct file paths when agent version is set to latest' do
+        host['platform'] = platform
+        agentversion = 'latest'
+        collection = 'PC1'
+        opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}" }
+
+        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
+        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
+      end
+
+      it 'sets correct file paths for agent version < 5.5.4' do
+        host['platform'] = platform
+        agentversion = '5.3.3'
+        collection = 'PC1'
+        opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
+
+        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
+        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
+      end
+
+      it 'sets correct file paths for agent version >= 5.5.4' do
+        host['platform'] = platform
+        agentversion = '5.5.4'
+        collection = 'puppet5'
+        opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
+
+        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
+        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
+      end
+
+      it 'sets correct file paths for agent version > 5.99' do
+        host['platform'] = platform
+        agentversion = '6.0'
+        collection = 'puppet6'
+        opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
+
+        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
+        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
+      end
     end
   end
 
