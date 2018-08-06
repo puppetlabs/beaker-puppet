@@ -5,9 +5,7 @@ class ClassMixedWithDSLHelpers
   include Beaker::DSL::Wrappers
   include Beaker::DSL::Roles
   include Beaker::DSL::Patterns
-  # include Beaker::DSL::Helpers::TKHelpers
-  # include Beaker::DSL::Wrappers
-  # include BeakerTestHelpers
+  include Beaker::DSL::Helpers::TKHelpers
 
   def logger
     RSpec::Mocks::Double.new('logger').as_null_object

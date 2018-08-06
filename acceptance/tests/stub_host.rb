@@ -1,3 +1,5 @@
+require 'beaker-puppet'
+
 test_name "validate host stubbing behavior"
 
 def get_hosts_file(host)

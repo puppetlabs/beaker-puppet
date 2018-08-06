@@ -1,3 +1,5 @@
+require 'beaker-puppet'
+
 test_name 'skip_test in with_puppet_running_on' do
   assert_raises SkipTest do
     with_puppet_running_on(master, {}) do

@@ -1,7 +1,5 @@
-begin
-  require 'beaker/acceptance/install_utils'
-  extend Beaker::Acceptance::InstallUtils
-end
+require 'beaker-puppet'
+
 test_name 'Puppet git pre-suite'
 
 install = [
@@ -9,8 +7,6 @@ install = [
   'hiera#1.3.4',
   'puppet#3.8.7'
 ]
-
-SourcePath  = Beaker::DSL::InstallUtils::SourcePath
 
 PACKAGES = {
   :redhat => [

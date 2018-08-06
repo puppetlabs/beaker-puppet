@@ -25,6 +25,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'pry', '~> 0.10'
 
+  # Acceptance Testing Dependencies
+  s.add_development_dependency 'beaker-vmpooler'
+
   # Documentation dependencies
   s.add_development_dependency 'yard'
   s.add_development_dependency 'markdown'
