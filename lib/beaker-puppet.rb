@@ -1,3 +1,5 @@
+require 'beaker'
+
 require 'stringify-hash'
 require 'in_parallel'
 require 'beaker-puppet/version'
