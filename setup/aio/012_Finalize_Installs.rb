@@ -1,5 +1,3 @@
-extend Beaker::DSL::InstallUtils::FOSSUtils
-
 test_name "Finalize Host Installation"
 
 step "Verify host times" do

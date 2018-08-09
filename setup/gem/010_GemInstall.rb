@@ -1,5 +1,3 @@
-extend Beaker::DSL::InstallUtils::FOSSUtils
-
 test_name "Install puppet gem"
 
 agents.each do |agent|

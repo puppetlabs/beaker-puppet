@@ -2,8 +2,6 @@ test_name "Setup environment"
 
 step "Ensure Git and Ruby"
 
-extend Beaker::DSL::InstallUtils
-
 PACKAGES = {
   :redhat => [
     'git',
