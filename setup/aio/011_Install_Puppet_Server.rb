@@ -1,6 +1,3 @@
-extend BeakerPuppet::Install::Puppet5
-extend Beaker::DSL::InstallUtils::FOSSUtils
-
 test_name "Install Puppet Server" do
   skip_test "not testing with puppetserver" unless @options['is_puppetserver']
 

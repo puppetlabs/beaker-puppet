@@ -1,9 +1,4 @@
 test_name "Install packages and repositories on target machines..." do
-  extend Beaker::DSL::InstallUtils
-
-  SourcePath  = Beaker::DSL::InstallUtils::SourcePath
-  GitHubSig   = Beaker::DSL::InstallUtils::GitHubSig
-
   repositories = options[:install].map do |url|
     extract_repo_info_from(build_git_url(url))
   end

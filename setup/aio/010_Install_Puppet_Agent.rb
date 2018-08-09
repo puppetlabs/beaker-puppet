@@ -1,6 +1,3 @@
-extend BeakerPuppet::Install::Puppet5
-extend Beaker::DSL::InstallUtils::FOSSUtils
-
 test_name "Install Packages" do
 
   dev_builds_url  = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
