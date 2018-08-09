@@ -64,9 +64,12 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'can remove old defaults ands replace with new' do
+      # fake the results of calling configure_pe_defaults_on
+      hosts.each do |host|
+        host['type'] = 'pe'
+      end
       expect(subject).to receive(:remove_pe_defaults_on).exactly(hosts.length).times
       expect(subject).to receive(:add_foss_defaults_on).exactly(hosts.length).times
-      subject.configure_defaults_on(hosts, 'pe')
       subject.configure_defaults_on(hosts, 'foss')
     end
   end
