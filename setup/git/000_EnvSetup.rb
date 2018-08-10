@@ -1,11 +1,14 @@
 test_name "Setup environment"
 
+step 'Configure paths' do
+  add_aio_defaults_on(hosts)
+  add_puppet_paths_on(hosts)
+end
+
 step "Install git and tar"
 
 PACKAGES = {
-  :redhat => [
-    'git',
-  ],
+  :redhat => ['git'],
   :debian => [
     ['git', 'git-core'],
   ],
@@ -14,18 +17,14 @@ PACKAGES = {
     'git',
     'gtar',
   ],
-  :windows => [
-    'git',
-  ],
-  :sles => [
-    'git',
-  ],
+  :windows => ['git'],
+  :sles => ['git'],
 }
 
 # We need to be able override which tar we use on solaris
 tar = 'tar'
 
-hosts.each do |host|
+agents.each do |host|
   case host['platform']
   when /solaris/
     tar = 'gtar'
@@ -67,16 +66,16 @@ basedir=default
   end
 end
 
-install_packages_on(hosts, PACKAGES, :check_if_exists => true)
+install_packages_on(agents, PACKAGES, :check_if_exists => true)
 
 step "Install puppet-runtime" do
   step 'grab the latest runtime tag'
   runtime_dir = Dir.mktmpdir('puppet-runtime')
   `git clone --depth 1 git@github.com:puppetlabs/puppet-runtime.git #{runtime_dir}`
-  runtime_tag = nil
-  Dir.chdir runtime_dir do
-    runtime_tag = `git describe --first-parent --abbrev=0`.chomp
-  end
+  runtime_tag = '201808063'
+  #Dir.chdir runtime_dir do
+  #  runtime_tag = `git describe --first-parent --abbrev=0`.chomp
+  #end
 
   step 'construct the runtime url'
   dev_builds_url = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'

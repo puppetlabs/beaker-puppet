@@ -25,7 +25,7 @@ module Beaker
             'foss'
           when /(\A|-)pe(\Z|-)/
             'pe'
-          when /(\A|-)(git|aio)(\Z|-)/
+          when /(\A|-)aio(\Z|-)/
             'aio'
           else
             nil

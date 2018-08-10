@@ -271,7 +271,7 @@ def pre_suites(type)
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
       "#{beaker_root}/setup/git/000_EnvSetup.rb",
       "#{beaker_root}/setup/git/010_TestSetup.rb",
-      "#{beaker_root}/setup/aio/011_Install_Puppet_Server.rb",
+      "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
       "#{beaker_root}/setup/git/020_PuppetUserAndGroup.rb",
       "#{beaker_root}/setup/git/070_InstallCACerts.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",

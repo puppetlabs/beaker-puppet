@@ -1,4 +1,5 @@
 test_name "Install packages and repositories on target machines..." do
+
   repositories = options[:install].map do |url|
     extract_repo_info_from(build_git_url(url))
   end

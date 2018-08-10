@@ -1444,7 +1444,7 @@ module Beaker
         end
 
         def get_command(command_name, host, type = 'aio')
-          if type == 'aio'
+          if ['aio', 'git'].include?(type)
             if host['platform'] =~ /windows/
               "env PATH=\"#{host['privatebindir']}:${PATH}\" cmd /c #{command_name}"
             else
