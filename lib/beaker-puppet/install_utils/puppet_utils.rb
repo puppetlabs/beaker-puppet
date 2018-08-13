@@ -72,6 +72,20 @@ module Beaker
           end
         end
 
+        #Given an agent_version, return the puppet collection associated with that agent version
+        #@param [String] agent_version version string or 'latest'
+        def get_puppet_collection(agent_version = 'latest')
+          collection = "PC1"
+          if agent_version != 'latest'
+            if ! version_is_less( agent_version, "5.5.4") and version_is_less(agent_version, "5.99")
+              collection = "puppet5"
+            elsif ! version_is_less( agent_version, "5.99")
+              collection = "puppet6"
+            end
+          end
+          collection
+        end
+
         #Configure the provided hosts to be of the provided type (one of foss, aio, pe), if the host
         #is already associated with a type then remove the previous settings for that type
         # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
