@@ -4,7 +4,7 @@ test_name "Install packages and repositories on target machines..." do
     extract_repo_info_from(build_git_url(url))
   end
 
-  hosts.each_with_index do |host, index|
+  agents.each_with_index do |host, index|
     on host, "echo #{GitHubSig} >> $HOME/.ssh/known_hosts"
 
     repositories.each do |repository|
@@ -57,7 +57,7 @@ END
   end
 
   step "Hosts: create environments directory like AIO does" do
-    hosts.each do |host|
+    agents.each do |host|
       codedir = host.puppet['codedir']
       on host, "mkdir -p #{codedir}/environments/production/manifests"
       on host, "mkdir -p #{codedir}/environments/production/modules"

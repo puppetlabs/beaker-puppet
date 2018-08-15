@@ -86,7 +86,7 @@ step "Install puppet-runtime" do
   runtime_prefix = "agent-runtime-#{branch}-#{runtime_tag}."
   runtime_suffix = ".tar.gz"
 
-  hosts.each do |host|
+  agents.each do |host|
     platform_tag = host['packaging_platform']
     if platform_tag =~ /windows/
       # the windows version is hard coded to 2012r2. Unfortunately,
@@ -116,8 +116,8 @@ end
 step "Install bundler"
 
 # Only configure gem mirror after Ruby has been installed, but before any gems are installed.
-configure_gem_mirror(hosts)
+configure_gem_mirror(agents)
 
-hosts.each do |host|
+agents.each do |host|
   on host, "#{gem_command(host)} install bundler --no-ri --no-rdoc"
 end
