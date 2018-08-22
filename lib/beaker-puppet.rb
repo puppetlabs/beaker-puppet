@@ -13,7 +13,7 @@ end
 [ 'windows', 'foss', 'puppet', 'ezbake', 'module' ].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_utils"
 end
-[ 'tk', 'facter', 'puppet' ].each do |lib|
+[ 'tk', 'facter', 'puppet', 'host' ].each do |lib|
   require "beaker-puppet/helpers/#{lib}_helpers"
 end
 
@@ -35,6 +35,7 @@ module BeakerPuppet
   include Beaker::DSL::Helpers::TKHelpers
   include Beaker::DSL::Helpers::FacterHelpers
   include Beaker::DSL::Helpers::PuppetHelpers
+  include Beaker::DSL::Helpers::HostHelpers
 
   include Beaker::DSL::Wrappers
 end
