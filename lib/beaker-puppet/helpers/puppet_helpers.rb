@@ -434,6 +434,8 @@ module Beaker
         #                         path separator character. (The POSIX path separator
         #                         is ‘:’, and the Windows path separator is ‘;’.)
         #
+        # @option opts [String]   :hiera_config The path of the hiera.yaml configuration.
+        #
         # @option opts [String]   :debug (false) If this option exists,
         #                         the "--debug" command line parameter
         #                         will be passed to the 'puppet apply' command.
@@ -461,6 +463,7 @@ module Beaker
             puppet_apply_opts[:trace] = nil if opts[:trace]
             puppet_apply_opts[:parser] = 'future' if opts[:future_parser]
             puppet_apply_opts[:modulepath] = opts[:modulepath] if opts[:modulepath]
+            puppet_apply_opts[:hiera_config] = opts[:hiera_config] if opts[:hiera_config]
             puppet_apply_opts[:noop] = nil if opts[:noop]
 
             # From puppet help:
