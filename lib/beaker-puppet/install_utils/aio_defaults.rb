@@ -15,22 +15,28 @@ module Beaker
             'distmoduledir'         => '/etc/puppetlabs/code/modules',
             'sitemoduledir'         => '/opt/puppetlabs/puppet/modules',
           },
-          'windows' => { #windows
+          # sitemoduledir not included on Windows (check PUP-4049 for more info).
+          #
+          # Paths to the puppet's vendored ruby installation on Windows were
+          # updated in Puppet 6 to more closely match those of *nix agents.
+          # These path values include both the older (puppet <= 5) paths (which
+          # include sys/ruby) and the newer versions, which have no custom ruby
+          # directory
+          'windows' => { # windows with cygwin
             'puppetbindir'      => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/bin',
-            'privatebindir'     => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/sys/ruby/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin',
+            'privatebindir'     => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/sys/ruby/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin',
             'distmoduledir'     => '`cygpath -smF 35`/PuppetLabs/code/modules',
-            # sitemoduledir not included (check PUP-4049 for more info)
           },
-          'pwindows' => { #pure windows
+          'pswindows' => { # pure windows
             'puppetbindir'      => '"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\bin"',
-            'privatebindir'     => '"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\sys\\ruby\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\sys\\ruby\\bin"',
+            'privatebindir'     => '"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\puppet\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\puppet\\bin";"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\sys\\ruby\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\sys\\ruby\\bin"',
             'distmoduledir'     => 'C:\\ProgramData\\PuppetLabs\\code\\modules',
           }
         }
 
         # Add the appropriate aio defaults to the host object so that they can be accessed using host[option], set host[:type] = aio
         # @param [Host] host    A single host to act upon
-        # @param [String] platform The platform type of this host, one of windows or unix
+        # @param [String] platform The platform type of this host, one of 'windows', 'pswindows', or 'unix'
         def add_platform_aio_defaults(host, platform)
           AIO_DEFAULTS[platform].each_pair do |key, val|
             host[key] = val
@@ -49,7 +55,7 @@ module Beaker
         def add_aio_defaults_on(hosts)
           block_on hosts do | host |
             if host.is_powershell?
-              platform = 'pwindows'
+              platform = 'pswindows'
             elsif host['platform'] =~ /windows/
               platform = 'windows'
             else
