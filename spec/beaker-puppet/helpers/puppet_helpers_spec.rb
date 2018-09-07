@@ -567,8 +567,8 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      expect( subject ).to receive( :on ).with( master, "cert --sign --all --allow-dns-alt-names", :acceptable_exit_codes => [0,24]).once
-      expect( subject ).to receive( :on ).with( master, "cert --list --all").once.and_return( result )
+      expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all').once
+      expect( subject ).to receive( :on ).with( master, 'puppetserver ca list --all').once.and_return( result )
 
       subject.sign_certificate_for( agent )
     end
@@ -583,8 +583,8 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      expect( subject ).to receive( :on ).with( master, "cert --sign --all --allow-dns-alt-names", :acceptable_exit_codes => [0,24]).exactly( 11 ).times
-      expect( subject ).to receive( :on ).with( master, "cert --list --all").exactly( 11 ).times.and_return( result )
+      expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all').exactly( 11 ).times
+      expect( subject ).to receive( :on ).with( master, 'puppetserver ca list --all').exactly( 11 ).times.and_return( result )
       expect( subject ).to receive( :fail_test ).once
 
       subject.sign_certificate_for( agent )
@@ -600,9 +600,9 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
       expect( subject ).to receive( :on ).with( master, "agent -t", :acceptable_exit_codes => [0, 1, 2]).once
-      expect( subject ).to receive( :on ).with( master, "cert --allow-dns-alt-names sign master", :acceptable_exit_codes => [0, 24]).once
-      expect( subject ).to receive( :on ).with( master, "cert --sign --all --allow-dns-alt-names", :acceptable_exit_codes => [0,24]).once
-      expect( subject ).to receive( :on ).with( master, "cert --list --all").once.and_return( result )
+      expect( subject ).to receive( :on ).with( master, "puppetserver ca sign --certname master").once
+      expect( subject ).to receive( :on ).with( master, "puppetserver ca sign --all").once
+      expect( subject ).to receive( :on ).with( master, "puppetserver ca list --all").once.and_return( result )
 
       subject.sign_certificate_for( [master, agent, custom] )
     end
