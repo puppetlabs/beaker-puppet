@@ -558,7 +558,7 @@ describe ClassMixedWithDSLHelpers do
       end
     end
 
-    it 'signs certs' do
+    it 'signs certs with `puppetserver ca` in Puppet 6' do
       allow( subject ).to receive( :sleep ).and_return( true )
 
       result.stdout = "+ \"#{agent}\""
@@ -567,8 +567,25 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
+      expect( subject ).to receive( :on ).with( master, '--version').once.and_return("6.0.0")
       expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]).once
       expect( subject ).to receive( :on ).with( master, 'puppetserver ca list --all').once.and_return( result )
+
+      subject.sign_certificate_for( agent )
+    end
+
+    it 'signs certs with `puppet cert` in Puppet 5' do
+      allow( subject ).to receive( :sleep ).and_return( true )
+
+      result.stdout = "+ \"#{agent}\""
+
+      allow( subject ).to receive( :puppet ) do |arg|
+        arg
+      end
+
+      expect( subject ).to receive( :on ).with( master, '--version').once.and_return("5.0.0")
+      expect( subject ).to receive( :on ).with( master, 'cert --sign --all --allow-dns-alt-names', :acceptable_exit_codes => [0, 24]).once
+      expect( subject ).to receive( :on ).with( master, 'cert --list --all').once.and_return( result )
 
       subject.sign_certificate_for( agent )
     end
@@ -576,13 +593,14 @@ describe ClassMixedWithDSLHelpers do
     it 'retries 11 times before quitting' do
       allow( subject ).to receive( :sleep ).and_return( true )
 
-      result.stdout = " \"#{agent}\""
+      result.stdout = "Requested Certificates: \"#{agent}\""
       allow( subject ).to receive( :hosts ).and_return( hosts )
 
       allow( subject ).to receive( :puppet ) do |arg|
         arg
       end
 
+      expect( subject ).to receive( :on ).with( master, "--version").once.and_return("6.0.0")
       expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]).exactly( 11 ).times
       expect( subject ).to receive( :on ).with( master, 'puppetserver ca list --all').exactly( 11 ).times.and_return( result )
       expect( subject ).to receive( :fail_test ).once
@@ -600,6 +618,7 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
       expect( subject ).to receive( :on ).with( master, "agent -t", :acceptable_exit_codes => [0, 1, 2]).once
+      expect( subject ).to receive( :on ).with( master, "--version").once.and_return("6.0.0")
       expect( subject ).to receive( :on ).with( master, "puppetserver ca sign --certname master").once
       expect( subject ).to receive( :on ).with( master, "puppetserver ca sign --all", :acceptable_exit_codes => [0, 24]).once
       expect( subject ).to receive( :on ).with( master, "puppetserver ca list --all").once.and_return( result )
