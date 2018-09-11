@@ -180,10 +180,15 @@ module Beaker
               end
             end
 
-            puppetserver_opts = { "jruby-puppet" => {
-              "master-conf-dir" => confdir,
-              "master-var-dir" => vardir,
-            }}
+            puppetserver_opts = {
+              "jruby-puppet" => {
+                "master-conf-dir" => confdir,
+                "master-var-dir" => vardir,
+              },
+              "certificate-authority" => {
+                "allow-subject-alt-names" => true
+              }
+            }
 
             puppetserver_conf = File.join("#{host['puppetserver-confdir']}", "puppetserver.conf")
             modify_tk_config(host, puppetserver_conf, puppetserver_opts)
@@ -831,7 +836,7 @@ module Beaker
             end
           }
           if hostnames.size < 1
-            on master, 'puppetserver ca sign --all'
+            on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
             return
           end
           while hostnames.size > 0
@@ -842,7 +847,7 @@ module Beaker
                 fail_test("Failed to sign cert for #{hostnames}")
                 hostnames.clear
               end
-              on master, 'puppetserver ca sign --all'
+              on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
               out = on(master, 'puppetserver ca list --all').stdout
               if hostnames.all? { |hostname| out =~ /\+ "?#{hostname}"?/ }
                 hostnames.clear

@@ -36,7 +36,7 @@ test_name "Validate Sign Cert" do
 
       # Sign all waiting agent certs
       step "Server: sign all agent certs"
-      on master, 'puppetserver ca sign --all'
+      on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
 
       step "Agents: Run agent --test second time to obtain signed cert"
       on agents, puppet("agent --test --server #{master}"), :acceptable_exit_codes => [0,2]
