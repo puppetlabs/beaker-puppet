@@ -657,7 +657,7 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all').once
+      expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]).once
       expect( subject ).to receive( :on ).with( master, 'puppetserver ca list --all').once.and_return( result )
 
       subject.sign_certificate_for( agent )
@@ -673,7 +673,7 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all').exactly( 11 ).times
+      expect( subject ).to receive( :on ).with( master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]).exactly( 11 ).times
       expect( subject ).to receive( :on ).with( master, 'puppetserver ca list --all').exactly( 11 ).times.and_return( result )
       expect( subject ).to receive( :fail_test ).once
 
@@ -691,7 +691,7 @@ describe ClassMixedWithDSLHelpers do
       end
       expect( subject ).to receive( :on ).with( master, "agent -t", :acceptable_exit_codes => [0, 1, 2]).once
       expect( subject ).to receive( :on ).with( master, "puppetserver ca sign --certname master").once
-      expect( subject ).to receive( :on ).with( master, "puppetserver ca sign --all").once
+      expect( subject ).to receive( :on ).with( master, "puppetserver ca sign --all", :acceptable_exit_codes => [0, 24]).once
       expect( subject ).to receive( :on ).with( master, "puppetserver ca list --all").once.and_return( result )
 
       subject.sign_certificate_for( [master, agent, custom] )
@@ -794,15 +794,27 @@ describe ClassMixedWithDSLHelpers do
       let(:conf_opts) { {:__commandline_args__ => command_line_args,
                          :is_puppetserver => true}}
 
-      let(:default_puppetserver_opts) {{ "jruby-puppet" => {
-        "master-conf-dir" => default_confdir,
-        "master-var-dir" => default_vardir,
-      }}}
+      let(:default_puppetserver_opts) {
+        { "jruby-puppet" => {
+            "master-conf-dir" => default_confdir,
+            "master-var-dir" => default_vardir,
+          },
+          "certificate-authority" => {
+            "allow-subject-alt-names" => true,
+          }
+        }
+      }
 
-      let(:custom_puppetserver_opts) {{ "jruby-puppet" => {
-        "master-conf-dir" => custom_confdir,
-        "master-var-dir" => custom_vardir,
-      }}}
+      let(:custom_puppetserver_opts) {
+        { "jruby-puppet" => {
+            "master-conf-dir" => custom_confdir,
+            "master-var-dir" => custom_vardir,
+          },
+          "certificate-authority" => {
+            "allow-subject-alt-names" => true,
+          }
+        }
+      }
 
       let(:puppetserver_conf) { "/etc/puppetserver/conf.d/puppetserver.conf" }
       let(:logger) { double }
@@ -823,8 +835,8 @@ describe ClassMixedWithDSLHelpers do
 
       before do
         stub_post_setup
-        allow( subject ).to receive( :options) .and_return( {:is_puppetserver => true})
-        allow( subject ).to receive( :modify_tk_config)
+        allow( subject ).to receive(:options).and_return({:is_puppetserver => true})
+        allow( subject ).to receive(:modify_tk_config)
         allow( subject ).to receive(:puppet_config).with(host, 'confdir', anything).and_return(default_confdir)
         allow( subject ).to receive(:puppet_config).with(host, 'vardir', anything).and_return(default_vardir)
         allow( subject ).to receive(:puppet_config).with(host, 'config', anything).and_return("#{default_confdir}/puppet.conf")
@@ -834,7 +846,7 @@ describe ClassMixedWithDSLHelpers do
         it 'checks the option for the host object' do
           allow( subject ).to receive( :options) .and_return( {:is_puppetserver => false})
           host[:is_puppetserver] = true
-          expect( subject ).to receive( :modify_tk_config)
+          expect(subject).to receive(:modify_tk_config)
           subject.with_puppet_running_on(host, conf_opts)
         end
       end
