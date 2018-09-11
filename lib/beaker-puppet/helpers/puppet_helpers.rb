@@ -828,20 +828,31 @@ module Beaker
         def sign_certificate_for(host = [])
           hostnames = []
           hosts = host.is_a?(Array) ? host : [host]
+          puppet_version = on(master, puppet('--version'))
           hosts.each{ |current_host|
             if [master, dashboard, database].include? current_host
-
               on current_host, puppet( 'agent -t' ), :acceptable_exit_codes => [0,1,2]
-              on master, "puppetserver ca sign --certname #{current_host}"
 
+              if version_is_less(puppet_version, '5.99')
+                on master, puppet("cert --allow-dns-alt-names sign #{current_host}" ), :acceptable_exit_codes => [0,24]
+              else
+                on master, "puppetserver ca sign --certname #{current_host}"
+              end
             else
               hostnames << Regexp.escape( current_host.node_name )
             end
           }
+
           if hostnames.size < 1
-            on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
+            if version_is_less(puppet_version, '5.99')
+              on master, puppet("cert --sign --all --allow-dns-alt-names"),
+               :acceptable_exit_codes => [0,24]
+            else
+              on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
+            end
             return
           end
+
           while hostnames.size > 0
             last_sleep = 0
             next_sleep = 1
@@ -850,8 +861,15 @@ module Beaker
                 fail_test("Failed to sign cert for #{hostnames}")
                 hostnames.clear
               end
-              on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
-              out = on(master, 'puppetserver ca list --all').stdout
+
+              if version_is_less(puppet_version, '5.99')
+                on master, puppet("cert --sign --all --allow-dns-alt-names"), :acceptable_exit_codes => [0,24]
+                out = on(master, puppet("cert --list --all")).stdout
+              else
+                on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
+                out = on(master, 'puppetserver ca list --all').stdout
+              end
+
               if hostnames.all? { |hostname| out =~ /\+ "?#{hostname}"?/ }
                 hostnames.clear
                 break
