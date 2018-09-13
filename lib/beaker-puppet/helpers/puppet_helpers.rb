@@ -825,7 +825,7 @@ module Beaker
         def sign_certificate_for(host = [])
           hostnames = []
           hosts = host.is_a?(Array) ? host : [host]
-          puppet_version = on(master, puppet('--version'))
+          puppet_version = on(master, puppet('--version')).stdout.chomp
           hosts.each{ |current_host|
             if [master, dashboard, database].include? current_host
               on current_host, puppet( 'agent -t' ), :acceptable_exit_codes => [0,1,2]
