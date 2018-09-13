@@ -14,7 +14,7 @@ module Beaker
         # the file specified by path. The returned mode is an integer
         # value containing only the file mode, excluding the type, e.g
         # S_IFDIR 0040000
-        def stat(host, path)
+        def beaker_stat(host, path)
           ruby = ruby_command(host)
           owner = on(host, "#{ruby} -e 'require \"etc\"; puts (Etc.getpwuid(File.stat(\"#{path}\").uid).name)'").stdout.chomp
           group = on(host, "#{ruby} -e 'require \"etc\"; puts (Etc.getgrgid(File.stat(\"#{path}\").gid).name)'").stdout.chomp
@@ -24,7 +24,7 @@ module Beaker
         end
 
         def assert_ownership_permissions(host, location, expected_user, expected_group, expected_permissions)
-          permissions = stat(host, location)
+          permissions = beaker_stat(host, location)
           assert_equal(expected_user, permissions[0], "Owner #{permissions[0]} does not match expected #{expected_user}")
           assert_equal(expected_group, permissions[1], "Group #{permissions[1]} does not match expected #{expected_group}")
           assert_equal(expected_permissions, permissions[2], "Permissions  #{permissions[2]} does not match expected #{expected_permissions}")
