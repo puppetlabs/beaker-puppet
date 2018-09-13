@@ -2,7 +2,7 @@ test_name "Validate Sign Cert" do
   skip_test 'not testing with puppetserver' unless @options['is_puppetserver']
   hostname = on(master, 'facter hostname').stdout.strip
   fqdn = on(master, 'facter fqdn').stdout.strip
-  puppet_version = on(master, puppet("--version")).stdout
+  puppet_version = on(master, puppet("--version")).stdout.chomp
 
   if master.use_service_scripts?
     step "Ensure puppet is stopped"
