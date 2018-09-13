@@ -180,10 +180,15 @@ module Beaker
               end
             end
 
-            puppetserver_opts = { "jruby-puppet" => {
-              "master-conf-dir" => confdir,
-              "master-var-dir" => vardir,
-            }}
+            puppetserver_opts = {
+              "jruby-puppet" => {
+                "master-conf-dir" => confdir,
+                "master-var-dir" => vardir,
+              },
+              "certificate-authority" => {
+                "allow-subject-alt-names" => true
+              }
+            }
 
             puppetserver_conf = File.join("#{host['puppetserver-confdir']}", "puppetserver.conf")
             modify_tk_config(host, puppetserver_conf, puppetserver_opts)
@@ -817,29 +822,37 @@ module Beaker
         # @param [Host, Array<Host>, String, Symbol] host   One or more hosts, or a role (String or Symbol)
         #                            that identifies one or more hosts to validate certificate signing.
         #                            No argument, or an empty array means no validation of success
-        #                            for specific hosts will be performed. This will always execute
-        #                            'cert --sign --all --allow-dns-alt-names' even for a single host.
-        #
+        #                            for specific hosts will be performed.
         # @return nil
         # @raise [FailTest] if process times out
         def sign_certificate_for(host = [])
           hostnames = []
           hosts = host.is_a?(Array) ? host : [host]
+          puppet_version = on(master, puppet('--version'))
           hosts.each{ |current_host|
             if [master, dashboard, database].include? current_host
-
               on current_host, puppet( 'agent -t' ), :acceptable_exit_codes => [0,1,2]
-              on master, puppet( "cert --allow-dns-alt-names sign #{current_host}" ), :acceptable_exit_codes => [0,24]
 
+              if version_is_less(puppet_version, '5.99')
+                on master, puppet("cert --allow-dns-alt-names sign #{current_host}" ), :acceptable_exit_codes => [0,24]
+              else
+                on master, "puppetserver ca sign --certname #{current_host}"
+              end
             else
               hostnames << Regexp.escape( current_host.node_name )
             end
           }
+
           if hostnames.size < 1
-            on master, puppet("cert --sign --all --allow-dns-alt-names"),
+            if version_is_less(puppet_version, '5.99')
+              on master, puppet("cert --sign --all --allow-dns-alt-names"),
                :acceptable_exit_codes => [0,24]
+            else
+              on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
+            end
             return
           end
+
           while hostnames.size > 0
             last_sleep = 0
             next_sleep = 1
@@ -848,11 +861,21 @@ module Beaker
                 fail_test("Failed to sign cert for #{hostnames}")
                 hostnames.clear
               end
-              on master, puppet("cert --sign --all --allow-dns-alt-names"), :acceptable_exit_codes => [0,24]
-              out = on(master, puppet("cert --list --all")).stdout
-              if hostnames.all? { |hostname| out =~ /\+ "?#{hostname}"?/ }
-                hostnames.clear
-                break
+
+              if version_is_less(puppet_version, '5.99')
+                on master, puppet("cert --sign --all --allow-dns-alt-names"), :acceptable_exit_codes => [0,24]
+                out = on(master, puppet("cert --list --all")).stdout
+                if hostnames.all? { |hostname| out =~ /\+ "?#{hostname}"?/ }
+                  hostnames.clear
+                  break
+                end
+              else
+                on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
+                out = on(master, 'puppetserver ca list --all').stdout
+                unless out =~ /.*Requested.*/
+                  hostnames.clear
+                  break
+                end
               end
 
               sleep next_sleep

@@ -2,6 +2,7 @@ test_name "Validate Sign Cert" do
   skip_test 'not testing with puppetserver' unless @options['is_puppetserver']
   hostname = on(master, 'facter hostname').stdout.strip
   fqdn = on(master, 'facter fqdn').stdout.strip
+  puppet_version = on(master, puppet("--version")).stdout
 
   if master.use_service_scripts?
     step "Ensure puppet is stopped"
@@ -24,7 +25,11 @@ test_name "Validate Sign Cert" do
         :dns_alt_names => "puppet,#{hostname},#{fqdn}",
       },
     }
-    # server will generate the CA and server certs when it starts
+
+    # In Puppet 6, we want to be using an intermediate CA
+    unless version_is_less(puppet_version, "5.99")
+      on master, 'puppetserver ca setup'
+    end
     with_puppet_running_on(master, master_opts) do
       agents.each do |agent|
         next if agent == master
@@ -35,7 +40,11 @@ test_name "Validate Sign Cert" do
 
       # Sign all waiting agent certs
       step "Server: sign all agent certs"
-      on master, puppet("cert --sign --all"), :acceptable_exit_codes => [0,24]
+      if version_is_less(puppet_version, "5.99")
+        on master, puppet("cert sign --all"), :acceptable_exit_codes => [0, 24]
+      else
+        on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
+      end
 
       step "Agents: Run agent --test second time to obtain signed cert"
       on agents, puppet("agent --test --server #{master}"), :acceptable_exit_codes => [0,2]
