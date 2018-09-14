@@ -869,7 +869,7 @@ module Beaker
               else
                 on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
                 out = on(master, 'puppetserver ca list --all').stdout
-                unless out =~ /.*Requested.*/
+                if out !~ /.*Requested.*/ && hostnames.all? { |hostname| out =~ /\b#{hostname}\b/ }
                   hostnames.clear
                   break
                 end
