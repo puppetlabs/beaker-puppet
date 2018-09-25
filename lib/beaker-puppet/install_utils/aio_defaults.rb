@@ -27,6 +27,11 @@ module Beaker
             'privatebindir'     => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/sys/ruby/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin',
             'distmoduledir'     => '`cygpath -smF 35`/PuppetLabs/code/modules',
           },
+          'windows-64' => { # windows with cygwin
+            'puppetbindir'      => '/cygdrive/c/Program Files/Puppet Labs/Puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/bin',
+            'privatebindir'     => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/sys/ruby/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin',
+            'distmoduledir'     => '`cygpath -smF 35`/PuppetLabs/code/modules',
+          },
           'pswindows' => { # pure windows
             'puppetbindir'      => '"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\bin"',
             'privatebindir'     => '"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\puppet\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\puppet\\bin";"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\sys\\ruby\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\sys\\ruby\\bin"',
@@ -54,10 +59,20 @@ module Beaker
         #                            or a role (String or Symbol) that identifies one or more hosts.
         def add_aio_defaults_on(hosts)
           block_on hosts do | host |
+            require 'pry'; binding.pry
             if host.is_powershell?
               platform = 'pswindows'
             elsif host['platform'] =~ /windows/
-              platform = 'windows'
+              if host[:ruby_arch] == 'x64'
+                ruby_arch = /-64/
+              else
+                ruby_arch = /-32/
+              end
+              if host['platform'] =~ ruby_arch
+                platform = 'windows-64'
+              else
+                platform = 'windows'
+              end
             else
               platform = 'unix'
             end
