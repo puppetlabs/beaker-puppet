@@ -59,7 +59,6 @@ module Beaker
         #                            or a role (String or Symbol) that identifies one or more hosts.
         def add_aio_defaults_on(hosts)
           block_on hosts do | host |
-            require 'pry'; binding.pry
             if host.is_powershell?
               platform = 'pswindows'
             elsif host['platform'] =~ /windows/
