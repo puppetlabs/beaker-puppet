@@ -69,9 +69,6 @@ end
 install_packages_on(agents, PACKAGES, :check_if_exists => true)
 
 step "Install puppet-runtime" do
-
-  require 'byebug'; byebug
-
   step 'grab the latest runtime tag'
   runtime_dir = Dir.mktmpdir('puppet-runtime')
   `git clone --depth 1 git@github.com:puppetlabs/puppet-runtime.git #{runtime_dir}`
