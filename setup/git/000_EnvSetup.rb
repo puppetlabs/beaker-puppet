@@ -111,8 +111,9 @@ step "Install puppet-runtime" do
     case host['platform']
     when /windows/
       on host, "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -"
+      on host, "chmod 755 /cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/puppet/bin/*"
       on host, "chmod 755 /cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/sys/ruby/bin/*"
-      host.add_env_var('PATH', '/cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/sys/ruby/bin')
+      host.add_env_var('PATH', '/cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/puppet/bin:/cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/sys/ruby/bin')
     when /osx/
       on host, "tar -xzf #{tarball_name}"
       on host, "for d in opt var private; do rsync -ka \"${d}/\" \"/${d}/\"; done"

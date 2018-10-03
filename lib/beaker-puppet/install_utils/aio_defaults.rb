@@ -23,13 +23,13 @@ module Beaker
           # include sys/ruby) and the newer versions, which have no custom ruby
           # directory
           'windows' => { # windows with cygwin
-            'puppetbindir'      => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/bin',
-            'privatebindir'     => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/sys/ruby/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin',
+            'puppetbindir'      => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin',
+            'privatebindir'     => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/sys/ruby/bin',
             'distmoduledir'     => '`cygpath -smF 35`/PuppetLabs/code/modules',
           },
           'windows-64' => { # windows with cygwin
-            'puppetbindir'      => '/cygdrive/c/Program Files/Puppet Labs/Puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/bin',
-            'privatebindir'     => '/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/sys/ruby/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin',
+            'puppetbindir'      => '/cygdrive/c/Program Files/Puppet Labs/Puppet/bin',
+            'privatebindir'     => '/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin:/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin',
             'distmoduledir'     => '`cygpath -smF 35`/PuppetLabs/code/modules',
           },
           'pswindows' => { # pure windows
