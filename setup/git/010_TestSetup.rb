@@ -42,8 +42,8 @@ END
 
           # bundler writes puppet and facter, but not puppet.bat
           on host, "cd '#{bindir}' && test -f ./puppet.bat || cp ./puppet ./puppet.bat"
-          on host, "cd '#{bindir}' && test -f ./facter.bat || cp ./facter ./facter.bat"
-          on host, "cd '#{bindir}' && test -f ./hiera.bat || cp ./hiera ./hiera.bat"
+          #on host, "cd '#{bindir}' && test -f ./facter.bat || cp ./facter ./facter.bat"
+          #on host, "cd '#{bindir}' && test -f ./hiera.bat || cp ./hiera ./hiera.bat"
         else
           on host, "cd #{puppet_dir} && #{bundle_command(host)} install --system --binstubs #{host['puppetbindir']}"
         end
