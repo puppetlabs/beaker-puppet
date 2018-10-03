@@ -69,9 +69,19 @@ end
 install_packages_on(agents, PACKAGES, :check_if_exists => true)
 
 step "Install puppet-runtime" do
+
+  require 'byebug'; byebug
+
   step 'grab the latest runtime tag'
   runtime_dir = Dir.mktmpdir('puppet-runtime')
   `git clone --depth 1 git@github.com:puppetlabs/puppet-runtime.git #{runtime_dir}`
+
+  # We do have a potential race condition here, where the tag has been created
+  # and pushed out, but artifacts have not been created/shipped yet. A better
+  # course of action here would be to grab `version` from the json blob in
+  # puppet-agent
+  # https://raw.githubusercontent.com/puppetlabs/puppet-agent/#{branch}/configs/components/puppet-runtime.json
+  runtime_tag = ''
   Dir.chdir runtime_dir do
     runtime_tag = `git describe --first-parent --abbrev=0`.chomp
   end
@@ -81,7 +91,7 @@ step "Install puppet-runtime" do
   runtime_url = "#{dev_builds_url}/puppet-runtime/#{runtime_tag}/artifacts/"
 
   step 'construct the tarball name'
-  branch = '5.5.x'
+  branch = ENV['BRANCH'] || 'master'
   runtime_prefix = "agent-runtime-#{branch}-#{runtime_tag}."
   runtime_suffix = ".tar.gz"
 
