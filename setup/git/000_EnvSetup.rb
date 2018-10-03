@@ -72,17 +72,16 @@ step "Install puppet-runtime" do
   step 'grab the latest runtime tag'
   runtime_dir = Dir.mktmpdir('puppet-runtime')
   `git clone --depth 1 git@github.com:puppetlabs/puppet-runtime.git #{runtime_dir}`
-  runtime_tag = '201808063'
-  #Dir.chdir runtime_dir do
-  #  runtime_tag = `git describe --first-parent --abbrev=0`.chomp
-  #end
+  Dir.chdir runtime_dir do
+    runtime_tag = `git describe --first-parent --abbrev=0`.chomp
+  end
 
   step 'construct the runtime url'
   dev_builds_url = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
   runtime_url = "#{dev_builds_url}/puppet-runtime/#{runtime_tag}/artifacts/"
 
   step 'construct the tarball name'
-  branch = 'master'
+  branch = '5.5.x'
   runtime_prefix = "agent-runtime-#{branch}-#{runtime_tag}."
   runtime_suffix = ".tar.gz"
 
