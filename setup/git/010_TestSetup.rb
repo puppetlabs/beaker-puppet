@@ -19,8 +19,6 @@ test_name "Install packages and repositories on target machines..." do
         puppet_dir = host.tmpdir('puppet')
         on(host, "chmod 755 #{puppet_dir}")
 
-        host.add_env_var('BUNDLE_GEMFILE', File.join(puppet_dir, 'Gemfile'))
-
         sha = ENV['SHA'] || `git rev-parse HEAD`.chomp
         gem_source = ENV["GEM_SOURCE"] || "https://rubygems.org"
         create_remote_file(host, "#{puppet_dir}/Gemfile", <<END)
