@@ -15,7 +15,6 @@ test_name "Install packages and repositories on target machines..." do
         checkout_dir = "#{SourcePath}/#{repository[:name]}"
         on host, "rm -f #{checkout_dir}" # just the symlink, do not rm -rf !
         on host, "ln -s #{source_dir} #{checkout_dir}"
-        on host, "cd #{checkout_dir} && if [ -f install.rb ]; then ruby ./install.rb ; else true; fi"
       else
         puppet_dir = host.tmpdir('puppet')
         on(host, "chmod 755 #{puppet_dir}")
@@ -48,10 +47,6 @@ END
           on host, "cd #{puppet_dir} && #{bundle_command(host)} install --system --binstubs #{host['puppetbindir']}"
         end
         puppet_bundler_install_dir = on(host, "cd #{puppet_dir} && #{bundle_command(host)} show puppet").stdout.chomp
-
-        # install.rb should also be called from the Puppet gem install dir
-        # this is required for the puppetres.dll event log dll on Windows
-        on host, "cd #{puppet_bundler_install_dir} && if [ -f install.rb ]; then ruby ./install.rb ; else true; fi"
       end
     end
   end
