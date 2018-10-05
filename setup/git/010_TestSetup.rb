@@ -45,6 +45,8 @@ END
           on host, "cd #{puppet_dir} && #{bundle_command(host)} install --system --binstubs #{host['puppetbindir']}"
         end
         puppet_bundler_install_dir = on(host, "cd #{puppet_dir} && #{bundle_command(host)} show puppet").stdout.chomp
+
+        host.add_env_var('RUBYLIB', File.join(puppet_bundler_install_dir, 'lib'))
       end
     end
   end
