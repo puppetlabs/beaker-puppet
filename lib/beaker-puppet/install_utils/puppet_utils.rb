@@ -21,7 +21,7 @@ module Beaker
         #    'foss'
         def normalize_type type
           case type
-          when /(\A|-)foss(\Z|-)/
+          when /(\A|-)(git)|(foss)(\Z|-)/
             'foss'
           when /(\A|-)pe(\Z|-)/
             'pe'
@@ -35,7 +35,7 @@ module Beaker
         #Given a host construct a PATH that includes puppetbindir, facterbindir and hierabindir
         # @param [Host] host    A single host to construct pathing for
         def construct_puppet_path(host)
-          path = (%w(puppetbindir facterbindir hierabindir privatebindir)).compact.reject(&:empty?)
+          path = (%w(puppetbindir facterbindir hierabindir)).compact.reject(&:empty?)
           #get the PATH defaults
           path.map! { |val| host[val] }
           path = path.compact.reject(&:empty?)

@@ -234,8 +234,8 @@ end
 def beaker_suite(type)
   beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
-  beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
-  beaker(:exec, 'pre-suite', '--preserve-state')
+  beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(type))
+  beaker(:exec, 'pre-suite')
   beaker(:exec, ENV['TESTS'])
   beaker(:exec, 'post-suite')
 
@@ -251,15 +251,15 @@ def pre_suites(type)
     [
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
       "#{beaker_root}/setup/aio/010_Install_Puppet_Agent.rb",
-      "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
-      "#{beaker_root}/setup/common/012_Finalize_Installs.rb",
-      "#{beaker_root}/setup/common/020_InstallCumulusModules.rb",
-      "#{beaker_root}/setup/common/021_InstallAristaModuleMasters.rb",
-      "#{beaker_root}/setup/common/022_InstallAristaModuleAgents.rb",
+      "#{beaker_root}/setup/aio/011_Install_Puppet_Server.rb",
+      "#{beaker_root}/setup/aio/012_Finalize_Installs.rb",
+      "#{beaker_root}/setup/aio/020_InstallCumulusModules.rb",
+      "#{beaker_root}/setup/aio/021_InstallAristaModuleMasters.rb",
+      "#{beaker_root}/setup/aio/022_InstallAristaModuleAgents.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",
       "#{beaker_root}/setup/common/030_StopSssd.rb",
       "#{beaker_root}/setup/common/040_ValidateSignCert.rb",
-      "#{beaker_root}/setup/common/045_EnsureMasterStarted.rb",
+      "#{beaker_root}/setup/aio/045_EnsureMasterStarted.rb",
     ]
   when :gem
     [
@@ -271,13 +271,13 @@ def pre_suites(type)
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
       "#{beaker_root}/setup/git/000_EnvSetup.rb",
       "#{beaker_root}/setup/git/010_TestSetup.rb",
-      "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
+      "#{beaker_root}/setup/git/011_SetMaster.rb",
       "#{beaker_root}/setup/git/020_PuppetUserAndGroup.rb",
-      "#{beaker_root}/setup/git/070_InstallCACerts.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",
-      "#{beaker_root}/setup/common/030_StopSssd.rb",
+      "#{beaker_root}/setup/git/030_PuppetMasterSanity.rb",
       "#{beaker_root}/setup/common/040_ValidateSignCert.rb",
-      "#{beaker_root}/setup/common/045_EnsureMasterStarted.rb",
+      "#{beaker_root}/setup/git/060_InstallModules.rb",
+      "#{beaker_root}/setup/git/070_InstallCACerts.rb",
     ]
   end
   presuites.join(',')
