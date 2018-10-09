@@ -67,6 +67,11 @@ describe ClassMixedWithDSLHelpers do
       expect(structured_fact['user'].class).to be String
       expect(structured_fact['privileged'].class).to be (TrueClass or FalseClass)
     end
+
+    it 'raises an error when it receives a symbol for a fact' do
+      expect { subject.fact_on('host', :osfamily) }
+        .to raise_error(ArgumentError, /fact_on's `name` option must be a String. You provided a Symbol: 'osfamily'/)
+    end
   end
 
   describe '#fact' do
