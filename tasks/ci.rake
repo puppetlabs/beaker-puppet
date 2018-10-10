@@ -251,15 +251,15 @@ def pre_suites(type)
     [
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
       "#{beaker_root}/setup/aio/010_Install_Puppet_Agent.rb",
-      "#{beaker_root}/setup/aio/011_Install_Puppet_Server.rb",
-      "#{beaker_root}/setup/aio/012_Finalize_Installs.rb",
-      "#{beaker_root}/setup/aio/020_InstallCumulusModules.rb",
-      "#{beaker_root}/setup/aio/021_InstallAristaModuleMasters.rb",
-      "#{beaker_root}/setup/aio/022_InstallAristaModuleAgents.rb",
+      "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
+      "#{beaker_root}/setup/common/012_Finalize_Installs.rb",
+      "#{beaker_root}/setup/common/020_InstallCumulusModules.rb",
+      "#{beaker_root}/setup/common/021_InstallAristaModuleMasters.rb",
+      "#{beaker_root}/setup/common/022_InstallAristaModuleAgents.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",
       "#{beaker_root}/setup/common/030_StopSssd.rb",
       "#{beaker_root}/setup/common/040_ValidateSignCert.rb",
-      "#{beaker_root}/setup/aio/045_EnsureMasterStarted.rb",
+      "#{beaker_root}/setup/common/045_EnsureMasterStarted.rb",
     ]
   when :gem
     [
