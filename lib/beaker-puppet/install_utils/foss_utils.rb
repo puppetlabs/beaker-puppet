@@ -1447,16 +1447,24 @@ module Beaker
           "env PATH=\"#{host['privatebindir']}:${PATH}\" ruby"
         end
 
-        def gem_command(host, type = 'aio')
-          if type == 'aio'
+        def get_command(command_name, host, type = 'aio')
+          if ['aio', 'git'].include?(type)
             if host['platform'] =~ /windows/
-              "env PATH=\"#{host['privatebindir']}:${PATH}\" cmd /c gem"
+              "env PATH=\"#{host['privatebindir']}:${PATH}\" cmd /c #{command_name}"
             else
-              "env PATH=\"#{host['privatebindir']}:${PATH}\" gem"
+              "env PATH=\"#{host['privatebindir']}:${PATH}\" #{command_name}"
             end
           else
-            on(host, 'which gem').stdout.chomp
+            on(host, "which #{command_name}").stdout.chomp
           end
+        end
+
+        def bundle_command(host, type = 'aio')
+          get_command('bundle', host, type)
+        end
+
+        def gem_command(host, type = 'aio')
+          get_command('gem', host, type)
         end
 
         # Configures gem sources on hosts to use a mirror, if specified
