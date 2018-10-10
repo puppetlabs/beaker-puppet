@@ -21,7 +21,7 @@ module Beaker
         #    'foss'
         def normalize_type type
           case type
-          when /(\A|-)(git)|(foss)(\Z|-)/
+          when /(\A|-)foss(\Z|-)/
             'foss'
           when /(\A|-)pe(\Z|-)/
             'pe'
