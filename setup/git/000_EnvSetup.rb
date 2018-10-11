@@ -97,7 +97,7 @@ step "Unpack puppet-runtime" do
     end
     tarball_name = runtime_prefix + platform_tag + runtime_suffix
 
-    on host, "curl -O #{runtime_url}#{tarball_name}"
+    on host, "curl -Of #{runtime_url}#{tarball_name}"
 
     case host['platform']
     when /windows/
