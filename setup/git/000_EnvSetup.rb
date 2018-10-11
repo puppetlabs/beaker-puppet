@@ -102,14 +102,24 @@ step "Unpack puppet-runtime" do
     case host['platform']
     when /windows/
       on host, "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -"
-      on host, "chmod 755 /cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/puppet/bin/*"
-      on host, "chmod 755 /cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/sys/ruby/bin/*"
+
+      if arch == 'x64'
+        program_files = 'ProgramFiles64Folder'
+      else
+        program_files = 'ProgramFilesFolder'
+      end
+      if branch == '5.5.x'
+        bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
+      else
+        bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
+      end
+      on host, "chmod 755 #{bindir}/*"
 
       # Because the runtime archive for windows gets installed in a non-standard
       # directory (ProgramFiles64Folder), we need to add it to the path here
       # rather than rely on `host['privatebindir']` like we can for other
       # platforms
-      host.add_env_var('PATH', '/cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/puppet/bin:/cygdrive/c/ProgramFiles64Folder/PuppetLabs/Puppet/sys/ruby/bin')
+      host.add_env_var('PATH', bindir)
     when /osx/
       on host, "tar -xzf #{tarball_name}"
       on host, "for d in opt var private; do rsync -ka \"${d}/\" \"/${d}/\"; done"
