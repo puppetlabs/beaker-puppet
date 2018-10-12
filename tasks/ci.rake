@@ -3,6 +3,7 @@ require 'pp'
 require 'yaml'
 require 'securerandom'
 require 'fileutils'
+require 'tempfile'
 require 'beaker-hostgenerator'
 require 'beaker/dsl/install_utils'
 extend Beaker::DSL::InstallUtils
@@ -172,14 +173,28 @@ namespace :ci do
 
   namespace :test do
     desc <<-EOS
-Run the acceptance tests using puppet-agent (AIO) packages.
+Run the acceptance tests using puppet-agent (AIO) packages, with or without
+retrying failed tests one time.
 
   $ SHA=<full sha> bundle exec rake ci:test:aio
 
+or
+
+  $ SHA=<full sha> bundle exec rake ci:test:aio[RETRIES]
+
+
 SHA should be the full SHA for the puppet-agent package.
+
+RETRIES should be set to true to retry failed tests one time. It defaults
+to false.
 EOS
-    task :aio => ['ci:check_env', 'ci:gen_hosts'] do
-      beaker_suite(:aio)
+    task :aio, [:retries] => ['ci:check_env', 'ci:gen_hosts'] do |t, args|
+      args.with_defaults(retries: false)
+      if args[:retries]
+        beaker_suite_retry(:aio)
+      else
+        beaker_suite(:aio)
+      end
     end
 
     desc <<-EOS
@@ -193,11 +208,13 @@ EOS
     task :gem => ['ci:check_env'] do
       beaker(:init, '--hosts', 'config/nodes/gem.yaml', '--options-file', 'config/gem/options.rb')
       beaker(:provision)
-      beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(:gem))
-      beaker(:exec, "#{File.dirname(__dir__)}/setup/gem/010_GemInstall.rb")
-
-      preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
-      beaker(:destroy) unless preserve_hosts
+      begin
+        beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(:gem))
+        beaker(:exec, "#{File.dirname(__dir__)}/setup/gem/010_GemInstall.rb")
+      ensure
+        preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
+        beaker(:destroy) unless preserve_hosts
+      end
     end
 
     desc <<-EOS
@@ -243,12 +260,37 @@ end
 def beaker_suite(type)
   beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
+
   begin
-    beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(type))
-    beaker(:exec, 'pre-suite')
+    beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
+    beaker(:exec, 'pre-suite', '--preserve-state')
     beaker(:exec, ENV['TESTS'])
     beaker(:exec, 'post-suite')
   ensure
+    preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
+    beaker(:destroy) unless preserve_hosts
+  end
+end
+
+def beaker_suite_retry(type)
+  beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
+  beaker(:provision)
+
+  begin
+    json_results_file = Tempfile.new
+
+    beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
+    beaker(:exec, 'pre-suite', '--preserve-state')
+    beaker(:exec, ENV['TESTS'], '--test-results-file', json_results_file.path)
+  rescue RuntimeError
+    tests_to_rerun = JSON.load(File.read(json_results_file.path))
+    if tests_to_rerun.length > 0
+      puts '*** Retrying the following:'
+      puts tests_to_rerun.map { |spec| "  #{spec}" }
+      beaker(:exec, tests_to_rerun.map { |str| "#{str}" }.join(',') )
+    end
+  ensure
+    beaker(:exec, 'post-suite')
     preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
     beaker(:destroy) unless preserve_hosts
   end
