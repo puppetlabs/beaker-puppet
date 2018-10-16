@@ -137,6 +137,10 @@ module Beaker
               add_puppet_paths_on(host)
             end
           end
+
+          if File.exist?(Subcommands::SubcommandUtil::SUBCOMMAND_OPTIONS)
+            write_hosts(hosts, Subcommands::SubcommandUtil::SUBCOMMAND_OPTIONS)
+          end
         end
         alias_method :configure_foss_defaults_on, :configure_type_defaults_on
         alias_method :configure_pe_defaults_on, :configure_type_defaults_on

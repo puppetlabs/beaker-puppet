@@ -135,6 +135,24 @@ describe ClassMixedWithDSLInstallUtils do
       subject.configure_type_defaults_on(hosts)
     end
 
+    context "when the subcommand options file exists" do
+      before(:each) do
+        allow(File).to receive(:exist?).with(Beaker::Subcommands::SubcommandUtil::SUBCOMMAND_OPTIONS).and_return(true)
+      end
+
+      it "writes the specified hosts to it" do
+        # Stub the host type
+        hosts.each do |host|
+          host['type'] = 'foss'
+        end
+        allow(subject).to receive(:add_foss_defaults_on)
+
+        expect(subject).to receive(:write_hosts)
+          .with(hosts, Beaker::Subcommands::SubcommandUtil::SUBCOMMAND_OPTIONS)
+
+        subject.configure_type_defaults_on(hosts)
+      end
+    end
   end
 
   describe "get_puppet_collection" do
