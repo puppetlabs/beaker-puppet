@@ -44,7 +44,7 @@ module Beaker
             opts << ' --json'
           end
 
-          result = on host, facter(name, opts)
+          result = on host, facter("\"#{name}\"", opts)
           if result.kind_of?(Array)
             result.map { |res| JSON.parse(res.stdout)[name] }
           else

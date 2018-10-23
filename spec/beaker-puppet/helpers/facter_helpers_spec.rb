@@ -34,7 +34,7 @@ describe ClassMixedWithDSLHelpers do
   describe '#fact_on' do
     it 'retrieves a fact on a single host' do
       result.stdout = "{\"osfamily\": \"family\"}\n"
-      expect( subject ).to receive(:facter).with('osfamily',{json: nil}).once
+      expect( subject ).to receive(:facter).with('"osfamily"',{json: nil}).once
       expect( subject ).to receive(:on).and_return(result)
 
       expect( subject.fact_on('host','osfamily') ).to be === JSON.parse(result.stdout)['osfamily']
