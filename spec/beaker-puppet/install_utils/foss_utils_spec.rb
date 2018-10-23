@@ -312,11 +312,11 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'installs puppet on cygwin windows' do
       allow(subject).to receive(:link_exists?).and_return( true )
-      expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.7.1-x64.msi\" -O http://downloads.puppetlabs.com/windows/puppet-3.7.1-x64.msi")
+      expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.7.1-x64.msi\" -O http://downloads.puppet.com/windows/puppet-3.7.1-x64.msi")
       expect(subject).to receive(:on).with(winhost, " echo 'export PATH=$PATH:\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\"' > /etc/bash.bashrc ")
       expect(subject).to receive(:install_msi_on).with(winhost, "#{win_temp}\\puppet-3.7.1-x64.msi", {}, {:debug => nil})
 
-      subject.install_puppet_from_msi( winhost, {:version => '3.7.1', :win_download_url => 'http://downloads.puppetlabs.com/windows'}  )
+      subject.install_puppet_from_msi( winhost, {:version => '3.7.1', :win_download_url => 'http://downloads.puppet.com/windows'}  )
     end
 
     it 'installs puppet on non-cygwin windows' do
@@ -326,12 +326,12 @@ describe ClassMixedWithDSLInstallUtils do
 
       expect(subject).to receive(:on).with(winhost_non_cygwin, instance_of( Beaker::Command )) do |host, beaker_command|
         expect(beaker_command.command).to eq('powershell.exe')
-        expect(beaker_command.args).to eq(["-ExecutionPolicy Bypass", "-InputFormat None", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command $webclient = New-Object System.Net.WebClient;  $webclient.DownloadFile('http://downloads.puppetlabs.com/windows/puppet-3.7.1.msi','#{win_temp}\\puppet-3.7.1.msi')"])
+        expect(beaker_command.args).to eq(["-ExecutionPolicy Bypass", "-InputFormat None", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command $webclient = New-Object System.Net.WebClient;  $webclient.DownloadFile('http://downloads.puppet.com/windows/puppet-3.7.1.msi','#{win_temp}\\puppet-3.7.1.msi')"])
       end.once
 
       expect(subject).to receive(:install_msi_on).with(winhost_non_cygwin, "#{win_temp}\\puppet-3.7.1.msi", {}, {:debug => nil})
 
-      subject.install_puppet_from_msi( winhost_non_cygwin, {:version => '3.7.1', :win_download_url => 'http://downloads.puppetlabs.com/windows'}   )
+      subject.install_puppet_from_msi( winhost_non_cygwin, {:version => '3.7.1', :win_download_url => 'http://downloads.puppet.com/windows'}   )
     end
   end
 
@@ -544,7 +544,7 @@ describe ClassMixedWithDSLInstallUtils do
           if host != winhost
             allow(subject).to receive(:on).with(host, anything)
           else
-            expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.msi\" -O http://downloads.puppetlabs.com/windows/puppet-3.msi")
+            expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.msi\" -O http://downloads.puppet.com/windows/puppet-3.msi")
             expect(subject).to receive(:on).with(winhost, " echo 'export PATH=$PATH:\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\"' > /etc/bash.bashrc ")
             expect(subject).to receive(:install_msi_on).with(winhost, "#{win_temp}\\puppet-3.msi", {}, {:debug => nil}).exactly(1).times
           end
@@ -556,11 +556,11 @@ describe ClassMixedWithDSLInstallUtils do
           if host != winhost
             allow(subject).to receive(:on).with(host, anything)
           else
-            expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.msi\" -O http://nightlies.puppetlabs.com/puppet-latest/repos/windows/puppet-3.msi")
+            expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.msi\" -O http://nightlies.puppet.com/puppet-latest/repos/windows/puppet-3.msi")
             expect(subject).to receive(:install_msi_on).with(winhost, "#{win_temp}\\puppet-3.msi", {}, {:debug => nil})
           end
         end
-        subject.install_puppet( :version => '3', :win_download_url => 'http://nightlies.puppetlabs.com/puppet-latest/repos/windows' )
+        subject.install_puppet( :version => '3', :win_download_url => 'http://nightlies.puppet.com/puppet-latest/repos/windows' )
       end
     end
     describe 'on unsupported platforms' do
@@ -873,7 +873,7 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   describe '#msi_link_path' do
-    let( :opts )     { { :puppet_agent_version => 'VERSION', :win_download_url => 'http://downloads.puppetlabs.com/windows' } }
+    let( :opts )     { { :puppet_agent_version => 'VERSION', :win_download_url => 'http://downloads.puppet.com/windows' } }
     let( :platform ) { 'windows' }
     let( :host )     { { :platform => platform, 'dist' => 'puppet-agent-VERSION-x64' } }
 
@@ -894,12 +894,12 @@ describe ClassMixedWithDSLInstallUtils do
 
       expect{
         subject.msi_link_path( host, opts )
-      }.to raise_error(RuntimeError, /Puppet MSI at http:\/\/downloads.puppetlabs.com\/windows\/puppet-agent-VERSION-x64.msi does not exist!/)
+      }.to raise_error(RuntimeError, /Puppet MSI at http:\/\/downloads.puppet.com\/windows\/puppet-agent-VERSION-x64.msi does not exist!/)
     end
   end
 
   describe '#install_puppet_agent_from_msi_on' do
-    let( :opts )     { { :puppet_agent_version => 'VERSION', :win_download_url => 'http://downloads.puppetlabs.com/windows' } }
+    let( :opts )     { { :puppet_agent_version => 'VERSION', :win_download_url => 'http://downloads.puppet.com/windows' } }
     let( :platform ) { 'windows' }
     let( :host )     { { :platform => platform } }
 
@@ -1351,7 +1351,7 @@ describe ClassMixedWithDSLInstallUtils do
     context 'when setting different agent versions' do
       let( :host ) { basic_hosts.first }
       let( :platform ) { Object.new() }
-      let( :downloadurl ) { 'http://pm.puppetlabs.com' }
+      let( :downloadurl ) { 'http://pm.puppet.com' }
       before :each do
         allow( platform ).to receive( :to_array ) { ['el', '6', 'x4'] }
         allow( subject ).to receive( :options ).and_return( opts )
@@ -1451,11 +1451,11 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   describe '#get_latest_puppet_agent_build_from_url' do
-    let(:urls) {['https://downloads.puppetlabs.com/mac/10.9/PC1/x86_64',
-            'https://downloads.puppetlabs.com/mac/10.10/PC1/x86_64',
-            'https://downloads.puppetlabs.com/mac/10.11/PC1/x86_64',
-            'https://downloads.puppetlabs.com/mac/10.12/PC1/x86_64',
-            'https://downloads.puppetlabs.com/windows']}
+    let(:urls) {['https://downloads.puppet.com/mac/10.9/PC1/x86_64',
+            'https://downloads.puppet.com/mac/10.10/PC1/x86_64',
+            'https://downloads.puppet.com/mac/10.11/PC1/x86_64',
+            'https://downloads.puppet.com/mac/10.12/PC1/x86_64',
+            'https://downloads.puppet.com/windows']}
 
     it "gets the right version" do
       urls.each do |url|
