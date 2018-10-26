@@ -205,7 +205,7 @@ Run the acceptance tests against a git checkout.
 
   $ SHA=<full sha> bundle exec rake ci:test:git
 
-SHA should be the full SHA for the component. Other options:
+SHA: for git based testing specifically, this can be a sha, a branch, or a tag.
 
 FORK: to test against your fork, defaults to 'puppetlabs'
 
