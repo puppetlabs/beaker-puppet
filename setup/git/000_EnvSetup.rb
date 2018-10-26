@@ -73,7 +73,7 @@ install_packages_on(agents, PACKAGES, :check_if_exists => true)
 
 step "Unpack puppet-runtime" do
   dev_builds_url = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
-  branch = ENV['BRANCH'] || 'master'
+  branch = ENV['RUNTIME_BRANCH'] || 'master'
 
   # We want to grab whatever tag has been promoted most recently into the branch
   # of puppet-agent that corresponds to whatever component we're working on.

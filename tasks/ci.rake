@@ -110,6 +110,11 @@ $project_SERVER:
     Similar to SERVER, but project specific. If you have only one project (i.e., hiera) that you
     want to pull from a different server then all the others, you could set HIERA_SERVER=179.0.0.1,
     and you would get back 'https://179.0.0.1/puppetlabs-hiera.git'.
+
+RUNTIME_BRANCH:
+    Currently only used with git-based testing. This must correspond to a branch in the
+    puppet-agent repo. We use it to determine the tag of the agent-runtime package that
+    we want. We also use it to construct the agent-runtime archive name (ie agent-runtime-#{branch}-#{tag})
 EOS
 
 namespace :ci do
@@ -205,6 +210,10 @@ SHA should be the full SHA for the component. Other options:
 FORK: to test against your fork, defaults to 'puppetlabs'
 
 SERVER: to git fetch from an alternate GIT server, defaults to 'github.com'
+
+RUNTIME_BRANCH: the branch of the agent-runtime package to grab, defaults to
+  'master'. This tells us which branch of puppet-agent to get the runtime tag
+  from and helps us create the archive name when we go to curl it down.
 EOS
     task :git => ['ci:check_env', 'ci:gen_hosts'] do
       beaker_suite(:git)
