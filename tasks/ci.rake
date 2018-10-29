@@ -114,7 +114,7 @@ $project_SERVER:
 RUNTIME_BRANCH:
     Currently only used with git-based testing. This must correspond to a branch in the
     puppet-agent repo. We use it to determine the tag of the agent-runtime package that
-    we want. We also use it to construct the agent-runtime archive name (ie agent-runtime-#{branch}-#{tag})
+    we want. We also use it to construct the agent-runtime archive name (ie agent-runtime-${branch}-${tag})
 EOS
 
 namespace :ci do
