@@ -110,6 +110,11 @@ $project_SERVER:
     Similar to SERVER, but project specific. If you have only one project (i.e., hiera) that you
     want to pull from a different server then all the others, you could set HIERA_SERVER=179.0.0.1,
     and you would get back 'https://179.0.0.1/puppetlabs-hiera.git'.
+
+RUNTIME_BRANCH:
+    Currently only used with git-based testing. This must correspond to a branch in the
+    puppet-agent repo. We use it to determine the tag of the agent-runtime package that
+    we want. We also use it to construct the agent-runtime archive name (ie agent-runtime-#{branch}-#{tag})
 EOS
 
 namespace :ci do
@@ -200,11 +205,15 @@ Run the acceptance tests against a git checkout.
 
   $ SHA=<full sha> bundle exec rake ci:test:git
 
-SHA should be the full SHA for the component. Other options:
+SHA: for git based testing specifically, this can be a sha, a branch, or a tag.
 
 FORK: to test against your fork, defaults to 'puppetlabs'
 
 SERVER: to git fetch from an alternate GIT server, defaults to 'github.com'
+
+RUNTIME_BRANCH: the branch of the agent-runtime package to grab, defaults to
+  'master'. This tells us which branch of puppet-agent to get the runtime tag
+  from and helps us create the archive name when we go to curl it down.
 EOS
     task :git => ['ci:check_env', 'ci:gen_hosts'] do
       beaker_suite(:git)
@@ -251,15 +260,15 @@ def pre_suites(type)
     [
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
       "#{beaker_root}/setup/aio/010_Install_Puppet_Agent.rb",
-      "#{beaker_root}/setup/aio/011_Install_Puppet_Server.rb",
-      "#{beaker_root}/setup/aio/012_Finalize_Installs.rb",
-      "#{beaker_root}/setup/aio/020_InstallCumulusModules.rb",
-      "#{beaker_root}/setup/aio/021_InstallAristaModuleMasters.rb",
-      "#{beaker_root}/setup/aio/022_InstallAristaModuleAgents.rb",
+      "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
+      "#{beaker_root}/setup/common/012_Finalize_Installs.rb",
+      "#{beaker_root}/setup/common/020_InstallCumulusModules.rb",
+      "#{beaker_root}/setup/common/021_InstallAristaModuleMasters.rb",
+      "#{beaker_root}/setup/common/022_InstallAristaModuleAgents.rb",
       "#{beaker_root}/setup/common/025_StopFirewall.rb",
       "#{beaker_root}/setup/common/030_StopSssd.rb",
       "#{beaker_root}/setup/common/040_ValidateSignCert.rb",
-      "#{beaker_root}/setup/aio/045_EnsureMasterStarted.rb",
+      "#{beaker_root}/setup/common/045_EnsureMasterStarted.rb",
     ]
   when :gem
     [
@@ -271,13 +280,13 @@ def pre_suites(type)
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
       "#{beaker_root}/setup/git/000_EnvSetup.rb",
       "#{beaker_root}/setup/git/010_TestSetup.rb",
-      "#{beaker_root}/setup/git/011_SetMaster.rb",
+      "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
       "#{beaker_root}/setup/git/020_PuppetUserAndGroup.rb",
-      "#{beaker_root}/setup/common/025_StopFirewall.rb",
-      "#{beaker_root}/setup/git/030_PuppetMasterSanity.rb",
-      "#{beaker_root}/setup/common/040_ValidateSignCert.rb",
-      "#{beaker_root}/setup/git/060_InstallModules.rb",
       "#{beaker_root}/setup/git/070_InstallCACerts.rb",
+      "#{beaker_root}/setup/common/025_StopFirewall.rb",
+      "#{beaker_root}/setup/common/030_StopSssd.rb",
+      "#{beaker_root}/setup/common/040_ValidateSignCert.rb",
+      "#{beaker_root}/setup/common/045_EnsureMasterStarted.rb",
     ]
   end
   presuites.join(',')

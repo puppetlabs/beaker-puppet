@@ -1,68 +1,44 @@
 test_name "Setup environment"
 
-step "Ensure Git and Ruby"
+require 'json'
+require 'open-uri'
 
+step 'Configure paths' do
+  add_aio_defaults_on(hosts)
+  add_puppet_paths_on(hosts)
+end
+
+step "Install git and tar"
 PACKAGES = {
-  :redhat => [
-    'git',
-    'ruby',
-    'rubygem-json',       # invalid on RHEL6
-    'rubygem-io-console', # required for Fedora25 to bundle install
-    'rubygem-rdoc'        # required for Fedora25 to install gems
-  ],
+  :redhat => ['git'],
   :debian => [
     ['git', 'git-core'],
-    'ruby',
-  ],
-  :debian_ruby18 => [
-    'libjson-ruby',
-  ],
-  :solaris_11 => [
-    ['git', 'developer/versioning/git'],
   ],
   :solaris_10 => [
     'coreutils',
-    'curl', # update curl to fix "CURLOPT_SSL_VERIFYHOST no longer supports 1 as value!" issue
     'git',
-    'ruby19',
-    'ruby19_dev',
-    'gcc4core',
+    'gtar',
   ],
-  :windows => [
-    'git',
-    # there isn't a need for json on windows because it is bundled in ruby 1.9
-  ],
+  :windows => ['git'],
+  :sles => ['git'],
 }
 
-# override incorrect FOSS (git) defaults from Beaker with AIO applicable ones
-#
-# Remove after PUP-4867 breaks distmoduledir and sitemoduledir into individual
-# settings from modulepath and Beaker can properly introspect these settings
-hosts.each do |host|
-  platform = host['platform'] =~ /windows/ ? 'windows' : 'unix'
+# We need to be able override which tar we use on solaris, which we call later
+# when we unpack the puppet-runtime archive
+tar = 'tar'
 
-  host['puppetbindir'] = '/usr/bin' if platform == 'windows'
-
-  # Beakers add_aio_defaults_on helper is not appropriate here as it
-  # also alters puppetbindir / privatebindir to use package installed
-  # paths rather than git installed paths
-  host['distmoduledir'] = AIO_DEFAULTS[platform]['distmoduledir']
-  host['sitemoduledir'] = AIO_DEFAULTS[platform]['sitemoduledir']
-end
-
-hosts.each do |host|
+agents.each do |host|
   case host['platform']
-  when  /solaris-10/
-    on host, 'mkdir -p /var/lib'
-    on host, 'ln -sf /opt/csw/bin/pkgutil /usr/bin/pkgutil'
-    on host, 'ln -sf /opt/csw/bin/gem19 /usr/bin/gem'
-    on host, 'ln -sf /opt/csw/bin/git /usr/bin/git'
-    on host, 'ln -sf /opt/csw/bin/ruby19 /usr/bin/ruby'
-    on host, 'ln -sf /opt/csw/bin/gstat /usr/bin/stat'
-    on host, 'ln -sf /opt/csw/bin/greadlink /usr/bin/readlink'
-  when /solaris-11/
-    step "#{host} jump through hoops to install ruby19; switch back to runtime/ruby-19 after template upgrade to sol11.2"
-    create_remote_file host, "/root/shutupsolaris", <<END
+  when /solaris/
+    tar = 'gtar'
+    if host['platform'] =~ /11/
+      # The file allows us to non-interactively install these packages with
+      # pkgutil on solaris 11. Solaris 10 does this as a part of the
+      # `install_packages_on` method in beaker. Since we install packages for
+      # solaris 11 using pkg by default, we can't use that method for sol11.
+      # We have to override it so that we can get git from opencws, as it has
+      # the updated ssl certs we need to access github repos.
+      create_remote_file host, "/root/shutupsolaris", <<-END
 mail=
 # Overwrite already installed instances
 instance=overwrite
@@ -83,60 +59,81 @@ conflict=nocheck
 action=nocheck
 # Install to the default base directory.
 basedir=default
-END
-    on host, 'pkgadd -a /root/shutupsolaris -d http://get.opencsw.org/now all'
-    on host, '/opt/csw/bin/pkgutil -U all'
-    on host, '/opt/csw/bin/pkgutil -i -y ruby19_dev'
-    on host, '/opt/csw/bin/pkgutil -i -y ruby19'
-    on host, 'ln -sf /opt/csw/bin/gem19 /usr/bin/gem'
-    on host, 'ln -sf /opt/csw/bin/ruby19 /usr/bin/ruby'
+        END
+      on host, 'pkgadd -d http://get.opencsw.org/now -a /root/shutupsolaris -n all'
+      on host, '/opt/csw/bin/pkgutil -U all'
+      on host, '/opt/csw/bin/pkgutil -y -i git'
+      on host, '/opt/csw/bin/pkgutil -y -i gtar'
+    end
+    host.add_env_var('PATH', '/opt/csw/bin')
   end
 end
 
-install_packages_on(hosts, PACKAGES, :check_if_exists => true)
+install_packages_on(agents, PACKAGES, :check_if_exists => true)
 
-hosts.each do |host|
-  case host['platform']
-  when /windows/
-    arch = host[:ruby_arch] || 'x86'
-    step "#{host} Selected architecture #{arch}"
+step "Unpack puppet-runtime" do
+  dev_builds_url = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
+  branch = ENV['RUNTIME_BRANCH'] || 'master'
 
-    revision = if arch == 'x64'
-                 '2.1.x-x64'
-               else
-                 '2.1.x-x86'
-               end
+  # We want to grab whatever tag has been promoted most recently into the branch
+  # of puppet-agent that corresponds to whatever component we're working on.
+  # This will allow us to get the latest runtime package that has passed tests.
+  runtime_json = "https://raw.githubusercontent.com/puppetlabs/puppet-agent/#{branch}/configs/components/puppet-runtime.json"
+  runtime_tag = JSON.load(open(runtime_json))['version']
 
-    step "#{host} Install ruby from git using revision #{revision}"
-    # TODO remove this step once we are installing puppet from msi packages
-    win_path = on(host, 'cygpath -m /opt/puppet-git-repos').stdout.chomp
-    install_from_git_on(host, win_path,
-                     :name => 'puppet-win32-ruby',
-                     :path => build_git_url('puppet-win32-ruby'),
-                     :rev  => revision)
-    on host, 'cd /opt/puppet-git-repos/puppet-win32-ruby; cp -r ruby/* /'
-    on host, 'cd /lib; icacls ruby /grant "Everyone:(OI)(CI)(RX)"'
-    on host, 'cd /lib; icacls ruby /reset /T'
-    on host, 'cd /; icacls bin /grant "Everyone:(OI)(CI)(RX)"'
-    on host, 'cd /; icacls bin /reset /T'
-    on host, 'ruby --version'
-    on host, 'cmd /c gem list'
+  runtime_url = "#{dev_builds_url}/puppet-runtime/#{runtime_tag}/artifacts/"
+
+  runtime_prefix = "agent-runtime-#{branch}-#{runtime_tag}."
+  runtime_suffix = ".tar.gz"
+
+  agents.each do |host|
+    platform_tag = host['packaging_platform']
+    if platform_tag =~ /windows/
+      # the windows version is hard coded to `2012r2`. Unfortunately,
+      # `host['packaging_platform']` is hard coded to `2012`, so we have to add
+      # the `r2` on our own.
+      platform, version, arch = platform_tag.split('-')
+      platform_tag = "#{platform}-#{version}r2-#{arch}"
+    end
+    tarball_name = runtime_prefix + platform_tag + runtime_suffix
+
+    on host, "curl -Of #{runtime_url}#{tarball_name}"
+
+    case host['platform']
+    when /windows/
+      on host, "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -"
+
+      if arch == 'x64'
+        program_files = 'ProgramFiles64Folder'
+      else
+        program_files = 'ProgramFilesFolder'
+      end
+      if branch == '5.5.x'
+        bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
+      else
+        bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
+      end
+      on host, "chmod 755 #{bindir}/*"
+
+      # Because the runtime archive for windows gets installed in a non-standard
+      # directory (ProgramFiles64Folder), we need to add it to the path here
+      # rather than rely on `host['privatebindir']` like we can for other
+      # platforms
+      host.add_env_var('PATH', bindir)
+    when /osx/
+      on host, "tar -xzf #{tarball_name}"
+      on host, "for d in opt var private; do rsync -ka \"${d}/\" \"/${d}/\"; done"
+    else
+      on host, "gunzip -c #{tarball_name} | #{tar} -k -C / -xf -"
+    end
   end
 end
 
-# Only configure gem mirror after Ruby has been installed, but before any gems are installed.
-configure_gem_mirror(hosts)
+step "Install bundler" do
+  # Only configure gem mirror after Ruby has been installed, but before any gems are installed.
+  configure_gem_mirror(agents)
 
-hosts.each do |host|
-  case host['platform']
-  when /solaris/
-    step "#{host} Install json from rubygems"
-    on host, 'gem install json_pure --no-ri --no-rdoc --version 1.8.3' # json_pure 2.0 requires ruby 2
-    on host, 'gem install bundler --no-ri --no-rdoc'
-    on host, "ln -sf /opt/csw/bin/bundle #{host['puppetbindir']}/bundle"
-  when /windows/
-    on host, 'cmd /c gem install bundler --no-ri --no-rdoc'
-  else
-    on host, 'gem install bundler --no-ri --no-rdoc'
+  agents.each do |host|
+    on host, "#{gem_command(host)} install bundler --no-ri --no-rdoc"
   end
 end
