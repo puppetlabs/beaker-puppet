@@ -9,6 +9,23 @@ test_name "Install repositories on target machines..." do
 
     repositories.each do |repository|
       step "Install #{repository[:name]}"
+
+      # If we're using docker, and we've mounted the puppet directory, let's run
+      # tests from there rather than a github repo. In this case, we assume the
+      # name of the mount corresponds to the thing we're trying to install.
+      #
+      #   HOSTS:
+      #     hostname-1:
+      #       hypervisor: docker
+      #       mount_folders:
+      #         puppet:
+      #           host_path: ~/puppet
+      #           container_path: /build/puppet
+      #
+      if agent[:mount_folders]
+        mount = agent[:mount_folders][repository[:name]]
+        repository[:path] = "file://#{mount[:container_path]}"
+      end
       repo_dir = host.tmpdir(repository[:name])
       on(host, "chmod 755 #{repo_dir}")
 
