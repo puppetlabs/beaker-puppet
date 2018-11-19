@@ -87,6 +87,11 @@ step "Unpack puppet-runtime" do
   runtime_suffix = ".tar.gz"
 
   agents.each do |host|
+
+    # If we're running on an agent, assume the user has set an image that
+    # already contains everything we would get from the runtime tarball.
+    next if host[:hypervisor] == 'docker'
+
     platform_tag = host['packaging_platform']
     if platform_tag =~ /windows/
       # the windows version is hard coded to `2012r2`. Unfortunately,
