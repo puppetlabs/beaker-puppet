@@ -237,6 +237,61 @@ describe ClassMixedWithDSLInstallUtils do
     end
   end
 
+  describe 'get_target_module_path' do
+    let(:host) do
+      host = make_host("echo '/explicit/modulepath'", {stdout: "/explicit/modulepath\n"})
+      allow(host).to receive(:puppet).and_return(puppet)
+      host
+    end
+    let(:puppet) do
+      puppet = instance_double('PuppetConfigReader')
+      allow(puppet).to receive(:[]).with('basemodulepath').and_return(basemodulepath)
+      puppet
+    end
+
+    context 'no modulepath' do
+      let(:basemodulepath) { '' }
+
+      it 'should prefer the explicit path' do
+        expect(subject.get_target_module_path(host, '/explicit/modulepath')).to eq('/explicit/modulepath')
+        expect(puppet).not_to have_received(:[]).with('basemodulepath')
+      end
+
+      it 'should raise an error if no directory is found' do
+        expect { subject.get_target_module_path(host) }.to raise_error(ArgumentError, 'Unable to find target module path to copy to')
+        expect(puppet).to have_received(:[]).with('basemodulepath')
+      end
+    end
+
+    context 'single modulepath' do
+      let(:basemodulepath) { '/path/to/modulepath' }
+
+      it 'should prefer the explicit path' do
+        expect(subject.get_target_module_path(host, '/explicit/modulepath')).to eq('/explicit/modulepath')
+        expect(puppet).not_to have_received(:[]).with('basemodulepath')
+      end
+
+      it 'should fall back to autodetection' do
+        expect(subject.get_target_module_path(host)).to eq('/path/to/modulepath')
+        expect(puppet).to have_received(:[]).with('basemodulepath')
+      end
+    end
+
+    context 'multiple directories' do
+      let(:basemodulepath) { '/home/puppet/modules:/path/to/modulepath' }
+
+      it 'should prefer the explicit path' do
+        expect(subject.get_target_module_path(host, '/explicit/modulepath')).to eq('/explicit/modulepath')
+        expect(puppet).not_to have_received(:[]).with('basemodulepath')
+      end
+
+      it 'should return the first directory' do
+        expect(subject.get_target_module_path(host)).to eq('/home/puppet/modules')
+        expect(puppet).to have_received(:[]).with('basemodulepath')
+      end
+    end
+  end
+
   describe 'parse_for_modulename' do
     directory = '/testfilepath/myname-testmodule'
     it 'should return name from metadata.json' do

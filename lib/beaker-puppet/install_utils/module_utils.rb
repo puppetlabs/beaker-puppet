@@ -118,7 +118,7 @@ module Beaker
                     :ignore_list => PUPPET_MODULE_INSTALL_IGNORE}.merge(opts)
 
             ignore_list = build_ignore_list(opts)
-            target_module_dir = on( host, "echo #{opts[:target_module_path]}" ).stdout.chomp
+            target_module_dir = get_target_module_path(host, opts[:target_module_path])
             source_path = File.expand_path( opts[:source] )
             source_name = File.basename(source_path)
             if opts.has_key?(:module_name)
@@ -155,6 +155,16 @@ module Beaker
           end
         end
         alias :copy_root_module_to :copy_module_to
+
+        def get_target_module_path(host, path=nil)
+          if path
+            on( host, "echo #{path}" ).stdout.chomp
+          else
+            path = host.puppet['basemodulepath'].split(':').first
+            raise ArgumentError, 'Unable to find target module path to copy to' unless path
+            path
+          end
+        end
 
         #Recursive method for finding the module root
         # Assumes that a Modulefile exists
