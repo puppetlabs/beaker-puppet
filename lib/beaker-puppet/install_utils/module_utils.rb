@@ -120,7 +120,6 @@ module Beaker
             ignore_list = build_ignore_list(opts)
             target_module_dir = on( host, "echo #{opts[:target_module_path]}" ).stdout.chomp
             source_path = File.expand_path( opts[:source] )
-            source_dir = File.dirname(source_path)
             source_name = File.basename(source_path)
             if opts.has_key?(:module_name)
               module_name = opts[:module_name]
