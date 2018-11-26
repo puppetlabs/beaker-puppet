@@ -21,8 +21,9 @@ test_name "Validate Sign Cert" do
 
   step "Start puppetserver" do
     master_opts = {
-      :main => {
-        :dns_alt_names => "puppet,#{hostname},#{fqdn}",
+      main: {
+        dns_alt_names: "puppet,#{hostname},#{fqdn}",
+        server: fqdn
       },
     }
 
