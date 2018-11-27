@@ -262,7 +262,6 @@ def pre_suites(type)
       "#{beaker_root}/setup/aio/010_Install_Puppet_Agent.rb",
       "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
       "#{beaker_root}/setup/common/012_Finalize_Installs.rb",
-      "#{beaker_root}/setup/common/013_aix_yum_setup.rb",
       "#{beaker_root}/setup/common/020_InstallCumulusModules.rb",
       "#{beaker_root}/setup/common/021_InstallAristaModuleMasters.rb",
       "#{beaker_root}/setup/common/022_InstallAristaModuleAgents.rb",
