@@ -1365,8 +1365,18 @@ describe ClassMixedWithDSLInstallUtils do
         collection = 'PC1'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}" }
 
-        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
-        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        expect(subject).to receive(:fetch_http_file).once.with(
+          /pm\.puppet\.com\/puppet-agent\/.*\/#{agentversion}\/repos/,
+          /puppet-agent-el-6*/,
+          /\/el$/
+        )
+        expect(host).to receive(:pe_puppet_agent_promoted_package_install).with(
+          anything,
+          /puppet-agent-el-6*/,
+          /.*\/el\/6\/#{collection}\/.*rpm/,
+          /puppet-agent-el-6/,
+          anything
+        )
         subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
       end
 
@@ -1376,8 +1386,17 @@ describe ClassMixedWithDSLInstallUtils do
         collection = 'PC1'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
 
-        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
-        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        expect(subject).to receive(:fetch_http_file).once.with(
+          /pm\.puppet\.com\/puppet-agent\/.*\/#{agentversion}\/repos/,
+          /puppet-agent-el-6*/,/\/el$/
+        )
+        expect(host).to receive(:pe_puppet_agent_promoted_package_install).with(
+          anything,
+          /puppet-agent-el-6*/,
+          /.*\/el\/6\/#{collection}\/.*rpm/,
+          /puppet-agent-el-6/,
+          anything
+        )
         subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
       end
 
@@ -1387,8 +1406,18 @@ describe ClassMixedWithDSLInstallUtils do
         collection = 'puppet5'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
 
-        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
-        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        expect(subject).to receive(:fetch_http_file).once.with(
+          /pm\.puppet\.com\/puppet-agent\/.*\/#{agentversion}\/repos/,
+          /puppet-agent-el-6*/,
+          /\/el$/
+        )
+        expect(host).to receive(:pe_puppet_agent_promoted_package_install).with(
+          anything,
+          /puppet-agent-el-6*/,
+          /.*\/el\/6\/#{collection}\/.*rpm/,
+          /puppet-agent-el-6/,
+          anything
+        )
         subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
       end
 
@@ -1398,8 +1427,18 @@ describe ClassMixedWithDSLInstallUtils do
         collection = 'puppet6'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
 
-        expect( subject ).to receive( :fetch_http_file ).once.with( /pm\.puppetlabs\.com\/puppet-agent\/.*\/#{agentversion}\/repos/, /puppet-agent-el-6*/, /\/el$/ )
-        expect( host).to receive( :pe_puppet_agent_promoted_package_install ).with( anything, /puppet-agent-el-6*/, /.*\/el\/6\/#{collection}\/.*rpm/, /puppet-agent-el-6/, anything )
+        expect(subject).to receive(:fetch_http_file).once.with(
+          /pm\.puppet\.com\/puppet-agent\/.*\/#{agentversion}\/repos/,
+          /puppet-agent-el-6*/,
+          /\/el$/
+        )
+        expect(host).to receive(:pe_puppet_agent_promoted_package_install).with(
+          anything,
+          /puppet-agent-el-6*/,
+          /.*\/el\/6\/#{collection}\/.*rpm/,
+          /puppet-agent-el-6/,
+          anything
+        )
         subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
       end
     end
