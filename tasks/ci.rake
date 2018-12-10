@@ -243,13 +243,15 @@ end
 def beaker_suite(type)
   beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
-  beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
-  beaker(:exec, 'pre-suite', '--preserve-state')
-  beaker(:exec, ENV['TESTS'])
-  beaker(:exec, 'post-suite')
-
-  preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
-  beaker(:destroy) unless preserve_hosts
+  begin
+    beaker(:exec, 'pre-suite', '--pre-suite', pre_suites(type))
+    beaker(:exec, 'pre-suite')
+    beaker(:exec, ENV['TESTS'])
+    beaker(:exec, 'post-suite')
+  ensure
+    preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
+    beaker(:destroy) unless preserve_hosts
+  end
 end
 
 def pre_suites(type)
