@@ -339,13 +339,17 @@ module Beaker
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
           opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
-          opts[:puppet_collection] ||= 'pc1' #hi!  i'm case sensitive!  be careful!
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
+          opts[:puppet_collection] ||= puppet_collection_for_puppet_agent_version(opts[:puppet_agent_version]) || 'pc1' #hi!  i'm case sensitive!  be careful!
 
           run_in_parallel = run_in_parallel? opts, @options, 'install'
           block_on hosts, { :run_in_parallel => run_in_parallel } do |host|
-            add_role(host, 'aio') #we are installing agent, so we want aio role
+            # AIO refers to FOSS agents that contain puppet 4+, that is, puppet-agent packages
+            # in the 1.x series, or the 5.x series, or later. Previous versions are not supported,
+            # so 'aio' is the only role that makes sense here.
+            add_role(host, 'aio')
             package_name = nil
+
             case host['platform']
             when /el-|redhat|fedora|sles|centos|cisco_/
               package_name = 'puppet-agent'

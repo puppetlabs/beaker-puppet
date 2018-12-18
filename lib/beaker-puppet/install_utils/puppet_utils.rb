@@ -72,8 +72,12 @@ module Beaker
           end
         end
 
-        #Given an agent_version, return the puppet collection associated with that agent version
-        #@param [String] agent_version version string or 'latest'
+        # Given an agent_version, return the puppet collection associated with that agent version
+        #
+        # @param [String] agent_version version string or 'latest'
+        # @deprecated This method returns 'PC1' as the latest puppet collection;
+        #     this is incorrect. Use {#puppet_collection_for_puppet_agent_version} or
+        #     {#puppet_collection_for_puppet_version} instead.
         def get_puppet_collection(agent_version = 'latest')
           collection = "PC1"
           if agent_version != 'latest'
@@ -84,6 +88,41 @@ module Beaker
             end
           end
           collection
+        end
+
+        # Determine the puppet collection that matches a given version of the puppet-agent
+        # package (you can find this version in the `aio_agent_version` fact).
+        #
+        # @param agent_version [String] a semver version number of the puppet-agent package, or the string 'latest'
+        # @returns [String|nil] the name of the corresponding puppet collection, if any
+        def puppet_collection_for_puppet_agent_version(agent_version)
+          return 'puppet' if agent_version.strip == 'latest'
+
+          x, y, z = agent_version.to_s.split('.').map(&:to_i)
+          return nil if x.nil? || y.nil? || z.nil?
+
+          return 'pc1' if x == 1
+
+          # A y version >= 99 indicates a pre-release version of the next x release
+          x += 1 if y >= 99
+          "puppet#{x}" if x > 4
+        end
+
+        # Determine the puppet collection that matches a given version of the puppet gem.
+        #
+        # @param version [String] a semver version number of the puppet gem, or the string 'latest'
+        # @returns [String|nil] the name of the corresponding puppet collection, if any
+        def puppet_collection_for_puppet_version(puppet_version)
+          return 'puppet' if puppet_version.strip == 'latest'
+
+          x, y, z = puppet_version.to_s.split('.').map(&:to_i)
+          return nil if x.nil? || y.nil? || z.nil?
+
+          return 'pc1' if x == 4
+
+          # A y version >= 99 indicates a pre-release version of the next x release
+          x += 1 if y >= 99
+          "puppet#{x}" if x > 4
         end
 
         #Configure the provided hosts to be of the provided type (one of foss, aio, pe), if the host
