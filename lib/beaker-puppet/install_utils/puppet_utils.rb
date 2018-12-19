@@ -125,6 +125,29 @@ module Beaker
           "puppet#{x}" if x > 4
         end
 
+        # Report the version of puppet-agent installed on `host`
+        #
+        # @param [Host] host The host to act upon
+        # @returns [String|nil] The version of puppet-agent, or nil if puppet-agent is not installed
+        def puppet_agent_version_on(host)
+          result = on(host, 'facter aio_agent_version', accept_all_exit_codes: true)
+          if result.exit_code.zero?
+            return result.stdout.strip
+          end
+        end
+
+        # Report the version of puppetserver installed on `host`
+        #
+        # @param [Host] host The host to act upon
+        # @returns [String|nil] The version of puppetserver, or nil if puppetserver is not installed
+        def puppetserver_version_on(host)
+          result = on(host, 'puppetserver --version', accept_all_exit_codes: true)
+          if result.exit_code.zero?
+            matched = result.stdout.strip.scan(%r{\d+\.\d+\.\d+})
+            return matched.last
+          end
+        end
+
         #Configure the provided hosts to be of the provided type (one of foss, aio, pe), if the host
         #is already associated with a type then remove the previous settings for that type
         # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
