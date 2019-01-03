@@ -31,6 +31,9 @@ module Beaker
         # Github's ssh signature for cloning via ssh
         GitHubSig   = 'github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
 
+        # URL for internal Puppet Inc. builds
+        DEFAULT_DEV_BUILDS_URL     = 'http://builds.delivery.puppetlabs.net'
+
         # lookup project-specific git environment variables
         # PROJECT_VAR or VAR otherwise return the default
         #
@@ -39,6 +42,21 @@ module Beaker
           env_variable_name     = "#{env_variable_name.upcase.gsub('-','_')}"
           project_specific_name = "#{project_name.upcase.gsub('-','_')}_#{env_variable_name}" if project_name
           project_name && ENV[project_specific_name] || ENV[env_variable_name] || default
+        end
+
+        # @return [Boolean] Whether Puppet's internal builds are accessible from all the SUTs
+        def dev_builds_accessible?
+          block_on hosts do |host|
+            return false unless dev_builds_accessible_on?(host)
+          end
+          true
+        end
+
+        # @param [Host] A beaker host
+        # @return [Boolean] Whether Puppet's internal builds are accessible from the host
+        def dev_builds_accessible_on?(host)
+          result = on(host, %(curl -fI "#{DEFAULT_DEV_BUILDS_URL}"), accept_all_exit_codes: true)
+          return result.exit_code.zero?
         end
 
         # @param [String] project_name
@@ -339,13 +357,17 @@ module Beaker
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
           opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
-          opts[:puppet_collection] ||= 'pc1' #hi!  i'm case sensitive!  be careful!
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
+          opts[:puppet_collection] ||= puppet_collection_for_puppet_agent_version(opts[:puppet_agent_version]) || 'pc1' #hi!  i'm case sensitive!  be careful!
 
           run_in_parallel = run_in_parallel? opts, @options, 'install'
           block_on hosts, { :run_in_parallel => run_in_parallel } do |host|
-            add_role(host, 'aio') #we are installing agent, so we want aio role
+            # AIO refers to FOSS agents that contain puppet 4+, that is, puppet-agent packages
+            # in the 1.x series, or the 5.x series, or later. Previous versions are not supported,
+            # so 'aio' is the only role that makes sense here.
+            add_role(host, 'aio')
             package_name = nil
+
             case host['platform']
             when /el-|redhat|fedora|sles|centos|cisco_/
               package_name = 'puppet-agent'
