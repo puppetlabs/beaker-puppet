@@ -34,6 +34,9 @@ module Beaker
         # URL for internal Puppet Inc. builds
         DEFAULT_DEV_BUILDS_URL     = 'http://builds.delivery.puppetlabs.net'
 
+        # URL for public nightly builds
+        DEFAULT_NIGHTLY_BUILDS_URL = 'http://nightlies.puppet.com'
+
         # lookup project-specific git environment variables
         # PROJECT_VAR or VAR otherwise return the default
         #
@@ -1361,6 +1364,82 @@ module Beaker
         def install_cert_on_windows(host, cert_name, cert)
           create_remote_file(host, "C:\\Windows\\Temp\\#{cert_name}.pem", cert)
           on host, "certutil -v -addstore Root C:\\Windows\\Temp\\#{cert_name}.pem"
+        end
+
+        # Install puppetserver on the target host from released repos,
+        # nightlies, or Puppet's internal build servers.
+        #
+        # The default behavior is to install the latest release of puppetserver
+        # from the 'puppet' official repo.
+        #
+        # @param [Host] host A beaker host
+        # @option opts [String] :version Specific puppetserver version.
+        #     If set, this overrides all other options and installs the specific
+        #     version from Puppet's internal build servers.
+        # @option opts [Boolean] :nightlies Whether to install from nightlies.
+        #     Defaults to false.
+        # @option opts [String] :release_stream Which release stream to install
+        #     repos from. Defaults to 'puppet', which installs the latest released
+        #     version. Other valid values are puppet5, puppet6.
+        # @option opts [String] :nightly_builds_url Custom nightly builds URL.
+        #     Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}.
+        # @option opts [String] :yum_nightly_builds_url Custom nightly builds
+        #     URL for yum. Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}/yum when using
+        #     the default :nightly_builds_url value. Otherwise, defaults to
+        #     {DEFAULT_NIGHTLY_BUILDS_URL}.
+        # @option opts [String] :apt_nightly_builds_url Custom nightly builds
+        #     URL for apt. Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}/apt when using
+        #     the default :nightly_builds_url value. Otherwise, defaults to
+        #     {DEFAULT_NIGHTLY_BUILDS_URL}.
+        # @option opts [String] :dev_builds_url Custom internal builds URL.
+        #     Defaults to {DEFAULT_DEV_BUILDS_URL}.
+        def install_puppetserver_on(host, opts = {})
+          # If the version is anything other than 'latest', install that specific version from internal dev builds
+          if opts[:version] && opts[:version].strip != 'latest'
+            dev_builds_url = opts[:dev_builds_url] || DEFAULT_DEV_BUILDS_URL
+            build_yaml_uri = %(#{dev_builds_url}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
+            unless link_exists?(build_yaml_uri)
+              raise "Can't find a downloadable puppetserver package; metadata at #{build_yaml_uri} is missing or inaccessible."
+            end
+            return install_from_build_data_url('puppetserver', build_yaml_uri)
+          end
+
+          # Determine the release stream's name, for repo selection. The default
+          # is 'puppet', which installs the latest release. Other valid values
+          # are 'puppet5' or 'puppet6'.
+          release_stream = opts[:release_stream] || 'puppet'
+
+          # Installing a release repo will call configure_type_defaults_on,
+          # which will try and fail to add PE defaults by default. This is a
+          # FOSS install method, so we don't want that. Set the type to AIO,
+          # which refers to FOSS (note that a value of `:foss` here would be
+          # incorrect - that refers to FOSS puppet 3 only).
+          host[:type] = :aio
+
+          if opts[:nightlies]
+            release_stream += '-nightly'
+            # Determine the repo URLs; Use Puppet's nightly builds by default.
+            nightly_builds_url = opts[:nightly_builds_url] || DEFAULT_NIGHTLY_BUILDS_URL
+            if nightly_builds_url == DEFAULT_NIGHTLY_BUILDS_URL
+              # Puppet's nightlies need particular paths for these:
+              yum_nightly_builds_url = opts[:yum_nightly_builds_url] || nightly_builds_url + '/yum'
+              apt_nightly_builds_url = opts[:apt_nightly_builds_url] || nightly_builds_url + '/apt'
+            else
+              # If custom yum and apt urls are supplied, use them, otherwise
+              # just assume the nightly_builds_url is fine.
+              yum_nightly_builds_url = opts[:yum_nightly_builds_url] || nightly_builds_url
+              apt_nightly_builds_url = opts[:apt_nightly_builds_url] || nightly_builds_url
+            end
+            install_puppetlabs_release_repo_on(host, release_stream,
+                                               release_yum_repo_url: yum_nightly_builds_url,
+                                               release_apt_repo_url: apt_nightly_builds_url)
+          else
+            install_puppetlabs_release_repo_on(host, release_stream)
+          end
+
+          install_package(host, 'puppetserver')
+
+          logger.notify("Installed puppetserver version #{puppetserver_version_on(host)} on #{host}")
         end
 
         # Ensures Puppet and dependencies are no longer installed on host(s).
