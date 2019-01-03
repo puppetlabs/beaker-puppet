@@ -203,6 +203,83 @@ module Beaker
         alias_method :configure_foss_defaults_on, :configure_type_defaults_on
         alias_method :configure_pe_defaults_on, :configure_type_defaults_on
 
+        # Signs puppet certs for `hosts` on the master
+        # @param [Host|Array<Host>] hosts Agent hosts to sign certs for
+        # @raises when there is no master
+        # @raises when puppetserver is not installed on the master already
+        def sign_agent_cert_for(hosts)
+          num_masters = hosts_with_role(hosts, :master).length
+          raise "Unable to find a single master node (found #{num_masters})" unless num_masters == 1
+
+          puppetserver_version = puppetserver_version_on(master)
+          raise "Puppetserver must be installed on #{master} before agent certs can be signed" unless puppetserver_version
+
+          # Puppet 6+ uses an intermediate CA (`puppetserver ca` instead of `puppet cert` etc.)
+          use_intermediate_ca = !version_is_less(puppetserver_version, '5.99')
+
+          # First, stop puppetserver, if necessary. A running master will
+          # potentially ignore puppet.conf changes.
+          logger.notify('Stop puppetserver')
+
+          if master.use_service_scripts?
+            on(master, puppet('resource', 'service', 'puppetserver', 'ensure=stopped'))
+          end
+
+          # Clear SSL on the hosts so that we can newly associate the agents
+          logger.notify('Clear SSL on all hosts')
+
+          hosts.each do |host|
+            ssldir = on(host, puppet('agent --configprint ssldir')).stdout.strip
+            # It's important that we leave the ssldir itself intact (although
+            # empty) to preserve permissions.
+            on(host, "rm -rf #{ssldir}/*")
+          end
+
+          # Start puppetserver again and set up intermediate CA if necessary
+          logger.notify('Start puppetserver')
+
+          master_fqdn = on(master, 'facter fqdn').stdout.strip
+          master_hostname = on(master, 'hostname').stdout.strip
+
+          master_puppet_conf = {
+            main: {
+              dns_alt_names: "puppet,#{master_hostname},#{master_fqdn}",
+              server: master_fqdn
+            }
+          }
+
+          on(master, 'puppetserver ca setup') if use_intermediate_ca
+
+          with_puppet_running_on(master, master_puppet_conf) do
+            logger.notify('Run agent --test on agents to generate CSRs')
+
+            block_on(hosts) do |agent|
+              next if agent == master
+              on(agent, puppet("agent --test --server #{master}"), acceptable_exit_codes: [1])
+            end
+
+            logger.notify('Sign all certs')
+
+            if use_intermediate_ca
+              on(master, 'puppetserver ca sign --all', acceptable_exit_codes: [0, 24])
+            else
+              on(master, puppet('cert sign --all'), acceptable_exit_codes: [0, 24])
+            end
+
+            logger.notify("Run agent --test on agents a second time to obtain signed certs ")
+
+            block_on(hosts) do |agent|
+              next if agent == master
+              on(agent, puppet("agent --test --server #{master}"), acceptable_exit_codes: [0, 2])
+            end
+          end
+        end
+
+        # Make all agents generate CSRs and make the master sign them
+        def sign_agent_certs
+          sign_agent_cert_for(hosts)
+        end
+
         #If the host is associated with a type remove all defaults and environment associated with that type.
         # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
         #                            or a role (String or Symbol) that identifies one or more hosts.
