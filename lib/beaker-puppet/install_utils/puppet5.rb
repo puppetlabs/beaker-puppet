@@ -183,8 +183,7 @@ module Beaker
         def install_from_build_data_url(project_name, sha_yaml_url, local_hosts = nil)
           if !link_exists?( sha_yaml_url )
             message = <<-EOF
-              <SHA>.yaml URL '#{ sha_yaml_url }' does not exist.
-              Please update the `sha_yaml_url` parameter to the `puppet5_install` method.
+              Unable to locate a downloadable build of #{project_name} (tried #{sha_yaml_url})
             EOF
             fail_test( message )
           end
