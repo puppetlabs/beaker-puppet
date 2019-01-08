@@ -330,7 +330,7 @@ module Beaker
           nil
         end
 
-        #Install Puppet Agent based on specified hosts using provided options
+        # Install Puppet Agent from publicly available sources on specified hosts using provided options
         # @example will install puppet-agent 1.1.0 from native puppetlabs provided packages wherever possible and will fail over to gem installing latest puppet
         #  install_puppet_agent_on(hosts, {
         #    :puppet_agent_version          => '1.1.0',
@@ -398,6 +398,15 @@ module Beaker
               host.install_package( package_name )
             end
           end
+        end
+
+        # Install puppet-agent from an internal Puppet development build
+        # @param [Host|Array<Host>] hosts to install the agent on
+        # @param [String] ref to install (this can be a tag or a long SHA)
+        def install_puppet_agent_from_dev_builds_on(hosts, ref)
+          raise "Can't install puppet-agent #{ref}: unable to access Puppet's internal builds" unless dev_builds_accessible?
+          sha_yaml_url = File.join(DEFAULT_DEV_BUILDS_URL, 'puppet-agent', ref, 'artifacts', "#{ref}.yaml")
+          install_from_build_data_url('puppet-agent', sha_yaml_url, hosts)
         end
 
         # @deprecated Use {#configure_puppet_on} instead.

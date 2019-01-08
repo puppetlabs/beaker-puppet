@@ -1,10 +1,6 @@
 test_name "Install Packages" do
-
-  dev_builds_url  = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
-
   step "Install puppet-agent..." do
-    sha = ENV['SHA']
-    install_from_build_data_url('puppet-agent', "#{dev_builds_url}/puppet-agent/#{sha}/artifacts/#{sha}.yaml", hosts)
+    install_puppet_agent_from_dev_builds_on(hosts, ENV['SHA'])
   end
 
   # make sure install is sane, beaker has already added puppet and ruby
