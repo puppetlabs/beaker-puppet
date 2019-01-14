@@ -161,7 +161,7 @@ describe ClassMixedWithDSLInstallUtils do
 
 
     context 'given an invalid version of puppet-agent' do
-      ['0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
+      [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
         it "returns a nil collection value for version '#{version}'" do
           expect(subject.puppet_collection_for_puppet_agent_version(version)).to be_nil
         end
@@ -192,7 +192,7 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     context 'given an invalid version of puppet' do
-      ['0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
+      [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
         it "returns a nil collection value for version '#{version}'" do
           expect(subject.puppet_collection_for_puppet_version(version)).to be_nil
         end

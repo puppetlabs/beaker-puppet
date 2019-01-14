@@ -96,6 +96,7 @@ module Beaker
         # @param agent_version [String] a semver version number of the puppet-agent package, or the string 'latest'
         # @returns [String|nil] the name of the corresponding puppet collection, if any
         def puppet_collection_for_puppet_agent_version(agent_version)
+          agent_version = agent_version.to_s
           return 'puppet' if agent_version.strip == 'latest'
 
           x, y, z = agent_version.to_s.split('.').map(&:to_i)
@@ -113,6 +114,7 @@ module Beaker
         # @param version [String] a semver version number of the puppet gem, or the string 'latest'
         # @returns [String|nil] the name of the corresponding puppet collection, if any
         def puppet_collection_for_puppet_version(puppet_version)
+          puppet_version = puppet_version.to_s
           return 'puppet' if puppet_version.strip == 'latest'
 
           x, y, z = puppet_version.to_s.split('.').map(&:to_i)
