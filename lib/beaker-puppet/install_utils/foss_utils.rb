@@ -31,9 +31,6 @@ module Beaker
         # Github's ssh signature for cloning via ssh
         GitHubSig   = 'github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
 
-        # URL for internal Puppet Inc. builds
-        DEFAULT_DEV_BUILDS_URL     = 'http://builds.delivery.puppetlabs.net'
-
         # lookup project-specific git environment variables
         # PROJECT_VAR or VAR otherwise return the default
         #
@@ -55,7 +52,7 @@ module Beaker
         # @param [Host] A beaker host
         # @return [Boolean] Whether Puppet's internal builds are accessible from the host
         def dev_builds_accessible_on?(host)
-          result = on(host, %(curl -fI "#{DEFAULT_DEV_BUILDS_URL}"), accept_all_exit_codes: true)
+          result = on(host, %(curl -fI "#{Puppet5::DEFAULT_DEV_BUILDS_URL}"), accept_all_exit_codes: true)
           return result.exit_code.zero?
         end
 
@@ -327,7 +324,7 @@ module Beaker
           nil
         end
 
-        #Install Puppet Agent based on specified hosts using provided options
+        # Install Puppet Agent or Puppet as a gem based on specified hosts using provided options
         # @example will install puppet-agent 1.1.0 from native puppetlabs provided packages wherever possible and will fail over to gem installing latest puppet
         #  install_puppet_agent_on(hosts, {
         #    :puppet_agent_version          => '1.1.0',
@@ -349,7 +346,9 @@ module Beaker
         # @option opts [String] :puppet_gem_version Version of puppet to install via gem if no puppet-agent package is available
         # @option opts [String] :mac_download_url Url to download msi pattern of %url%/puppet-agent-%version%.msi
         # @option opts [String] :win_download_url Url to download dmg pattern of %url%/puppet-agent-%version%.msi
-        # @option opts [String] :puppet_collection Defaults to 'pc1'
+        # @option opts [String] :puppet_collection Collection to install from. Defaults to 'pc1' (contains the latest
+        #   puppet 4). Other valid options are 'puppet' (for the latest release), 'puppet5' (for the latest puppet 5),
+        #   or 'puppet6' (for the latest puppet 6). Only works for platforms that rely on repos.
         # @option opts [Boolean] :run_in_parallel Whether to run on each host in parallel.
         #
         # @return nil
@@ -367,6 +366,11 @@ module Beaker
             # so 'aio' is the only role that makes sense here.
             add_role(host, 'aio')
             package_name = nil
+
+            # If inside the Puppet VPN, install from development builds.
+            if opts[:puppet_agent_version] && dev_builds_accessible_on?(host)
+              return install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
+            end
 
             case host['platform']
             when /el-|redhat|fedora|sles|centos|cisco_/
