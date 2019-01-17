@@ -324,7 +324,7 @@ module Beaker
           nil
         end
 
-        #Install Puppet Agent based on specified hosts using provided options
+        # Install Puppet Agent or Puppet as a gem based on specified hosts using provided options
         # @example will install puppet-agent 1.1.0 from native puppetlabs provided packages wherever possible and will fail over to gem installing latest puppet
         #  install_puppet_agent_on(hosts, {
         #    :puppet_agent_version          => '1.1.0',
@@ -346,7 +346,9 @@ module Beaker
         # @option opts [String] :puppet_gem_version Version of puppet to install via gem if no puppet-agent package is available
         # @option opts [String] :mac_download_url Url to download msi pattern of %url%/puppet-agent-%version%.msi
         # @option opts [String] :win_download_url Url to download dmg pattern of %url%/puppet-agent-%version%.msi
-        # @option opts [String] :puppet_collection Defaults to 'pc1'
+        # @option opts [String] :puppet_collection Collection to install from. Defaults to 'pc1' (contains the latest
+        #   puppet 4). Other valid options are 'puppet' (for the latest release), 'puppet5' (for the latest puppet 5),
+        #   or 'puppet6' (for the latest puppet 6). Only works for platforms that rely on repos.
         # @option opts [Boolean] :run_in_parallel Whether to run on each host in parallel.
         #
         # @return nil
@@ -364,6 +366,11 @@ module Beaker
             # so 'aio' is the only role that makes sense here.
             add_role(host, 'aio')
             package_name = nil
+
+            # If inside the Puppet VPN, install from development builds.
+            if opts[:puppet_agent_version] && dev_builds_accessible_on?(host)
+              return install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
+            end
 
             case host['platform']
             when /el-|redhat|fedora|sles|centos|cisco_/
