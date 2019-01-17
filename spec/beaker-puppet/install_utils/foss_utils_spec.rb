@@ -1444,6 +1444,93 @@ describe ClassMixedWithDSLInstallUtils do
     end
   end
 
+  describe '#install_puppetserver_on' do
+    let(:host) { make_host('master', platform: 'el-7-x86_64') }
+
+    context 'with default arguments' do
+      it "installs puppetserver 2.x from the default 'puppet' release stream" do
+        expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet')
+        expect(subject).to receive(:install_package).with(host, 'puppetserver')
+        subject.install_puppetserver_on(host)
+      end
+    end
+
+    context 'with a version option' do
+      version = '6.6.6'
+
+      it 'installs puppetserver at the specific version from internal buildservers' do
+        expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{BeakerPuppet::DEFAULT_DEV_BUILDS_URL}.*#{version}/)
+        allow_any_instance_of(Beaker::DSL::WebHelpers).to receive(:link_exists?).and_return(true)
+        subject.install_puppetserver_on(host, version: version)
+      end
+
+      context "and a YAML metadata file isn't accessible for it" do
+        it 'raises an exception' do
+          allow_any_instance_of(Beaker::DSL::WebHelpers).to receive(:link_exists?).and_return(false)
+          expect { subject.install_puppetserver_on(host, version: version) }.to raise_error(RuntimeError)
+        end
+      end
+
+      context 'with a custom dev builds URL' do
+        dev_builds_url = 'http://builds.corp.tld'
+
+        it 'installs puppetserver from the custom dev builds URL' do
+          expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{dev_builds_url}.*#{version}/)
+          allow_any_instance_of(Beaker::DSL::WebHelpers).to receive(:link_exists?).and_return(true)
+          subject.install_puppetserver_on(host, version: version, dev_builds_url: dev_builds_url)
+        end
+      end
+    end
+
+    context 'with a custom release stream option' do
+      it 'installs puppetserver from the custom release stream' do
+        release_stream = 'puppet6'
+        expect(subject).to receive(:install_puppetlabs_release_repo_on)
+                               .with(host, release_stream)
+        expect(subject).to receive(:install_package).with(host, 'puppetserver')
+        subject.install_puppetserver_on(host, release_stream: release_stream)
+      end
+    end
+
+    context 'with the nightlies option' do
+      it 'installs puppetserver from the default puppet nightly repos' do
+        expect(subject).to receive(:install_puppetlabs_release_repo_on)
+                               .with(host, 'puppet-nightly',
+                                     release_yum_repo_url: "#{BeakerPuppet::DEFAULT_NIGHTLY_BUILDS_URL}/yum",
+                                     release_apt_repo_url: "#{BeakerPuppet::DEFAULT_NIGHTLY_BUILDS_URL}/apt")
+        subject.install_puppetserver_on(host, nightlies: true)
+      end
+
+      context 'with custom nightlies urls' do
+        custom_nightlies_url = 'http://nightlies.corp.tld'
+
+        it 'uses a custom general nightlies url' do
+          expect(subject).to receive(:install_puppetlabs_release_repo_on)
+                                 .with(host, 'puppet-nightly',
+                                       release_yum_repo_url: custom_nightlies_url,
+                                       release_apt_repo_url: custom_nightlies_url)
+          subject.install_puppetserver_on(host, nightlies: true, nightly_builds_url: custom_nightlies_url)
+        end
+
+        it 'uses a custom yum repo url' do
+          expect(subject).to receive(:install_puppetlabs_release_repo_on)
+                                 .with(host, 'puppet-nightly',
+                                       release_yum_repo_url: custom_nightlies_url,
+                                       release_apt_repo_url: "#{BeakerPuppet::DEFAULT_NIGHTLY_BUILDS_URL}/apt")
+          subject.install_puppetserver_on(host, nightlies: true, yum_nightly_builds_url: custom_nightlies_url)
+        end
+
+        it 'uses a custom apt repo url' do
+          expect(subject).to receive(:install_puppetlabs_release_repo_on)
+                                 .with(host, 'puppet-nightly',
+                                       release_yum_repo_url: "#{BeakerPuppet::DEFAULT_NIGHTLY_BUILDS_URL}/yum",
+                                       release_apt_repo_url: custom_nightlies_url)
+          subject.install_puppetserver_on(host, nightlies: true, apt_nightly_builds_url: custom_nightlies_url)
+        end
+      end
+    end
+  end
+
   describe '#remove_puppet_on' do
     supported_platforms   = [ 'aix-53-power',
                               'aix-61-power',
