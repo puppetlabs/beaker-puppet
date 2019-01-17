@@ -31,9 +31,6 @@ module Beaker
         # Github's ssh signature for cloning via ssh
         GitHubSig   = 'github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
 
-        # URL for internal Puppet Inc. builds
-        DEFAULT_DEV_BUILDS_URL     = 'http://builds.delivery.puppetlabs.net'
-
         # lookup project-specific git environment variables
         # PROJECT_VAR or VAR otherwise return the default
         #
@@ -55,7 +52,7 @@ module Beaker
         # @param [Host] A beaker host
         # @return [Boolean] Whether Puppet's internal builds are accessible from the host
         def dev_builds_accessible_on?(host)
-          result = on(host, %(curl -fI "#{DEFAULT_DEV_BUILDS_URL}"), accept_all_exit_codes: true)
+          result = on(host, %(curl -fI "#{Puppet5::DEFAULT_DEV_BUILDS_URL}"), accept_all_exit_codes: true)
           return result.exit_code.zero?
         end
 

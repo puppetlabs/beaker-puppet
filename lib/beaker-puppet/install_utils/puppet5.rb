@@ -4,8 +4,10 @@ module Beaker
   module DSL
     module InstallUtils
       module Puppet5
-
         include Beaker::DSL::InstallUtils::FOSSDefaults
+
+        # Base URL for internal Puppet Inc. builds
+        DEFAULT_DEV_BUILDS_URL = 'http://builds.delivery.puppetlabs.net'
 
         # grab build json from the builds server
         #
