@@ -368,10 +368,7 @@ describe ClassMixedWithDSLInstallUtils do
 
       expect {
         subject.install_from_build_data_url( 'project_name', sha_yaml_url )
-      }.to raise_error(
-        Beaker::DSL::Outcomes::FailTest,
-        /#{sha_yaml_url}' does not exist/
-      )
+      }.to raise_error(Beaker::DSL::Outcomes::FailTest, /project_name.*#{sha_yaml_url}/)
     end
 
     it 'runs host.install_package instead of #install_artifact_on if theres a repo_config' do
