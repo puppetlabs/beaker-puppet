@@ -1405,7 +1405,7 @@ module Beaker
             unless link_exists?(build_yaml_uri)
               raise "Can't find a downloadable puppetserver package; metadata at #{build_yaml_uri} is missing or inaccessible."
             end
-            return install_from_build_data_url('puppetserver', build_yaml_uri)
+            return install_from_build_data_url('puppetserver', build_yaml_uri, host)
           end
 
           # Determine the release stream's name, for repo selection. The default
