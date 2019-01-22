@@ -1448,7 +1448,7 @@ describe ClassMixedWithDSLInstallUtils do
     let(:host) { make_host('master', platform: 'el-7-x86_64') }
 
     context 'with default arguments' do
-      it "installs puppetserver 2.x from the default 'puppet' release stream" do
+      it "installs the latest puppetserver from the default 'puppet' release stream" do
         expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet')
         expect(subject).to receive(:install_package).with(host, 'puppetserver')
         subject.install_puppetserver_on(host)
