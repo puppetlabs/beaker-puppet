@@ -1400,7 +1400,7 @@ module Beaker
         def install_puppetserver_on(host, opts = {})
           # If the version is anything other than 'latest', install that specific version from internal dev builds
           if opts[:version] && opts[:version].strip != 'latest'
-            dev_builds_url = opts[:dev_builds_url] || DEFAULT_DEV_BUILDS_URL
+            dev_builds_url = opts[:dev_builds_url] || Puppet5::DEFAULT_DEV_BUILDS_URL
             build_yaml_uri = %(#{dev_builds_url}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
             unless link_exists?(build_yaml_uri)
               raise "Can't find a downloadable puppetserver package; metadata at #{build_yaml_uri} is missing or inaccessible."
