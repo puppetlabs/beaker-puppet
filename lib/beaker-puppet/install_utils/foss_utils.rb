@@ -360,7 +360,9 @@ module Beaker
         def install_puppet_agent_on(hosts, opts = {})
           opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
-          opts[:puppet_collection] ||= puppet_collection_for_puppet_agent_version(opts[:puppet_agent_version]) || 'pc1' #hi!  i'm case sensitive!  be careful!
+          opts[:puppet_collection] ||= puppet_collection_for_puppet_agent_version(opts[:puppet_agent_version]) || 'pc1'
+
+          opts[:puppet_collection].downcase! # the collection names are case sensitive
 
           run_in_parallel = run_in_parallel? opts, @options, 'install'
           block_on hosts, { :run_in_parallel => run_in_parallel } do |host|
