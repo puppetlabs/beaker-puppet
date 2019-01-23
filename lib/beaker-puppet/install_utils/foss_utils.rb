@@ -360,7 +360,9 @@ module Beaker
         def install_puppet_agent_on(hosts, opts = {})
           opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
-          opts[:puppet_collection] ||= puppet_collection_for_puppet_agent_version(opts[:puppet_agent_version]) || 'pc1' #hi!  i'm case sensitive!  be careful!
+          opts[:puppet_collection] ||= puppet_collection_for_puppet_agent_version(opts[:puppet_agent_version]) || 'pc1'
+
+          opts[:puppet_collection].downcase! # the collection names are case sensitive
 
           run_in_parallel = run_in_parallel? opts, @options, 'install'
           block_on hosts, { :run_in_parallel => run_in_parallel } do |host|
@@ -1405,7 +1407,7 @@ module Beaker
             unless link_exists?(build_yaml_uri)
               raise "Can't find a downloadable puppetserver package; metadata at #{build_yaml_uri} is missing or inaccessible."
             end
-            return install_from_build_data_url('puppetserver', build_yaml_uri)
+            return install_from_build_data_url('puppetserver', build_yaml_uri, host)
           end
 
           # Determine the release stream's name, for repo selection. The default

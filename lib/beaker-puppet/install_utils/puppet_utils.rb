@@ -132,7 +132,7 @@ module Beaker
         # @param [Host] host The host to act upon
         # @returns [String|nil] The version of puppet-agent, or nil if puppet-agent is not installed
         def puppet_agent_version_on(host)
-          result = on(host, 'facter aio_agent_version', accept_all_exit_codes: true)
+          result = on(host, facter('aio_agent_version'), accept_all_exit_codes: true)
           if result.exit_code.zero?
             return result.stdout.strip
           end

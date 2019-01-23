@@ -1459,7 +1459,7 @@ describe ClassMixedWithDSLInstallUtils do
       version = '6.6.6'
 
       it 'installs puppetserver at the specific version from internal buildservers' do
-        expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{BeakerPuppet::DEFAULT_DEV_BUILDS_URL}.*#{version}/)
+        expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{BeakerPuppet::DEFAULT_DEV_BUILDS_URL}.*#{version}/, host)
         allow_any_instance_of(Beaker::DSL::WebHelpers).to receive(:link_exists?).and_return(true)
         subject.install_puppetserver_on(host, version: version)
       end
@@ -1475,7 +1475,7 @@ describe ClassMixedWithDSLInstallUtils do
         dev_builds_url = 'http://builds.corp.tld'
 
         it 'installs puppetserver from the custom dev builds URL' do
-          expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{dev_builds_url}.*#{version}/)
+          expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{dev_builds_url}.*#{version}/, host)
           allow_any_instance_of(Beaker::DSL::WebHelpers).to receive(:link_exists?).and_return(true)
           subject.install_puppetserver_on(host, version: version, dev_builds_url: dev_builds_url)
         end
