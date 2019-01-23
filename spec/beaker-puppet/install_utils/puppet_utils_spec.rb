@@ -137,64 +137,69 @@ describe ClassMixedWithDSLInstallUtils do
 
   end
 
-  describe '#puppet_collection_for_puppet_agent_version' do
-    context 'given a valid version of puppet-agent' do
-      {
-        '1.10.14'     => 'pc1',
-        '1.10.x'      => 'pc1',
-        '5.3.1'       => 'puppet5',
-        '5.3.x'       => 'puppet5',
-        '5.99.0'      => 'puppet6',
-        '6.1.99-foo'  => 'puppet6',
-        '6.99.99'     => 'puppet7',
-        '7.0.0'       => 'puppet7',
-      }.each do |version, collection|
-        it "returns collection '#{collection}' for version '#{version}'" do
-          expect(subject.puppet_collection_for_puppet_agent_version(version)).to eq(collection)
+  describe '#puppet_collection_for' do
+    it 'raises an error when given an invalid package' do
+      expect { subject.puppet_collection_for(:foo, '5.5.4') }.to raise_error
+    end
+
+    context 'when the :puppet_agent package is passed in' do
+      context 'given a valid version' do
+        {
+          '1.10.14'     => 'pc1',
+          '1.10.x'      => 'pc1',
+          '5.3.1'       => 'puppet5',
+          '5.3.x'       => 'puppet5',
+          '5.99.0'      => 'puppet6',
+          '6.1.99-foo'  => 'puppet6',
+          '6.99.99'     => 'puppet7',
+          '7.0.0'       => 'puppet7',
+        }.each do |version, collection|
+          it "returns collection '#{collection}' for version '#{version}'" do
+            expect(subject.puppet_collection_for(:puppet_agent, version)).to eq(collection)
+          end
+        end
+      end
+  
+      it "returns the default, latest puppet collection given the version 'latest'" do
+        expect(subject.puppet_collection_for(:puppet_agent, 'latest')).to eq('puppet')
+      end
+  
+      context 'given an invalid version' do
+        [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
+          it "returns a nil collection value for version '#{version}'" do
+            expect(subject.puppet_collection_for(:puppet_agent, version)).to be_nil
+          end
         end
       end
     end
 
-    it "returns the default, latest puppet collection given the version 'latest'" do
-      expect(subject.puppet_collection_for_puppet_agent_version('latest')).to eq('puppet')
-    end
-
-
-    context 'given an invalid version of puppet-agent' do
-      [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
-        it "returns a nil collection value for version '#{version}'" do
-          expect(subject.puppet_collection_for_puppet_agent_version(version)).to be_nil
+    context 'when the :puppet package is passed-in' do
+      context 'given a valid version' do
+        {
+          '4.9.0'       => 'pc1',
+          '4.10.x'      => 'pc1',
+          '5.3.1'       => 'puppet5',
+          '5.3.x'       => 'puppet5',
+          '5.99.0'      => 'puppet6',
+          '6.1.99-foo'  => 'puppet6',
+          '6.99.99'     => 'puppet7',
+          '7.0.0'       => 'puppet7',
+        }.each do |version, collection|
+          it "returns collection '#{collection}' for version '#{version}'" do
+            expect(subject.puppet_collection_for(:puppet, version)).to eq(collection)
+          end
         end
       end
-    end
-  end
 
-  describe '#puppet_collection_for_puppet_version' do
-    context 'given a valid version of puppet' do
-      {
-        '4.9.0'       => 'pc1',
-        '4.10.x'      => 'pc1',
-        '5.3.1'       => 'puppet5',
-        '5.3.x'       => 'puppet5',
-        '5.99.0'      => 'puppet6',
-        '6.1.99-foo'  => 'puppet6',
-        '6.99.99'     => 'puppet7',
-        '7.0.0'       => 'puppet7',
-      }.each do |version, collection|
-        it "returns collection '#{collection}' for version '#{version}'" do
-          expect(subject.puppet_collection_for_puppet_version(version)).to eq(collection)
-        end
+      it "returns the default, latest puppet collection given the version 'latest'" do
+        expect(subject.puppet_collection_for(:puppet, 'latest')).to eq('puppet')
       end
-    end
 
-    it "returns the default, latest puppet collection given the version 'latest'" do
-      expect(subject.puppet_collection_for_puppet_version('latest')).to eq('puppet')
-    end
-
-    context 'given an invalid version of puppet' do
-      [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
-        it "returns a nil collection value for version '#{version}'" do
-          expect(subject.puppet_collection_for_puppet_version(version)).to be_nil
+      context 'given an invalid version' do
+        [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
+          it "returns a nil collection value for version '#{version}'" do
+            expect(subject.puppet_collection_for(:puppet, version)).to be_nil
+          end
         end
       end
     end
