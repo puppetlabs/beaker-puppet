@@ -136,6 +136,7 @@ module Beaker
           if result.exit_code.zero?
             return result.stdout.strip
           end
+          nil
         end
 
         # Report the version of puppetserver installed on `host`
@@ -148,6 +149,7 @@ module Beaker
             matched = result.stdout.strip.scan(%r{\d+\.\d+\.\d+})
             return matched.last
           end
+          nil
         end
 
         #Configure the provided hosts to be of the provided type (one of foss, aio, pe), if the host
