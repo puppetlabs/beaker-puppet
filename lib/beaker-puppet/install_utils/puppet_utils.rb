@@ -110,26 +110,15 @@ module Beaker
           end
 
           case package
-          when :puppet_agent
-            agent_version = version.to_s
-            return 'puppet' if agent_version.strip == 'latest'
+          when :puppet_agent, :puppet
+            version = version.to_s
+            return 'puppet' if version.strip == 'latest'
 
-            x, y, z = agent_version.to_s.split('.').map(&:to_i)
+            x, y, z = version.to_s.split('.').map(&:to_i)
             return nil if x.nil? || y.nil? || z.nil?
 
-            return 'pc1' if x == 1
-
-            # A y version >= 99 indicates a pre-release version of the next x release
-            x += 1 if y >= 99
-            "puppet#{x}" if x > 4
-          when :puppet
-            puppet_version = version.to_s
-            return 'puppet' if puppet_version.strip == 'latest'
-
-            x, y, z = puppet_version.to_s.split('.').map(&:to_i)
-            return nil if x.nil? || y.nil? || z.nil?
-
-            return 'pc1' if x == 4
+            pc1_x = package == :puppet ? 4 : 1
+            return 'pc1' if x == pc1_x
 
             # A y version >= 99 indicates a pre-release version of the next x release
             x += 1 if y >= 99
