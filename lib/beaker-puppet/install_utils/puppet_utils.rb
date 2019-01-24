@@ -76,8 +76,7 @@ module Beaker
         #
         # @param [String] agent_version version string or 'latest'
         # @deprecated This method returns 'PC1' as the latest puppet collection;
-        #     this is incorrect. Use {#puppet_collection_for_puppet_agent_version} or
-        #     {#puppet_collection_for_puppet_version} instead.
+        #     this is incorrect. Use {#puppet_collection_for} instead.
         def get_puppet_collection(agent_version = 'latest')
           collection = "PC1"
           if agent_version != 'latest'
@@ -90,41 +89,40 @@ module Beaker
           collection
         end
 
-        # Determine the puppet collection that matches a given version of the puppet-agent
-        # package (you can find this version in the `aio_agent_version` fact).
+        # Determine the puppet collection that matches a given package version. The package
+        # must be one of
+        #   * :puppet_agent (you can get this version from the `aio_agent_version_fact`)
+        #   * :puppet
         #
-        # @param agent_version [String] a semver version number of the puppet-agent package, or the string 'latest'
-        # @returns [String|nil] the name of the corresponding puppet collection, if any
-        def puppet_collection_for_puppet_agent_version(agent_version)
-          agent_version = agent_version.to_s
-          return 'puppet' if agent_version.strip == 'latest'
-
-          x, y, z = agent_version.to_s.split('.').map(&:to_i)
-          return nil if x.nil? || y.nil? || z.nil?
-
-          return 'pc1' if x == 1
-
-          # A y version >= 99 indicates a pre-release version of the next x release
-          x += 1 if y >= 99
-          "puppet#{x}" if x > 4
-        end
-
-        # Determine the puppet collection that matches a given version of the puppet gem.
         #
-        # @param version [String] a semver version number of the puppet gem, or the string 'latest'
+        # @param package [Symbol] the package name. must be one of :puppet_agent, :puppet
+        # @param version [String] a version number or the string 'latest'
         # @returns [String|nil] the name of the corresponding puppet collection, if any
-        def puppet_collection_for_puppet_version(puppet_version)
-          puppet_version = puppet_version.to_s
-          return 'puppet' if puppet_version.strip == 'latest'
+        def puppet_collection_for(package, version)
+          valid_packages = [
+            :puppet_agent,
+            :puppet
+          ]
 
-          x, y, z = puppet_version.to_s.split('.').map(&:to_i)
-          return nil if x.nil? || y.nil? || z.nil?
+          unless valid_packages.include?(package)
+            raise "package must be one of #{valid_packages.join(', ')}"
+          end
 
-          return 'pc1' if x == 4
+          case package
+          when :puppet_agent, :puppet
+            version = version.to_s
+            return 'puppet' if version.strip == 'latest'
 
-          # A y version >= 99 indicates a pre-release version of the next x release
-          x += 1 if y >= 99
-          "puppet#{x}" if x > 4
+            x, y, z = version.to_s.split('.').map(&:to_i)
+            return nil if x.nil? || y.nil? || z.nil?
+
+            pc1_x = package == :puppet ? 4 : 1
+            return 'pc1' if x == pc1_x
+
+            # A y version >= 99 indicates a pre-release version of the next x release
+            x += 1 if y >= 99
+            "puppet#{x}" if x > 4
+          end
         end
 
         # Report the version of puppet-agent installed on `host`
