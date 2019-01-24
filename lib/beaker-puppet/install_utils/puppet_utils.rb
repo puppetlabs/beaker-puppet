@@ -76,8 +76,7 @@ module Beaker
         #
         # @param [String] agent_version version string or 'latest'
         # @deprecated This method returns 'PC1' as the latest puppet collection;
-        #     this is incorrect. Use {#puppet_collection_for_puppet_agent_version} or
-        #     {#puppet_collection_for_puppet_version} instead.
+        #     this is incorrect. Use {#puppet_collection_for} instead.
         def get_puppet_collection(agent_version = 'latest')
           collection = "PC1"
           if agent_version != 'latest'
