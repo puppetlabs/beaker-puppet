@@ -362,7 +362,8 @@ module Beaker
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
           opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version]) || 'pc1'
 
-          opts[:puppet_collection].downcase! # the collection names are case sensitive
+          # the collection names are case sensitive
+          opts[:puppet_collection] = opts[:puppet_collection].downcase
 
           run_in_parallel = run_in_parallel? opts, @options, 'install'
           block_on hosts, { :run_in_parallel => run_in_parallel } do |host|
