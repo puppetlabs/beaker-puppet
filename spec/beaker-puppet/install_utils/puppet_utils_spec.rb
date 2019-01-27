@@ -203,5 +203,36 @@ describe ClassMixedWithDSLInstallUtils do
         end
       end
     end
+
+    context 'when the :puppetserver package is passed in' do
+      context 'given a valid version' do
+        {
+          '2.0.0'       => 'pc1',
+          '2.0.x'       => 'pc1',
+          '5.3.1'       => 'puppet5',
+          '5.3.x'       => 'puppet5',
+          '5.99.0'      => 'puppet6',
+          '6.1.99-foo'  => 'puppet6',
+          '6.99.99'     => 'puppet7',
+          '7.0.0'       => 'puppet7',
+        }.each do |version, collection|
+          it "returns collection '#{collection}' for version '#{version}'" do
+            expect(subject.puppet_collection_for(:puppetserver, version)).to eq(collection)
+          end
+        end
+      end
+  
+      it "returns the default, latest puppet collection given the version 'latest'" do
+        expect(subject.puppet_collection_for(:puppetserver, 'latest')).to eq('puppet')
+      end
+  
+      context 'given an invalid version' do
+        [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
+          it "returns a nil collection value for version '#{version}'" do
+            expect(subject.puppet_collection_for(:puppetserver, version)).to be_nil
+          end
+        end
+      end
+    end
   end
 end
