@@ -93,15 +93,17 @@ module Beaker
         # must be one of
         #   * :puppet_agent (you can get this version from the `aio_agent_version_fact`)
         #   * :puppet
+        #   * :puppetserver
         #
         #
-        # @param package [Symbol] the package name. must be one of :puppet_agent, :puppet
+        # @param package [Symbol] the package name. must be one of :puppet_agent, :puppet, :puppetserver
         # @param version [String] a version number or the string 'latest'
         # @returns [String|nil] the name of the corresponding puppet collection, if any
         def puppet_collection_for(package, version)
           valid_packages = [
             :puppet_agent,
-            :puppet
+            :puppet,
+            :puppetserver
           ]
 
           unless valid_packages.include?(package)
@@ -109,15 +111,20 @@ module Beaker
           end
 
           case package
-          when :puppet_agent, :puppet
+          when :puppet_agent, :puppet, :puppetserver
             version = version.to_s
             return 'puppet' if version.strip == 'latest'
 
             x, y, z = version.to_s.split('.').map(&:to_i)
             return nil if x.nil? || y.nil? || z.nil?
 
-            pc1_x = package == :puppet ? 4 : 1
-            return 'pc1' if x == pc1_x
+            pc1_x = {
+              puppet: 4,
+              puppet_agent: 1,
+              puppetserver: 2
+            }
+
+            return 'pc1' if x == pc1_x[package]
 
             # A y version >= 99 indicates a pre-release version of the next x release
             x += 1 if y >= 99
