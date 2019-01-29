@@ -22,8 +22,8 @@ test_name "Install repositories on target machines..." do
       #           host_path: ~/puppet
       #           container_path: /build/puppet
       #
-      if agent[:mount_folders]
-        mount = agent[:mount_folders][repository[:name]]
+      if host[:mount_folders]
+        mount = host[:mount_folders][repository[:name]]
         repository[:path] = "file://#{mount[:container_path]}"
       end
       repo_dir = host.tmpdir(repository[:name])
