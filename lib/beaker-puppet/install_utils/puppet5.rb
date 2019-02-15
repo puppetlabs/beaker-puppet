@@ -72,7 +72,7 @@ module Beaker
           end
 
           logger.debug("Platforms available for this build:")
-          logger.debug("#{ build_details.keys }")
+          #logger.debug("#{ build_details.keys }")
           logger.debug("PLATFORM SPECIFIC INFO for #{host} (packaging name '#{packaging_platform}'):")
           packaging_data = build_details[packaging_platform]
           logger.debug("- #{ packaging_data }, isnil? #{ packaging_data.nil? }")
