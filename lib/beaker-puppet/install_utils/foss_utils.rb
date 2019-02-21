@@ -401,7 +401,7 @@ module Beaker
             end
 
             if package_name
-              install_puppetlabs_release_repo( host, opts[:puppet_collection] )
+              install_puppetlabs_release_repo( host, opts[:puppet_collection] , opts)
               host.install_package( package_name )
             end
           end
