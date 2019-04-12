@@ -1089,8 +1089,9 @@ module Beaker
           scp_to( host, repo, to_path )
 
           variant, version, arch, codename = host['platform'].to_array
-          if variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18
-            # Allow the use of unsigned repos with Ubuntu 18.04+
+          if (variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18) ||
+              (variant =~ /^debian$/ && version.split('.').first.to_i >= 10)
+            # Allow the use of unsigned repos with Ubuntu 18.04+ and for Debian 10 +
             on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
           end
           on( host, 'apt-get update' ) if host['platform'] =~ /ubuntu-|debian-|cumulus-|huaweios-/
