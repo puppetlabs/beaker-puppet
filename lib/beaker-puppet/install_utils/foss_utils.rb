@@ -989,8 +989,8 @@ module Beaker
                       else
                         opts[:release_yum_repo_url]
                       end
-                remote = "%s/%s/%s-release-%s-%s.noarch.rpm" %
-                  [url, repo_name, repo_name, variant_url_value, version]
+                remote = "%s/%s-release-%s-%s.noarch.rpm" %
+                  [url, repo_name, variant_url_value, version]
               else
                 repo_name = '-' + repo_name unless repo_name.empty?
                 remote = "%s/puppetlabs-release%s-%s-%s.noarch.rpm" %

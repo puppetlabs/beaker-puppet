@@ -697,11 +697,11 @@ describe ClassMixedWithDSLInstallUtils do
     context 'on el 7' do
       let( :platform ) { Beaker::Platform.new( 'el-7-x86_64' ) }
       it 'returns the correct url when repo is set to puppet8' do
-        expect( host ).to receive( :install_package_with_rpm ).with( /puppet8\/puppet8-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
+        expect( host ).to receive( :install_package_with_rpm ).with( /puppet8-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
         subject.install_puppetlabs_release_repo_on( host, 'puppet8')
       end
       it 'returns the correct url when opts[:puppet_collection] is set to puppet14' do
-        expect( host ).to receive( :install_package_with_rpm ).with( /puppet14\/puppet14-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
+        expect( host ).to receive( :install_package_with_rpm ).with( /puppet14-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
         subject.install_puppetlabs_release_repo_on( host, nil, {:puppet_collection => 'puppet14'})
       end
       it 'returns the correct url when both repo and opts[:puppet_collection] are nil' do
