@@ -16,8 +16,8 @@ test_name "Install Puppet Server" do
 
   if server_version == 'latest'
     opts = {
-      :release_yum_repo_url => yum_nightlies_url,
-      :release_apt_repo_url => apt_nightlies_url
+      :nightly_apt_repo_url => apt_nightlies_url,
+      :nightly_yum_repo_url => yum_nightlies_url,
     }
     install_puppetlabs_release_repo_on(master, "#{release_stream}-nightly", opts)
     master.install_package('puppetserver')

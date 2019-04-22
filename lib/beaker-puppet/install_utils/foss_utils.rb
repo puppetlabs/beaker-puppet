@@ -971,6 +971,7 @@ module Beaker
             variant, version, arch, codename = host['platform'].to_array
             repo_name = repo || opts[:puppet_collection] || ''
             opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            require 'pry'; binding.pry
 
             case variant
             when /^(fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
