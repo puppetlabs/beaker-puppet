@@ -401,7 +401,7 @@ module Beaker
             end
 
             if package_name
-              install_puppetlabs_release_repo( host, opts[:puppet_collection] , opts)
+              install_puppetlabs_release_repo_on( host, opts[:puppet_collection] , opts)
               host.install_package( package_name )
             end
           end
@@ -471,11 +471,11 @@ module Beaker
         def install_puppet_from_rpm_on( hosts, opts )
           block_on hosts do |host|
             if opts[:puppet_collection] && opts[:puppet_collection].match(/puppet\d*/)
-              install_puppetlabs_release_repo(host,opts[:puppet_collection],opts)
+              install_puppetlabs_release_repo_on(host,opts[:puppet_collection],opts)
             elsif host[:type] == 'aio'
-              install_puppetlabs_release_repo(host,'pc1',opts)
+              install_puppetlabs_release_repo_on(host,'pc1',opts)
             else
-              install_puppetlabs_release_repo(host,nil,opts)
+              install_puppetlabs_release_repo_on(host,nil,opts)
             end
 
             if opts[:facter_version]
@@ -506,7 +506,7 @@ module Beaker
         # @api private
         def install_puppet_from_deb_on( hosts, opts )
           block_on hosts do |host|
-            install_puppetlabs_release_repo(host)
+            install_puppetlabs_release_repo_on(host)
 
             if opts[:facter_version]
               host.install_package("facter=#{opts[:facter_version]}-1puppetlabs1")
@@ -1403,11 +1403,13 @@ module Beaker
         # @option opts [String] :dev_builds_url Custom internal builds URL.
         #     Defaults to {DEFAULT_DEV_BUILDS_URL}.
         def install_puppetserver_on(host, opts = {})
+          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+
           # If the version is anything other than 'latest', install that specific version from internal dev builds
           if opts[:version] && opts[:version].strip != 'latest'
             dev_builds_url = opts[:dev_builds_url] || Puppet5::DEFAULT_DEV_BUILDS_URL
             build_yaml_uri = %(#{dev_builds_url}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
-            unless link_exists?(build_yaml_uri)
+            unless dev_builds_accessible_on?(host) || link_exists?(build_yaml_uri)
               raise "Can't find a downloadable puppetserver package; metadata at #{build_yaml_uri} is missing or inaccessible."
             end
             return install_from_build_data_url('puppetserver', build_yaml_uri, host)
