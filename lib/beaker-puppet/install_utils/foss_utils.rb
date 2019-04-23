@@ -358,7 +358,7 @@ module Beaker
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
           opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version]) || 'pc1'
 
@@ -374,8 +374,19 @@ module Beaker
             package_name = nil
 
             # If inside the Puppet VPN, install from development builds.
-            if opts[:puppet_agent_version] && dev_builds_accessible_on?(host)
+            if opts[:puppet_agent_version] && opts[:puppet_agent_version] != 'latest' && dev_builds_accessible_on?(host)
               return install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
+            end
+
+            if opts[:puppet_agent_version] == 'latest'
+              opts[:puppet_collection] += '-nightly' unless opts[:puppet_collection].end_with? '-nightly'
+              opts[:puppet_agent_version] = nil
+              opts[:version] = nil
+
+              unless opts[:nightly_repo_url] == FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_repo_url]
+                opts[:nightly_apt_repo_url] = opts[:nightly_repo_url]
+                opts[:nightly_yum_repo_url] = opts[:nightly_repo_url]
+              end
             end
 
             case host['platform']
@@ -970,7 +981,7 @@ module Beaker
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
             repo_name = repo || opts[:puppet_collection] || ''
-            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
 
             case variant
             when /^(fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
@@ -1402,13 +1413,14 @@ module Beaker
         # @option opts [String] :dev_builds_url Custom internal builds URL.
         #     Defaults to {DEFAULT_DEV_BUILDS_URL}.
         def install_puppetserver_on(host, opts = {})
-          # If the version is anything other than 'latest', install that specific version from internal dev builds
-          if opts[:version] && opts[:version].strip != 'latest'
-            dev_builds_url = opts[:dev_builds_url] || Puppet5::DEFAULT_DEV_BUILDS_URL
-            build_yaml_uri = %(#{dev_builds_url}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
-            unless link_exists?(build_yaml_uri)
-              raise "Can't find a downloadable puppetserver package; metadata at #{build_yaml_uri} is missing or inaccessible."
-            end
+          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
+
+          # Default to installing latest from nightlies
+          opts[:version] ||= 'latest'
+
+          # If inside the Puppet VPN, install from development builds.
+          if opts[:version] && opts[:version] != 'latest' && dev_builds_accessible_on?(host)
+            build_yaml_uri = %(#{opts[:dev_builds_url]}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
             return install_from_build_data_url('puppetserver', build_yaml_uri, host)
           end
 
@@ -1424,27 +1436,19 @@ module Beaker
           # here would be incorrect - that refers to FOSS puppet 3 only).
           host[:type] = :aio
 
-          if opts[:nightlies]
-            release_stream += '-nightly'
-            # Determine the repo URLs; Use Puppet's nightly builds by default.
-            nightly_builds_url = opts[:nightly_builds_url] || DEFAULT_NIGHTLY_BUILDS_URL
-            if nightly_builds_url == DEFAULT_NIGHTLY_BUILDS_URL
-              # Puppet's nightlies need particular paths for these:
-              yum_nightly_builds_url = opts[:yum_nightly_builds_url] || nightly_builds_url + '/yum'
-              apt_nightly_builds_url = opts[:apt_nightly_builds_url] || nightly_builds_url + '/apt'
-            else
-              # If custom yum and apt urls are supplied, use them, otherwise
-              # just assume the nightly_builds_url is fine.
-              yum_nightly_builds_url = opts[:yum_nightly_builds_url] || nightly_builds_url
-              apt_nightly_builds_url = opts[:apt_nightly_builds_url] || nightly_builds_url
-            end
-            install_puppetlabs_release_repo_on(host, release_stream,
-                                               release_yum_repo_url: yum_nightly_builds_url,
-                                               release_apt_repo_url: apt_nightly_builds_url)
-          else
-            install_puppetlabs_release_repo_on(host, release_stream)
+          if opts[:version] == 'latest' || opts[:nightlies]
+            release_stream += '-nightly' unless release_stream.end_with? "-nightly"
           end
 
+          # Determine the repo URLs; Use Puppet's nightly builds by default.
+          unless opts[:nightly_builds_url] == FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_builds_url]
+            # If custom yum and apt urls are supplied, use them, otherwise
+            # just assume the nightly_builds_url is fine.
+            opts[:nightly_apt_repo_url] = opts[:nightly_builds_url]
+            opts[:nightly_yum_repo_url] = opts[:nightly_builds_url]
+          end
+
+          install_puppetlabs_release_repo_on(host, release_stream, opts)
           install_package(host, 'puppetserver')
 
           logger.notify("Installed puppetserver version #{puppetserver_version_on(host)} on #{host}")

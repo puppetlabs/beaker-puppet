@@ -13,6 +13,7 @@ module Beaker
           :pe_promoted_builds_url   => "http://pm.puppet.com",
           :release_apt_repo_url     => "http://apt.puppet.com",
           :release_yum_repo_url     => "http://yum.puppet.com",
+          :nightly_builds_url       => "http://nightlies.puppet.com",
           :nightly_apt_repo_url     => "http://nightlies.puppet.com/apt",
           :nightly_yum_repo_url     => "http://nightlies.puppet.com/yum",
           :nightly_win_download_url => "http://nightlies.puppet.com/downloads/windows",
