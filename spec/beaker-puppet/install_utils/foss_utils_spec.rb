@@ -71,6 +71,32 @@ describe ClassMixedWithDSLInstallUtils do
 
   let(:win_temp)      { 'C:\\Windows\\Temp' }
 
+  context '#sanatize_opts' do
+    let(:opts) {
+      {
+        :win_download_url => nil,
+        :dev_builds_url => '',
+        :release_yum_repo_url => 'https://apt.customserver.net/apt'
+      }
+    }
+
+    it 'honors any custom values' do
+      expect( subject.sanatize_opts(opts)).to include({release_yum_repo_url: 'https://apt.customserver.net/apt'})
+    end
+
+    it 'overwrites any nil values with pre-defined defaults' do
+      expect( subject.sanatize_opts(opts)).to include({win_download_url: 'http://downloads.puppet.com/windows'})
+    end
+
+    it 'keeps empty strings' do
+      expect( subject.sanatize_opts(opts)).to include({dev_builds_url: ''})
+    end
+
+    it 'adds any undefined defaults' do
+      expect( subject.sanatize_opts(opts)).to include({mac_download_url: 'http://downloads.puppet.com/mac'})
+    end
+  end
+
 
   context '#configure_foss_defaults_on' do
     it 'uses aio paths for hosts with role aio' do

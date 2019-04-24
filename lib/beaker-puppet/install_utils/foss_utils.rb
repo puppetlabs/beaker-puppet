@@ -34,6 +34,16 @@ module Beaker
         # URL for public nightly builds
         DEFAULT_NIGHTLY_BUILDS_URL = 'http://nightlies.puppet.com'
 
+        # Merge given options with our default options in a consistent way
+        # This will remove any nil values so that we always have a set default.
+        #
+        # @param [Hash] the original options to be merged with the default options
+        #
+        # @return [Hash] The finalized set of options
+        def sanatize_opts(opts)
+          FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
+        end
+
         # lookup project-specific git environment variables
         # PROJECT_VAR or VAR otherwise return the default
         #
@@ -271,7 +281,7 @@ module Beaker
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_on(hosts, opts = options)
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+          opts = sanatize_opts(opts)
 
           # If version isn't specified assume the latest in the 3.x series
           if opts[:version] and not version_is_less(opts[:version], '4.0.0')
@@ -358,7 +368,7 @@ module Beaker
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
+          opts = sanatize_opts(opts)
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
           opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version]) || 'pc1'
 
@@ -981,7 +991,7 @@ module Beaker
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
             repo_name = repo || opts[:puppet_collection] || ''
-            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
+            opts = sanatize_opts(opts)
 
             case variant
             when /^(fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
@@ -1141,7 +1151,7 @@ module Beaker
           repo_configs_dir ||= 'tmp/repo_configs'
 
           platform_configs_dir = File.join(repo_configs_dir, variant)
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+          opts = sanatize_opts(opts)
 
           # some of the uses of dev_builds_url below can't include protocol info,
           # plus this opens up possibility of switching the behavior on provided
@@ -1235,7 +1245,7 @@ module Beaker
             # you could provide any values you could to one to the other
             puppet_agent_version = opts[:puppet_agent_sha] || opts[:puppet_agent_version]
 
-            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            opts = sanatize_opts(opts)
             opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{ puppet_agent_version }/repos/"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:puppet_collection]  ||= 'PC1'
@@ -1334,7 +1344,7 @@ module Beaker
 
           block_on hosts do |host|
             pe_ver = host[:pe_ver] || opts[:pe_ver] || '4.0.0-rc1'
-            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            opts = sanatize_opts(opts)
             opts[:download_url] = "#{opts[:pe_promoted_builds_url]}/puppet-agent/#{ pe_ver }/#{ opts[:puppet_agent_version] }/repos"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:copy_dir_external]  ||= host.external_copy_base
@@ -1413,7 +1423,7 @@ module Beaker
         # @option opts [String] :dev_builds_url Custom internal builds URL.
         #     Defaults to {DEFAULT_DEV_BUILDS_URL}.
         def install_puppetserver_on(host, opts = {})
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
+          opts = sanatize_opts(opts)
 
           # Default to installing latest from nightlies
           opts[:version] ||= 'latest'
