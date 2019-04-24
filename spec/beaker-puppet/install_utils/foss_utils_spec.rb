@@ -1475,14 +1475,24 @@ describe ClassMixedWithDSLInstallUtils do
 
     context 'with default arguments' do
       it "installs the latest puppetserver from the default 'puppet-nightly' release stream" do
-        expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet-nightly', include(version: 'latest'))
-        expect(subject).to receive(:install_package).with(host, 'puppetserver')
+        expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet-nightly', include(nightly_yum_repo_url: "http://nightlies.puppet.com/yum"))
+        expect(subject).to receive(:install_package).with(host, 'puppetserver', nil)
         subject.install_puppetserver_on(host)
       end
     end
 
     context 'with a version option' do
       version = '6.6.6'
+
+      context 'on deb-based platform' do
+        let(:host) {make_host('master', platform: Beaker::Platform.new('ubuntu-16.04-amd64'))}
+        it 'munges the version on ubuntu 16.04' do
+          expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', anything)
+          expect(subject).to receive(:install_package).with(host, 'puppetserver', "#{version}-1xenial")
+          allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return false
+          subject.install_puppetserver_on(host, version: version)
+        end
+      end
 
       it 'installs puppetserver at the specific version from internal buildservers' do
         expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{BeakerPuppet::DEFAULT_DEV_BUILDS_URL}.*#{version}/, host)
@@ -1501,7 +1511,7 @@ describe ClassMixedWithDSLInstallUtils do
         dev_builds_url = 'http://builds.corp.tld'
         allow(subject).to receive(:dev_builds_accessible_on?).with(host, dev_builds_url).and_return false
         expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', include(version: '6.6.6'))
-        expect(subject).to receive(:install_package).with(host, 'puppetserver')
+        expect(subject).to receive(:install_package).with(host, 'puppetserver', '6.6.6')
         subject.install_puppetserver_on(host, version: version, dev_builds_url: dev_builds_url)
       end
 
@@ -1511,14 +1521,14 @@ describe ClassMixedWithDSLInstallUtils do
         expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host,
                                                                              release_stream,
                                                                              include(version: '6.6.6'))
-        expect(subject).to receive(:install_package).with(host, 'puppetserver')
+        expect(subject).to receive(:install_package).with(host, 'puppetserver', '6.6.6')
         subject.install_puppetserver_on(host, release_stream: release_stream, version: version)
       end
 
       it 'installs puppetserver from the default release stream' do
         allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return false
         expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', include(version: '6.6.6'))
-        expect(subject).to receive(:install_package).with(host, 'puppetserver')
+        expect(subject).to receive(:install_package).with(host, 'puppetserver', '6.6.6')
         subject.install_puppetserver_on(host, version: version)
       end
     end

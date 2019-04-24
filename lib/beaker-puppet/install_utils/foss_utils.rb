@@ -1404,7 +1404,9 @@ module Beaker
         # @param [Host] host A beaker host
         # @option opts [String] :version Specific puppetserver version.
         #     If set, this overrides all other options and installs the specific
-        #     version from Puppet's internal build servers.
+        #     version from Puppet's internal build servers or Puppet's public
+        #     release servers. If this version of puppetserver does not exist,
+        #     the install attempt will fail.
         # @option opts [Boolean] :nightlies Whether to install from nightlies.
         #     Defaults to false.
         # @option opts [String] :release_stream Which release stream to install
@@ -1448,6 +1450,7 @@ module Beaker
 
           if opts[:version] == 'latest' || opts[:nightlies]
             release_stream += '-nightly' unless release_stream.end_with? "-nightly"
+            opts[:version] = nil
           end
 
           # Determine the repo URLs; Use Puppet's nightly builds by default.
@@ -1458,8 +1461,14 @@ module Beaker
             opts[:nightly_yum_repo_url] = opts[:nightly_builds_url]
           end
 
+          # We have to do some silly version munging if we're on a deb-based platform
+          case host['platform']
+          when /debian|ubuntu|cumulus|huaweios/
+            opts[:version] = "#{opts[:version]}-1#{host['platform'].codename}" if opts[:version]
+          end
+
           install_puppetlabs_release_repo_on(host, release_stream, opts)
-          install_package(host, 'puppetserver')
+          install_package(host, 'puppetserver', opts[:version])
 
           logger.notify("Installed puppetserver version #{puppetserver_version_on(host)} on #{host}")
         end
