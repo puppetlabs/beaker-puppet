@@ -55,17 +55,17 @@ module Beaker
         end
 
         # @return [Boolean] Whether Puppet's internal builds are accessible from all the SUTs
-        def dev_builds_accessible?
+        def dev_builds_accessible?(url = FOSS_DEFAULT_DOWNLOAD_URLS[:dev_builds_url])
           block_on hosts do |host|
-            return false unless dev_builds_accessible_on?(host)
+            return false unless dev_builds_accessible_on?(host, url)
           end
           true
         end
 
         # @param [Host] A beaker host
         # @return [Boolean] Whether Puppet's internal builds are accessible from the host
-        def dev_builds_accessible_on?(host)
-          result = on(host, %(curl -fI "#{Puppet5::DEFAULT_DEV_BUILDS_URL}"), accept_all_exit_codes: true)
+        def dev_builds_accessible_on?(host, url = FOSS_DEFAULT_DOWNLOAD_URLS[:dev_builds_url])
+          result = on(host, %(curl -fI "#{url}"), accept_all_exit_codes: true)
           return result.exit_code.zero?
         end
 
@@ -384,7 +384,7 @@ module Beaker
             package_name = nil
 
             # If inside the Puppet VPN, install from development builds.
-            if opts[:puppet_agent_version] && opts[:puppet_agent_version] != 'latest' && dev_builds_accessible_on?(host)
+            if opts[:puppet_agent_version] && opts[:puppet_agent_version] != 'latest' && dev_builds_accessible_on?(host, opts[:dev_builds_url])
               return install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
             end
 
@@ -1429,7 +1429,7 @@ module Beaker
           opts[:version] ||= 'latest'
 
           # If inside the Puppet VPN, install from development builds.
-          if opts[:version] && opts[:version] != 'latest' && dev_builds_accessible_on?(host)
+          if opts[:version] && opts[:version] != 'latest' && dev_builds_accessible_on?(host, opts[:dev_builds_url])
             build_yaml_uri = %(#{opts[:dev_builds_url]}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
             return install_from_build_data_url('puppetserver', build_yaml_uri, host)
           end

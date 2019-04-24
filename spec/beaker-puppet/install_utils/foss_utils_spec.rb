@@ -1486,20 +1486,28 @@ describe ClassMixedWithDSLInstallUtils do
 
       it 'installs puppetserver at the specific version from internal buildservers' do
         expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{BeakerPuppet::DEFAULT_DEV_BUILDS_URL}.*#{version}/, host)
-        allow(subject).to receive(:dev_builds_accessible_on?).with(host).and_return true
+        allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return true
         subject.install_puppetserver_on(host, version: version)
       end
 
       it 'installs puppetserver from the custom dev builds URL' do
         dev_builds_url = 'http://builds.corp.tld'
         expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{dev_builds_url}.*#{version}/, host)
-        allow(subject).to receive(:dev_builds_accessible_on?).with(host).and_return true
+        allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return true
+        subject.install_puppetserver_on(host, version: version, dev_builds_url: dev_builds_url)
+      end
+
+      it 'installs puppetserver from the main repo if a broken url is passed in' do
+        dev_builds_url = 'http://builds.corp.tld'
+        allow(subject).to receive(:dev_builds_accessible_on?).with(host, dev_builds_url).and_return false
+        expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', include(version: '6.6.6'))
+        expect(subject).to receive(:install_package).with(host, 'puppetserver')
         subject.install_puppetserver_on(host, version: version, dev_builds_url: dev_builds_url)
       end
 
       it 'installs from a custom release stream' do
         release_stream = 'puppet6'
-        allow(subject).to receive(:dev_builds_accessible_on?).with(host).and_return false
+        allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return false
         expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host,
                                                                              release_stream,
                                                                              include(version: '6.6.6'))
@@ -1508,7 +1516,7 @@ describe ClassMixedWithDSLInstallUtils do
       end
 
       it 'installs puppetserver from the default release stream' do
-        allow(subject).to receive(:dev_builds_accessible_on?).with(host).and_return false
+        allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return false
         expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', include(version: '6.6.6'))
         expect(subject).to receive(:install_package).with(host, 'puppetserver')
         subject.install_puppetserver_on(host, version: version)
