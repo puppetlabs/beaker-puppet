@@ -31,9 +31,6 @@ module Beaker
         # Github's ssh signature for cloning via ssh
         GitHubSig   = 'github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
 
-        # URL for public nightly builds
-        DEFAULT_NIGHTLY_BUILDS_URL = 'http://nightlies.puppet.com'
-
         # Merge given options with our default options in a consistent way
         # This will remove any nil values so that we always have a set default.
         #
@@ -1413,15 +1410,13 @@ module Beaker
         #     repos from. Defaults to 'puppet', which installs the latest released
         #     version. Other valid values are puppet5, puppet6.
         # @option opts [String] :nightly_builds_url Custom nightly builds URL.
-        #     Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}.
-        # @option opts [String] :yum_nightly_builds_url Custom nightly builds
-        #     URL for yum. Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}/yum when using
-        #     the default :nightly_builds_url value. Otherwise, defaults to
-        #     {DEFAULT_NIGHTLY_BUILDS_URL}.
+        #     Defaults to {FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_builds_url]}.
+        # @option opts [String] :nightly_yum_builds_url Custom nightly builds
+        #     URL for yum. Defaults to {FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_yum_repo_url]}
+        #     or a custom defined :nightly_builds_url
         # @option opts [String] :apt_nightly_builds_url Custom nightly builds
-        #     URL for apt. Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}/apt when using
-        #     the default :nightly_builds_url value. Otherwise, defaults to
-        #     {DEFAULT_NIGHTLY_BUILDS_URL}.
+        #     URL for apt. Defaults to {FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_builds_url]}
+        #     or a custom defined :nightly_builds_url
         # @option opts [String] :dev_builds_url Custom internal builds URL.
         #     Defaults to {DEFAULT_DEV_BUILDS_URL}.
         def install_puppetserver_on(host, opts = {})

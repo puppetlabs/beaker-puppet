@@ -85,7 +85,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'overwrites any nil values with pre-defined defaults' do
-      expect( subject.sanatize_opts(opts)).to include({win_download_url: 'http://downloads.puppet.com/windows'})
+      default_win_url = described_class::FOSS_DEFAULT_DOWNLOAD_URLS[:win_download_url]
+      expect( subject.sanatize_opts(opts)).to include({win_download_url: default_win_url})
     end
 
     it 'keeps empty strings' do
@@ -93,7 +94,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'adds any undefined defaults' do
-      expect( subject.sanatize_opts(opts)).to include({mac_download_url: 'http://downloads.puppet.com/mac'})
+      default_mac_url = described_class::FOSS_DEFAULT_DOWNLOAD_URLS[:mac_download_url]
+      expect( subject.sanatize_opts(opts)).to include({mac_download_url: default_mac_url})
     end
   end
 
@@ -1495,7 +1497,7 @@ describe ClassMixedWithDSLInstallUtils do
       end
 
       it 'installs puppetserver at the specific version from internal buildservers' do
-        expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{BeakerPuppet::DEFAULT_DEV_BUILDS_URL}.*#{version}/, host)
+        expect(subject).to receive(:install_from_build_data_url).with('puppetserver', /^#{described_class::FOSS_DEFAULT_DOWNLOAD_URLS[:dev_builds_url]}.*#{version}/, host)
         allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return true
         subject.install_puppetserver_on(host, version: version)
       end
@@ -1537,8 +1539,8 @@ describe ClassMixedWithDSLInstallUtils do
       it 'installs puppetserver from the default puppet nightly repos' do
         expect(subject).to receive(:install_puppetlabs_release_repo_on)
                                .with(host, 'puppet-nightly', include(
-                                     nightly_yum_repo_url: "#{BeakerPuppet::DEFAULT_NIGHTLY_BUILDS_URL}/yum",
-                                     nightly_apt_repo_url: "#{BeakerPuppet::DEFAULT_NIGHTLY_BUILDS_URL}/apt"))
+                                     nightly_yum_repo_url: described_class::FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_yum_repo_url],
+                                     nightly_apt_repo_url: described_class::FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_apt_repo_url]))
         subject.install_puppetserver_on(host, nightlies: true)
       end
 
