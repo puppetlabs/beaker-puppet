@@ -394,8 +394,13 @@ module Beaker
 
             if opts[:puppet_agent_version] == 'latest'
               opts[:puppet_collection] += '-nightly' unless opts[:puppet_collection].end_with? '-nightly'
-              opts[:puppet_agent_version] = nil
-              opts[:version] = nil
+
+              # Since we have modified the collection, we don't want to pass `latest`
+              # in to `install_package` as the version. That'll fail. Instead, if
+              # we pass `nil`, `install_package` will just install the latest available
+              # package version from the enabled repo.
+              opts.delete(:puppet_agent_version)
+              opts.delete(:version)
             end
 
             case host['platform']
@@ -1447,7 +1452,12 @@ module Beaker
 
           if opts[:version] == 'latest' || opts[:nightlies]
             release_stream += '-nightly' unless release_stream.end_with? "-nightly"
-            opts[:version] = nil
+
+            # Since we have modified the collection, we don't want to pass `latest`
+            # in to `install_package` as the version. That'll fail. Instead, if
+            # we pass `nil`, `install_package` will just install the latest available
+            # package version from the enabled repo.
+            opts.delete(:version)
           end
 
           # We have to do some silly version munging if we're on a deb-based platform
