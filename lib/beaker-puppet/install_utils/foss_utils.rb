@@ -38,6 +38,13 @@ module Beaker
         #
         # @return [Hash] The finalized set of options
         def sanatize_opts(opts)
+          # If any of the nightly urls are not set, but the main `:nightly_builds_url`
+          # is set, we should overwrite anything not set.
+          opts[:nightly_apt_repo_url]     ||= opts[:nightly_builds_url]
+          opts[:nightly_yum_repo_url]     ||= opts[:nightly_builds_url]
+          opts[:nightly_win_download_url] ||= opts[:nightly_builds_url]
+          opts[:nightly_mac_download_url] ||= opts[:nightly_builds_url]
+
           FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
         end
 
@@ -389,11 +396,6 @@ module Beaker
               opts[:puppet_collection] += '-nightly' unless opts[:puppet_collection].end_with? '-nightly'
               opts[:puppet_agent_version] = nil
               opts[:version] = nil
-
-              unless opts[:nightly_repo_url] == FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_repo_url]
-                opts[:nightly_apt_repo_url] = opts[:nightly_repo_url]
-                opts[:nightly_yum_repo_url] = opts[:nightly_repo_url]
-              end
             end
 
             case host['platform']
@@ -1446,14 +1448,6 @@ module Beaker
           if opts[:version] == 'latest' || opts[:nightlies]
             release_stream += '-nightly' unless release_stream.end_with? "-nightly"
             opts[:version] = nil
-          end
-
-          # Determine the repo URLs; Use Puppet's nightly builds by default.
-          unless opts[:nightly_builds_url] == FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_builds_url]
-            # If custom yum and apt urls are supplied, use them, otherwise
-            # just assume the nightly_builds_url is fine.
-            opts[:nightly_apt_repo_url] = opts[:nightly_builds_url]
-            opts[:nightly_yum_repo_url] = opts[:nightly_builds_url]
           end
 
           # We have to do some silly version munging if we're on a deb-based platform
