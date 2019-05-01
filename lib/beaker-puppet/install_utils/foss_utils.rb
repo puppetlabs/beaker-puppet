@@ -31,8 +31,22 @@ module Beaker
         # Github's ssh signature for cloning via ssh
         GitHubSig   = 'github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
 
-        # URL for public nightly builds
-        DEFAULT_NIGHTLY_BUILDS_URL = 'http://nightlies.puppet.com'
+        # Merge given options with our default options in a consistent way
+        # This will remove any nil values so that we always have a set default.
+        #
+        # @param [Hash] the original options to be merged with the default options
+        #
+        # @return [Hash] The finalized set of options
+        def sanatize_opts(opts)
+          # If any of the nightly urls are not set, but the main `:nightly_builds_url`
+          # is set, we should overwrite anything not set.
+          opts[:nightly_apt_repo_url]     ||= opts[:nightly_builds_url]
+          opts[:nightly_yum_repo_url]     ||= opts[:nightly_builds_url]
+          opts[:nightly_win_download_url] ||= opts[:nightly_builds_url]
+          opts[:nightly_mac_download_url] ||= opts[:nightly_builds_url]
+
+          FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
+        end
 
         # lookup project-specific git environment variables
         # PROJECT_VAR or VAR otherwise return the default
@@ -45,17 +59,17 @@ module Beaker
         end
 
         # @return [Boolean] Whether Puppet's internal builds are accessible from all the SUTs
-        def dev_builds_accessible?
+        def dev_builds_accessible?(url = FOSS_DEFAULT_DOWNLOAD_URLS[:dev_builds_url])
           block_on hosts do |host|
-            return false unless dev_builds_accessible_on?(host)
+            return false unless dev_builds_accessible_on?(host, url)
           end
           true
         end
 
         # @param [Host] A beaker host
         # @return [Boolean] Whether Puppet's internal builds are accessible from the host
-        def dev_builds_accessible_on?(host)
-          result = on(host, %(curl -fI "#{Puppet5::DEFAULT_DEV_BUILDS_URL}"), accept_all_exit_codes: true)
+        def dev_builds_accessible_on?(host, url = FOSS_DEFAULT_DOWNLOAD_URLS[:dev_builds_url])
+          result = on(host, %(curl -fI "#{url}"), accept_all_exit_codes: true)
           return result.exit_code.zero?
         end
 
@@ -271,7 +285,7 @@ module Beaker
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_on(hosts, opts = options)
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+          opts = sanatize_opts(opts)
 
           # If version isn't specified assume the latest in the 3.x series
           if opts[:version] and not version_is_less(opts[:version], '4.0.0')
@@ -358,7 +372,7 @@ module Beaker
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+          opts = sanatize_opts(opts)
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
           opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version]) || 'pc1'
 
@@ -374,8 +388,19 @@ module Beaker
             package_name = nil
 
             # If inside the Puppet VPN, install from development builds.
-            if opts[:puppet_agent_version] && dev_builds_accessible_on?(host)
+            if opts[:puppet_agent_version] && opts[:puppet_agent_version] != 'latest' && dev_builds_accessible_on?(host, opts[:dev_builds_url])
               return install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
+            end
+
+            if opts[:puppet_agent_version] == 'latest'
+              opts[:puppet_collection] += '-nightly' unless opts[:puppet_collection].end_with? '-nightly'
+
+              # Since we have modified the collection, we don't want to pass `latest`
+              # in to `install_package` as the version. That'll fail. Instead, if
+              # we pass `nil`, `install_package` will just install the latest available
+              # package version from the enabled repo.
+              opts.delete(:puppet_agent_version)
+              opts.delete(:version)
             end
 
             case host['platform']
@@ -970,7 +995,7 @@ module Beaker
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
             repo_name = repo || opts[:puppet_collection] || ''
-            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            opts = sanatize_opts(opts)
 
             case variant
             when /^(fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
@@ -989,8 +1014,8 @@ module Beaker
                       else
                         opts[:release_yum_repo_url]
                       end
-                remote = "%s/%s/%s-release-%s-%s.noarch.rpm" %
-                  [url, repo_name, repo_name, variant_url_value, version]
+                remote = "%s/%s-release-%s-%s.noarch.rpm" %
+                  [url, repo_name, variant_url_value, version]
               else
                 repo_name = '-' + repo_name unless repo_name.empty?
                 remote = "%s/puppetlabs-release%s-%s-%s.noarch.rpm" %
@@ -1130,7 +1155,7 @@ module Beaker
           repo_configs_dir ||= 'tmp/repo_configs'
 
           platform_configs_dir = File.join(repo_configs_dir, variant)
-          opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+          opts = sanatize_opts(opts)
 
           # some of the uses of dev_builds_url below can't include protocol info,
           # plus this opens up possibility of switching the behavior on provided
@@ -1224,7 +1249,7 @@ module Beaker
             # you could provide any values you could to one to the other
             puppet_agent_version = opts[:puppet_agent_sha] || opts[:puppet_agent_version]
 
-            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            opts = sanatize_opts(opts)
             opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{ puppet_agent_version }/repos/"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:puppet_collection]  ||= 'PC1'
@@ -1323,7 +1348,7 @@ module Beaker
 
           block_on hosts do |host|
             pe_ver = host[:pe_ver] || opts[:pe_ver] || '4.0.0-rc1'
-            opts = FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts)
+            opts = sanatize_opts(opts)
             opts[:download_url] = "#{opts[:pe_promoted_builds_url]}/puppet-agent/#{ pe_ver }/#{ opts[:puppet_agent_version] }/repos"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:copy_dir_external]  ||= host.external_copy_base
@@ -1383,32 +1408,33 @@ module Beaker
         # @param [Host] host A beaker host
         # @option opts [String] :version Specific puppetserver version.
         #     If set, this overrides all other options and installs the specific
-        #     version from Puppet's internal build servers.
+        #     version from Puppet's internal build servers or Puppet's public
+        #     release servers. If this version of puppetserver does not exist,
+        #     the install attempt will fail.
         # @option opts [Boolean] :nightlies Whether to install from nightlies.
         #     Defaults to false.
         # @option opts [String] :release_stream Which release stream to install
         #     repos from. Defaults to 'puppet', which installs the latest released
         #     version. Other valid values are puppet5, puppet6.
         # @option opts [String] :nightly_builds_url Custom nightly builds URL.
-        #     Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}.
-        # @option opts [String] :yum_nightly_builds_url Custom nightly builds
-        #     URL for yum. Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}/yum when using
-        #     the default :nightly_builds_url value. Otherwise, defaults to
-        #     {DEFAULT_NIGHTLY_BUILDS_URL}.
+        #     Defaults to {FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_builds_url]}.
+        # @option opts [String] :nightly_yum_builds_url Custom nightly builds
+        #     URL for yum. Defaults to {FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_yum_repo_url]}
+        #     or a custom defined :nightly_builds_url
         # @option opts [String] :apt_nightly_builds_url Custom nightly builds
-        #     URL for apt. Defaults to {DEFAULT_NIGHTLY_BUILDS_URL}/apt when using
-        #     the default :nightly_builds_url value. Otherwise, defaults to
-        #     {DEFAULT_NIGHTLY_BUILDS_URL}.
+        #     URL for apt. Defaults to {FOSS_DEFAULT_DOWNLOAD_URLS[:nightly_builds_url]}
+        #     or a custom defined :nightly_builds_url
         # @option opts [String] :dev_builds_url Custom internal builds URL.
         #     Defaults to {DEFAULT_DEV_BUILDS_URL}.
         def install_puppetserver_on(host, opts = {})
-          # If the version is anything other than 'latest', install that specific version from internal dev builds
-          if opts[:version] && opts[:version].strip != 'latest'
-            dev_builds_url = opts[:dev_builds_url] || Puppet5::DEFAULT_DEV_BUILDS_URL
-            build_yaml_uri = %(#{dev_builds_url}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
-            unless link_exists?(build_yaml_uri)
-              raise "Can't find a downloadable puppetserver package; metadata at #{build_yaml_uri} is missing or inaccessible."
-            end
+          opts = sanatize_opts(opts)
+
+          # Default to installing latest from nightlies
+          opts[:version] ||= 'latest'
+
+          # If inside the Puppet VPN, install from development builds.
+          if opts[:version] && opts[:version] != 'latest' && dev_builds_accessible_on?(host, opts[:dev_builds_url])
+            build_yaml_uri = %(#{opts[:dev_builds_url]}/puppetserver/#{opts[:version]}/artifacts/#{opts[:version]}.yaml)
             return install_from_build_data_url('puppetserver', build_yaml_uri, host)
           end
 
@@ -1424,28 +1450,24 @@ module Beaker
           # here would be incorrect - that refers to FOSS puppet 3 only).
           host[:type] = :aio
 
-          if opts[:nightlies]
-            release_stream += '-nightly'
-            # Determine the repo URLs; Use Puppet's nightly builds by default.
-            nightly_builds_url = opts[:nightly_builds_url] || DEFAULT_NIGHTLY_BUILDS_URL
-            if nightly_builds_url == DEFAULT_NIGHTLY_BUILDS_URL
-              # Puppet's nightlies need particular paths for these:
-              yum_nightly_builds_url = opts[:yum_nightly_builds_url] || nightly_builds_url + '/yum'
-              apt_nightly_builds_url = opts[:apt_nightly_builds_url] || nightly_builds_url + '/apt'
-            else
-              # If custom yum and apt urls are supplied, use them, otherwise
-              # just assume the nightly_builds_url is fine.
-              yum_nightly_builds_url = opts[:yum_nightly_builds_url] || nightly_builds_url
-              apt_nightly_builds_url = opts[:apt_nightly_builds_url] || nightly_builds_url
-            end
-            install_puppetlabs_release_repo_on(host, release_stream,
-                                               release_yum_repo_url: yum_nightly_builds_url,
-                                               release_apt_repo_url: apt_nightly_builds_url)
-          else
-            install_puppetlabs_release_repo_on(host, release_stream)
+          if opts[:version] == 'latest' || opts[:nightlies]
+            release_stream += '-nightly' unless release_stream.end_with? "-nightly"
+
+            # Since we have modified the collection, we don't want to pass `latest`
+            # in to `install_package` as the version. That'll fail. Instead, if
+            # we pass `nil`, `install_package` will just install the latest available
+            # package version from the enabled repo.
+            opts.delete(:version)
           end
 
-          install_package(host, 'puppetserver')
+          # We have to do some silly version munging if we're on a deb-based platform
+          case host['platform']
+          when /debian|ubuntu|cumulus|huaweios/
+            opts[:version] = "#{opts[:version]}-1#{host['platform'].codename}" if opts[:version]
+          end
+
+          install_puppetlabs_release_repo_on(host, release_stream, opts)
+          install_package(host, 'puppetserver', opts[:version])
 
           logger.notify("Installed puppetserver version #{puppetserver_version_on(host)} on #{host}")
         end
