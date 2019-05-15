@@ -994,7 +994,7 @@ module Beaker
         def install_puppetlabs_release_repo_on( hosts, repo = nil, opts = options )
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
-            repo_name = repo || opts[:puppet_collection] || ''
+            repo_name = repo || opts[:puppet_collection] || 'puppet'
             opts = sanatize_opts(opts)
 
             case variant
@@ -1017,8 +1017,7 @@ module Beaker
                 remote = "%s/%s-release-%s-%s.noarch.rpm" %
                   [url, repo_name, variant_url_value, version]
               else
-                repo_name = '-' + repo_name unless repo_name.empty?
-                remote = "%s/puppetlabs-release%s-%s-%s.noarch.rpm" %
+                remote = "%s/%s-release-%s-%s.noarch.rpm" %
                   [opts[:release_yum_repo_url], repo_name, variant_url_value, version]
               end
 
@@ -1054,8 +1053,7 @@ module Beaker
                 remote = "%s/%s-release-%s.deb" %
                   [url, repo_name, codename]
               else
-                repo_name = '-' + repo_name unless repo_name.empty?
-                remote = "%s/puppetlabs-release%s-%s.deb" %
+                remote = "%s/%s-release-%s.deb" %
                   [opts[:release_apt_repo_url], repo_name, codename]
               end
 

@@ -483,7 +483,7 @@ describe ClassMixedWithDSLInstallUtils do
     context 'on el-6' do
       let(:platform) { Beaker::Platform.new('el-6-i386') }
       it 'installs' do
-        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppetlabs-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppet-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
         expect(hosts[0]).to receive(:install_package).with('puppet')
         subject.install_puppet
       end
@@ -491,7 +491,7 @@ describe ClassMixedWithDSLInstallUtils do
         InParallel::InParallelExecutor.logger = logger
         FakeFS.deactivate!
         hosts.each{ |host|
-          allow(host).to receive(:install_package_with_rpm).with(/puppetlabs-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+          allow(host).to receive(:install_package_with_rpm).with(/puppet-release-el-6\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
           allow(host).to receive(:install_package).with('puppet')
         }
         opts[:run_in_parallel] = true
@@ -513,7 +513,7 @@ describe ClassMixedWithDSLInstallUtils do
     context 'on el-5' do
       let(:platform) { Beaker::Platform.new('el-5-i386') }
       it 'installs' do
-        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppetlabs-release-el-5\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+        expect(hosts[0]).to receive(:install_package_with_rpm).with(%r{puppet-release-el-5.noarch.rpm}, '--replacepkgs', {:package_proxy=>false})
         expect(hosts[0]).to receive(:install_package).with('puppet')
         subject.install_puppet
       end
@@ -521,7 +521,7 @@ describe ClassMixedWithDSLInstallUtils do
     context 'on fedora' do
       let(:platform) { Beaker::Platform.new('fedora-18-x86_84') }
       it 'installs' do
-        expect(hosts[0]).to receive(:install_package_with_rpm).with(/puppetlabs-release-fedora-18\.noarch\.rpm/, '--replacepkgs', {:package_proxy=>false})
+        expect(hosts[0]).to receive(:install_package_with_rpm).with(%r{puppet-release-fedora-18.noarch.rpm}, '--replacepkgs', {:package_proxy=>false})
         expect(hosts[0]).to receive(:install_package).with('puppet')
         subject.install_puppet
       end
@@ -733,12 +733,8 @@ describe ClassMixedWithDSLInstallUtils do
         subject.install_puppetlabs_release_repo_on( host, nil, {:puppet_collection => 'puppet14'})
       end
       it 'returns the correct url when both repo and opts[:puppet_collection] are nil' do
-        expect( host ).to receive( :install_package_with_rpm ).with( /puppetlabs-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
+        expect( host ).to receive( :install_package_with_rpm ).with( /puppet-release-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
         subject.install_puppetlabs_release_repo_on( host )
-      end
-      it 'returns the correct url when repo is set to pc1' do
-        expect( host ).to receive( :install_package_with_rpm ).with( /puppetlabs-release-pc1-el-7\.noarch\.rpm$/, '--replacepkgs', {:package_proxy=>false} )
-        subject.install_puppetlabs_release_repo_on( host, 'pc1' )
       end
     end
 
@@ -757,16 +753,10 @@ describe ClassMixedWithDSLInstallUtils do
         subject.install_puppetlabs_release_repo_on( host, nil, {:puppet_collection => 'puppet7'} )
       end
       it 'returns the correct url when both repo and opts[:puppet_collection] are nil' do
-        expect( subject ).to receive( :on ).with( host, /puppetlabs-release-jessie\.deb$/ ).once
+        expect( subject ).to receive( :on ).with( host, /puppet-release-jessie\.deb$/ ).once
         expect( subject ).to receive( :on ).with( host, "dpkg -i --force-all /tmp/puppet.deb" ).once
         expect( subject ).to receive( :on ).with( host, "apt-get update" ).once
         subject.install_puppetlabs_release_repo_on( host )
-      end
-      it 'returns the correct url when both repo is set to pc1' do
-        expect( subject ).to receive( :on ).with( host, /puppetlabs-release-pc1-jessie\.deb$/ ).once
-        expect( subject ).to receive( :on ).with( host, "dpkg -i --force-all /tmp/puppet.deb" ).once
-        expect( subject ).to receive( :on ).with( host, "apt-get update" ).once
-        subject.install_puppetlabs_release_repo_on( host, 'pc1' )
       end
     end
 
