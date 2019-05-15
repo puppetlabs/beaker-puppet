@@ -389,45 +389,45 @@ module Beaker
 
             # If inside the Puppet VPN, install from development builds.
             if opts[:puppet_agent_version] && opts[:puppet_agent_version] != 'latest' && dev_builds_accessible_on?(host, opts[:dev_builds_url])
-              return install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
-            end
-
-            if opts[:puppet_agent_version] == 'latest'
-              opts[:puppet_collection] += '-nightly' unless opts[:puppet_collection].end_with? '-nightly'
-
-              # Since we have modified the collection, we don't want to pass `latest`
-              # in to `install_package` as the version. That'll fail. Instead, if
-              # we pass `nil`, `install_package` will just install the latest available
-              # package version from the enabled repo.
-              opts.delete(:puppet_agent_version)
-              opts.delete(:version)
-            end
-
-            case host['platform']
-            when /el-|redhat|fedora|sles|centos|cisco_/
-              package_name = 'puppet-agent'
-              package_name << "-#{opts[:puppet_agent_version]}" if opts[:puppet_agent_version]
-            when /debian|ubuntu|cumulus|huaweios/
-              package_name = 'puppet-agent'
-              package_name << "=#{opts[:puppet_agent_version]}-1#{host['platform'].codename}" if opts[:puppet_agent_version]
-            when /windows/
-              install_puppet_agent_from_msi_on(host, opts)
-            when /osx/
-              install_puppet_agent_from_dmg_on(host, opts)
+              install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
             else
-              if opts[:default_action] == 'gem_install'
-                opts[:version] = opts[:puppet_gem_version]
-                install_puppet_from_gem_on(host, opts)
-                on host, "echo '' >> #{host.puppet['hiera_config']}"
-              else
-                raise "install_puppet_agent_on() called for unsupported " +
-                      "platform '#{host['platform']}' on '#{host.name}'"
-              end
-            end
+              if opts[:puppet_agent_version] == 'latest'
+                opts[:puppet_collection] += '-nightly' unless opts[:puppet_collection].end_with? '-nightly'
 
-            if package_name
-              install_puppetlabs_release_repo( host, opts[:puppet_collection] , opts)
-              host.install_package( package_name )
+                # Since we have modified the collection, we don't want to pass `latest`
+                # in to `install_package` as the version. That'll fail. Instead, if
+                # we pass `nil`, `install_package` will just install the latest available
+                # package version from the enabled repo.
+                opts.delete(:puppet_agent_version)
+                opts.delete(:version)
+              end
+
+              case host['platform']
+              when /el-|redhat|fedora|sles|centos|cisco_/
+                package_name = 'puppet-agent'
+                package_name << "-#{opts[:puppet_agent_version]}" if opts[:puppet_agent_version]
+              when /debian|ubuntu|cumulus|huaweios/
+                package_name = 'puppet-agent'
+                package_name << "=#{opts[:puppet_agent_version]}-1#{host['platform'].codename}" if opts[:puppet_agent_version]
+              when /windows/
+                install_puppet_agent_from_msi_on(host, opts)
+              when /osx/
+                install_puppet_agent_from_dmg_on(host, opts)
+              else
+                if opts[:default_action] == 'gem_install'
+                  opts[:version] = opts[:puppet_gem_version]
+                  install_puppet_from_gem_on(host, opts)
+                  on host, "echo '' >> #{host.puppet['hiera_config']}"
+                else
+                  raise "install_puppet_agent_on() called for unsupported " +
+                        "platform '#{host['platform']}' on '#{host.name}'"
+                end
+              end
+
+              if package_name
+                install_puppetlabs_release_repo( host, opts[:puppet_collection] , opts)
+                host.install_package( package_name )
+              end
             end
           end
         end
