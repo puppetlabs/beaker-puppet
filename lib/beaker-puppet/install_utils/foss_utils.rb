@@ -67,8 +67,11 @@ module Beaker
         end
 
         # @param [Host] A beaker host
-        # @return [Boolean] Whether Puppet's internal builds are accessible from the host
+        # @return [Boolean] Whether Puppet's internal builds are accessible from the host /
+        # true for puppet amazon platfroms
         def dev_builds_accessible_on?(host, url = FOSS_DEFAULT_DOWNLOAD_URLS[:dev_builds_url])
+          return true if host.host_hash[:template] =~ /^amazon-*/ && host.hostname =~ /.puppet.net$/
+
           result = on(host, %(curl -fI "#{url}"), accept_all_exit_codes: true)
           return result.exit_code.zero?
         end
