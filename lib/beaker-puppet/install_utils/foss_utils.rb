@@ -37,7 +37,7 @@ module Beaker
         # @param [Hash] the original options to be merged with the default options
         #
         # @return [Hash] The finalized set of options
-        def sanatize_opts(opts)
+        def sanitize_opts(opts)
           # If any of the nightly urls are not set, but the main `:nightly_builds_url`
           # is set, we should overwrite anything not set.
           opts[:nightly_apt_repo_url]     ||= opts[:nightly_builds_url]
@@ -288,7 +288,7 @@ module Beaker
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_on(hosts, opts = options)
-          opts = sanatize_opts(opts)
+          opts = sanitize_opts(opts)
 
           # If version isn't specified assume the latest in the 3.x series
           if opts[:version] and not version_is_less(opts[:version], '4.0.0')
@@ -375,7 +375,7 @@ module Beaker
         # @raise [StandardError] When encountering an unsupported platform by default, or if gem cannot be found when default_action => 'gem_install'
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
-          opts = sanatize_opts(opts)
+          opts = sanitize_opts(opts)
           opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
           opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version]) || 'pc1'
 
@@ -998,7 +998,7 @@ module Beaker
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
             repo_name = repo || opts[:puppet_collection] || 'puppet'
-            opts = sanatize_opts(opts)
+            opts = sanitize_opts(opts)
 
             case variant
             when /^(fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
@@ -1107,6 +1107,12 @@ module Beaker
             copy_dir
           )
 
+          if host['platform'].variant =~ /^(ubuntu|debian)$/
+            # Bypass signing checks on this repo and its packages
+            contents = File.read(repo).gsub(/^deb /, "deb [trusted=yes] ")
+            File.write(repo, contents)
+          end
+
           if host[:platform] =~ /cisco_nexus/
             to_path = "#{host.package_config_dir}/#{File.basename(repo)}"
           else
@@ -1114,12 +1120,6 @@ module Beaker
           end
           scp_to( host, repo, to_path )
 
-          variant, version, arch, codename = host['platform'].to_array
-          if (variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18) ||
-              (variant =~ /^debian$/ && version.split('.').first.to_i >= 10)
-            # Allow the use of unsigned repos with Ubuntu 18.04+ and for Debian 10 +
-            on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
-          end
           on( host, 'apt-get update' ) if host['platform'] =~ /ubuntu-|debian-|cumulus-|huaweios-/
           nil
         end
@@ -1156,7 +1156,7 @@ module Beaker
           repo_configs_dir ||= 'tmp/repo_configs'
 
           platform_configs_dir = File.join(repo_configs_dir, variant)
-          opts = sanatize_opts(opts)
+          opts = sanitize_opts(opts)
 
           # some of the uses of dev_builds_url below can't include protocol info,
           # plus this opens up possibility of switching the behavior on provided
@@ -1164,11 +1164,6 @@ module Beaker
           _, protocol, hostname = opts[:dev_builds_url].partition /.*:\/\//
           dev_builds_url = protocol + hostname
           dev_builds_url = opts[:dev_builds_url] if variant =~ /^(fedora|el|redhat|centos)$/
-
-          if variant =~ /^ubuntu$/ && version.split('.').first.to_i >= 18
-            # Allow the use of unsigned repos with Ubuntu 18.04+
-            on host, "echo 'Acquire::AllowInsecureRepositories \"true\";' > /etc/apt/apt.conf.d/90insecure"
-          end
 
           install_repo_configs( host, dev_builds_url, package_name,
                                 build_version, platform_configs_dir )
@@ -1250,7 +1245,7 @@ module Beaker
             # you could provide any values you could to one to the other
             puppet_agent_version = opts[:puppet_agent_sha] || opts[:puppet_agent_version]
 
-            opts = sanatize_opts(opts)
+            opts = sanitize_opts(opts)
             opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{ puppet_agent_version }/repos/"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:puppet_collection]  ||= 'PC1'
@@ -1349,7 +1344,7 @@ module Beaker
 
           block_on hosts do |host|
             pe_ver = host[:pe_ver] || opts[:pe_ver] || '4.0.0-rc1'
-            opts = sanatize_opts(opts)
+            opts = sanitize_opts(opts)
             opts[:download_url] = "#{opts[:pe_promoted_builds_url]}/puppet-agent/#{ pe_ver }/#{ opts[:puppet_agent_version] }/repos"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:copy_dir_external]  ||= host.external_copy_base
@@ -1428,7 +1423,7 @@ module Beaker
         # @option opts [String] :dev_builds_url Custom internal builds URL.
         #     Defaults to {DEFAULT_DEV_BUILDS_URL}.
         def install_puppetserver_on(host, opts = {})
-          opts = sanatize_opts(opts)
+          opts = sanitize_opts(opts)
 
           # Default to installing latest from nightlies
           opts[:version] ||= 'latest'
