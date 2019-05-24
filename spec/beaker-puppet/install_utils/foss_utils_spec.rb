@@ -71,7 +71,7 @@ describe ClassMixedWithDSLInstallUtils do
 
   let(:win_temp)      { 'C:\\Windows\\Temp' }
 
-  context '#sanatize_opts' do
+  context '#sanitize_opts' do
     let(:opts) {
       {
         :win_download_url => nil,
@@ -81,21 +81,21 @@ describe ClassMixedWithDSLInstallUtils do
     }
 
     it 'honors any custom values' do
-      expect( subject.sanatize_opts(opts)).to include({release_yum_repo_url: 'https://apt.customserver.net/apt'})
+      expect( subject.sanitize_opts(opts)).to include({release_yum_repo_url: 'https://apt.customserver.net/apt'})
     end
 
     it 'overwrites any nil values with pre-defined defaults' do
       default_win_url = described_class::FOSS_DEFAULT_DOWNLOAD_URLS[:win_download_url]
-      expect( subject.sanatize_opts(opts)).to include({win_download_url: default_win_url})
+      expect( subject.sanitize_opts(opts)).to include({win_download_url: default_win_url})
     end
 
     it 'keeps empty strings' do
-      expect( subject.sanatize_opts(opts)).to include({dev_builds_url: ''})
+      expect( subject.sanitize_opts(opts)).to include({dev_builds_url: ''})
     end
 
     it 'adds any undefined defaults' do
       default_mac_url = described_class::FOSS_DEFAULT_DOWNLOAD_URLS[:mac_download_url]
-      expect( subject.sanatize_opts(opts)).to include({mac_download_url: default_mac_url})
+      expect( subject.sanitize_opts(opts)).to include({mac_download_url: default_mac_url})
     end
   end
 
