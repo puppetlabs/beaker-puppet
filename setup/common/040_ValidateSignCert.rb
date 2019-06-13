@@ -28,7 +28,8 @@ test_name "Validate Sign Cert" do
     master_opts = {
       main: {
         dns_alt_names: "puppet,#{hostname},#{fqdn}",
-        server: fqdn
+        server: fqdn,
+        autosign: true
       },
     }
 
@@ -37,22 +38,7 @@ test_name "Validate Sign Cert" do
       on master, 'puppetserver ca setup'
     end
     with_puppet_running_on(master, master_opts) do
-      agents.each do |agent|
-        next if agent == master
-
-        step "Agents: Run agent --test first time to gen CSR"
-        on agent, puppet("agent --test"), :acceptable_exit_codes => [1]
-      end
-
-      # Sign all waiting agent certs
-      step "Server: sign all agent certs"
-      if version_is_less(puppet_version, "5.99")
-        on master, puppet("cert sign --all"), :acceptable_exit_codes => [0, 24]
-      else
-        on master, 'puppetserver ca sign --all', :acceptable_exit_codes => [0, 24]
-      end
-
-      step "Agents: Run agent --test second time to obtain signed cert"
+      step "Agents: Run agent --test with autosigning enabled to get cert"
       on agents, puppet("agent --test"), :acceptable_exit_codes => [0,2]
     end
   end
