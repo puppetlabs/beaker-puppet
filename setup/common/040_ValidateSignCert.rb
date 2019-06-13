@@ -19,6 +19,11 @@ test_name "Validate Sign Cert" do
     on(host, "rm -rf '#{ssldir}/*'")
   end
 
+  step "Set 'server' setting"
+  hosts.each do |host|
+    on(host, puppet("config set server #{master.hostname} --section main"))
+  end
+
   step "Start puppetserver" do
     master_opts = {
       main: {
@@ -36,7 +41,7 @@ test_name "Validate Sign Cert" do
         next if agent == master
 
         step "Agents: Run agent --test first time to gen CSR"
-        on agent, puppet("agent --test --server #{master}"), :acceptable_exit_codes => [1]
+        on agent, puppet("agent --test"), :acceptable_exit_codes => [1]
       end
 
       # Sign all waiting agent certs
@@ -48,7 +53,7 @@ test_name "Validate Sign Cert" do
       end
 
       step "Agents: Run agent --test second time to obtain signed cert"
-      on agents, puppet("agent --test --server #{master}"), :acceptable_exit_codes => [0,2]
+      on agents, puppet("agent --test"), :acceptable_exit_codes => [0,2]
     end
   end
 end
