@@ -72,60 +72,70 @@ end
 install_packages_on(agents, PACKAGES, :check_if_exists => true)
 
 step "Unpack puppet-runtime" do
-  dev_builds_url = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
-  branch = ENV['RUNTIME_BRANCH'] || 'master'
-
-  # We want to grab whatever tag has been promoted most recently into the branch
-  # of puppet-agent that corresponds to whatever component we're working on.
-  # This will allow us to get the latest runtime package that has passed tests.
-  runtime_json = "https://raw.githubusercontent.com/puppetlabs/puppet-agent/#{branch}/configs/components/puppet-runtime.json"
-  runtime_tag = JSON.load(open(runtime_json))['version']
-
-  runtime_url = "#{dev_builds_url}/puppet-runtime/#{runtime_tag}/artifacts/"
-
-  runtime_prefix = "agent-runtime-#{branch}-#{runtime_tag}."
-  runtime_suffix = ".tar.gz"
-
+  need_to_run = false
   agents.each do |host|
+    # we only need to unpack the runtime if the host doesn't already have runtime
+    # and if it's a not an existing container
+    need_to_run ||= !host['use_existing_container']
+  end
 
-    platform_tag = host['packaging_platform']
-    if platform_tag =~ /windows/
-      # the windows version is hard coded to `2012r2`. Unfortunately,
-      # `host['packaging_platform']` is hard coded to `2012`, so we have to add
-      # the `r2` on our own.
-      platform, version, arch = platform_tag.split('-')
-      platform_tag = "#{platform}-#{version}r2-#{arch}"
-    end
-    tarball_name = runtime_prefix + platform_tag + runtime_suffix
+  if need_to_run
+    dev_builds_url = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
+    branch = ENV['RUNTIME_BRANCH'] || 'master'
 
-    on host, "curl -Of #{runtime_url}#{tarball_name}"
+    # We want to grab whatever tag has been promoted most recently into the branch
+    # of puppet-agent that corresponds to whatever component we're working on.
+    # This will allow us to get the latest runtime package that has passed tests.
+    runtime_json = "https://raw.githubusercontent.com/puppetlabs/puppet-agent/#{branch}/configs/components/puppet-runtime.json"
+    runtime_tag = JSON.load(open(runtime_json))['version']
 
-    case host['platform']
-    when /windows/
-      on host, "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -"
+    runtime_url = "#{dev_builds_url}/puppet-runtime/#{runtime_tag}/artifacts/"
 
-      if arch == 'x64'
-        program_files = 'ProgramFiles64Folder'
-      else
-        program_files = 'ProgramFilesFolder'
+    runtime_prefix = "agent-runtime-#{branch}-#{runtime_tag}."
+    runtime_suffix = ".tar.gz"
+
+    agents.each do |host|
+      next if host['use_existing_container']
+
+      platform_tag = host['packaging_platform']
+      if platform_tag =~ /windows/
+        # the windows version is hard coded to `2012r2`. Unfortunately,
+        # `host['packaging_platform']` is hard coded to `2012`, so we have to add
+        # the `r2` on our own.
+        platform, version, arch = platform_tag.split('-')
+        platform_tag = "#{platform}-#{version}r2-#{arch}"
       end
-      if branch == '5.5.x'
-        bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
-      else
-        bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
-      end
-      on host, "chmod 755 #{bindir}/*"
+      tarball_name = runtime_prefix + platform_tag + runtime_suffix
 
-      # Because the runtime archive for windows gets installed in a non-standard
-      # directory (ProgramFiles64Folder), we need to add it to the path here
-      # rather than rely on `host['privatebindir']` like we can for other
-      # platforms
-      host.add_env_var('PATH', bindir)
-    when /osx/
-      on host, "tar -xzf #{tarball_name}"
-      on host, "for d in opt var private; do rsync -ka \"${d}/\" \"/${d}/\"; done"
-    else
-      on host, "gunzip -c #{tarball_name} | #{tar} -k -C / -xf -"
+      on host, "curl -Of #{runtime_url}#{tarball_name}"
+
+      case host['platform']
+      when /windows/
+        on host, "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -"
+
+        if arch == 'x64'
+          program_files = 'ProgramFiles64Folder'
+        else
+          program_files = 'ProgramFilesFolder'
+        end
+        if branch == '5.5.x'
+          bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
+        else
+          bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
+        end
+        on host, "chmod 755 #{bindir}/*"
+
+        # Because the runtime archive for windows gets installed in a non-standard
+        # directory (ProgramFiles64Folder), we need to add it to the path here
+        # rather than rely on `host['privatebindir']` like we can for other
+        # platforms
+        host.add_env_var('PATH', bindir)
+      when /osx/
+        on host, "tar -xzf #{tarball_name}"
+        on host, "for d in opt var private; do rsync -ka \"${d}/\" \"/${d}/\"; done"
+      else
+        on host, "gunzip -c #{tarball_name} | #{tar} -k -C / -xf -"
+      end
     end
   end
 end
