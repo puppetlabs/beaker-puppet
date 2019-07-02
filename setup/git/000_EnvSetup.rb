@@ -79,7 +79,7 @@ step "Unpack puppet-runtime" do
     need_to_run ||= (!host['has_runtime'] && !host['use_existing_container'])
   end
 
-  pass_test 'No new hosts to create, skipping' unless need_to_run
+  skip_test 'No new hosts to create, skipping' unless need_to_run
   dev_builds_url = ENV['DEV_BUILDS_URL'] || 'http://builds.delivery.puppetlabs.net'
   branch = ENV['RUNTIME_BRANCH'] || 'master'
 

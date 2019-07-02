@@ -3,7 +3,7 @@ test_name "Validate Sign Cert" do
   hosts.each do |host|
     need_to_run ||= !host['use_existing_container']
   end
-  pass_test 'No new hosts to create, skipping' unless need_to_run
+  skip_test 'No new hosts to create, skipping' unless need_to_run
   skip_test 'not testing with puppetserver' unless @options['is_puppetserver']
   hostname = on(master, 'facter hostname').stdout.strip
   fqdn = on(master, 'facter fqdn').stdout.strip
