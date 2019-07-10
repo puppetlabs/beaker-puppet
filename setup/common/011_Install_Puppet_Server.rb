@@ -7,5 +7,7 @@ test_name "Install Puppet Server" do
     :nightly_builds_url => ENV['NIGHTLY_BUILDS_URL'],
     :dev_builds_url => ENV['DEV_BUILDS_URL']
   }
-  install_puppetserver_on(master, opts)
+  unless master['use_existing_container']
+    install_puppetserver_on(master, opts)
+  end
 end
