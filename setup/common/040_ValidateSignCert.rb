@@ -21,7 +21,7 @@ test_name "Validate Sign Cert" do
   hosts.each do |host|
     ssldir = on(host, puppet('agent --configprint ssldir')).stdout.chomp
     # preserve permissions for master's ssldir so puppetserver can read it
-    on(host, "rm -rf '#{ssldir}/*'")
+    on(host, "rm -rf '#{ssldir}/'*")
   end
 
   step "Set 'server' setting"
