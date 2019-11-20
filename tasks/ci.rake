@@ -139,7 +139,7 @@ namespace :ci do
     end
   end
 
-  task :gen_hosts do
+  task :gen_hosts, [:hypervisor] do |t, args|
     hosts =
       if ENV['HOSTS']
         ENV['HOSTS']
@@ -162,7 +162,15 @@ namespace :ci do
       ENV['HOSTS'] = hosts
     else
       hosts_file = "tmp/#{hosts}-#{SecureRandom.uuid}.yaml"
-      cli = BeakerHostGenerator::CLI.new([hosts, '--disable-default-role', '--osinfo-version', '1'])
+      cli_args = [
+        hosts,
+        '--disable-default-role',
+        '--osinfo-version', '1'
+      ]
+      if args[:hypervisor]
+        cli_args += ['--hypervisor', args[:hypervisor]]
+      end
+      cli = BeakerHostGenerator::CLI.new(cli_args)
       FileUtils.mkdir_p('tmp') # -p ignores when dir already exists
       File.open(hosts_file, 'w') do |fh|
         fh.print(cli.execute)
