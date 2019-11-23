@@ -1110,11 +1110,11 @@ module Beaker
           if host['platform'].variant =~ /^(ubuntu|debian)$/
             # Bypass signing checks on this repo and its packages
             original_contents = File.read(repo)
-            puts "INFO original repo contents:"
-            puts original_contents
+            logger.debug "INFO original repo contents:"
+            logger.debug original_contents
             contents = original_contents.gsub(/^deb /, "deb [trusted=yes] ")
-            puts "INFO new repo contents:"
-            puts contents
+            logger.debug "INFO new repo contents:"
+            logger.debug contents
 
             File.write(repo, contents)
           end
