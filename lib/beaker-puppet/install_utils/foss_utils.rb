@@ -1112,7 +1112,7 @@ module Beaker
             original_contents = File.read(repo)
             logger.debug "INFO original repo contents:"
             logger.debug original_contents
-            contents = original_contents.gsub(/^deb /, "deb [trusted=yes] ")
+            contents = original_contents.gsub(/^deb http/, "deb [trusted=yes] http")
             logger.debug "INFO new repo contents:"
             logger.debug contents
 
