@@ -17,15 +17,40 @@ module Beaker
         # @return [Hash{String=>String}] build json parsed into a ruby hash
         def fetch_build_details(sha_yaml_url)
           dst_folder          = Dir.mktmpdir
-          sha_yaml_filename   = File.basename(  sha_yaml_url )
-          sha_yaml_folder_url = File.dirname(   sha_yaml_url )
+
+          at_exit do
+            if $!.nil? || ($!.is_a?(SystemExit) && $!.success?)
+              if File.directory?(dst_folder)
+                require 'fileutils'
+
+                FileUtils.rm_rf(dst_folder)
+              end
+            end
+          end
+
+          sha_yaml_filename   = File.basename(sha_yaml_url)
+          sha_yaml_folder_url = File.dirname(sha_yaml_url)
 
           sha_yaml_file_local_path = fetch_http_file(
             sha_yaml_folder_url,
             sha_yaml_filename,
             dst_folder
           )
-          file_hash = YAML.load_file( sha_yaml_file_local_path )
+
+          file_hash = YAML.load_file(sha_yaml_file_local_path)
+
+          unless file_hash.is_a?(Hash)
+            message = <<-EOF
+              Data fetched from #{sha_yaml_url} is invalid
+
+              If the URL appears to be something that you should not normally
+              access, your ISP may be hijacking failed web results. Updating
+              your DNS settings to use a public DNS resolver should remedy the
+              issue.
+            EOF
+
+            fail_test(message)
+          end
 
           return sha_yaml_folder_url, file_hash[:platform_data]
         end
