@@ -391,31 +391,16 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   describe '#install_puppet_agent_from_dev_builds_on' do
-    ref="sha"
-    sha_yaml_url="#{Beaker::DSL::Puppet5::DEFAULT_DEV_BUILDS_URL}/puppet-agent/#{ref}/artifacts/#{ref}.yaml"
-
-    begin
-      require 'net/http'
-
-      Net::HTTP.get(sha_yaml_url)
-    rescue
-      real_world = true
-    end
-
     let(:host) { make_host('test_host', { platform: 'el-7-x86_64' }) }
+    let(:ref) { "sha" }
+    let(:sha_yaml_url) { "#{Beaker::DSL::Puppet5::DEFAULT_DEV_BUILDS_URL}/puppet-agent/#{ref}/artifacts/#{ref}.yaml" }
 
-    if real_world
-      it 'installs puppet-agent from internal builds when they are accessible' do
-        skip('The Puppet development network is not available in the real world')
-      end
-    else
-      it 'installs puppet-agent from internal builds when they are accessible' do
-        expect( subject ).to receive(:block_on).with(anything, :run_in_parallel => true)
-        allow(subject).to receive(:dev_builds_accessible_on?).and_return(true)
-        allow(subject).to receive(:install_from_build_data_url).with('puppet-agent', sha_yaml_url, host)
-        subject.install_puppet_agent_from_dev_builds_on(host, ref)
-        expect(subject).to have_received(:install_from_build_data_url).with('puppet-agent', sha_yaml_url, host)
-      end
+    it 'installs puppet-agent from internal builds when they are accessible' do
+      expect( subject ).to receive(:block_on).with(anything, :run_in_parallel => true)
+      allow(subject).to receive(:dev_builds_accessible_on?).and_return(true)
+      allow(subject).to receive(:install_from_build_data_url).with('puppet-agent', sha_yaml_url, host)
+      subject.install_puppet_agent_from_dev_builds_on(host, ref)
+      expect(subject).to have_received(:install_from_build_data_url).with('puppet-agent', sha_yaml_url, host)
     end
 
     it 'fails the test when internal builds are inaccessible' do

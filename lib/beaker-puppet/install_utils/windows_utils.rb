@@ -120,24 +120,19 @@ exit /B %errorlevel%
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
-              on host, Command.new(%{"#{batch_path}"}, [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
+              on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
             rescue
-              on host, Command.new(%{more "#{log_file}"}, [], { :cmdexe => true })
+              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
               raise
             end
 
             if opts[:debug]
-              on host, Command.new(%{more "#{log_file}"}, [], { :cmdexe => true })
+              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
             end
 
             if !host.is_cygwin?
-              # Enable the PATH updates
+              # HACK: for some reason, post install we need to refresh the connection to make puppet available for execution
               host.close
-
-              # Some systems require a full reboot to trigger the enabled path
-              unless on(host, Command.new('puppet -h', [], { :cmdexe => true}), :accept_all_exit_codes => true).exit_code == 0
-                host.reboot
-              end
             end
 
             # verify service status post install
@@ -175,10 +170,10 @@ exit /B %errorlevel%
             # emit the misc/versions.txt file which contains component versions for
             # puppet, facter, hiera, pxp-agent, packaging and vendored Ruby
             [
-              '%ProgramFiles%/Puppet Labs/puppet/misc/versions.txt',
-              '%ProgramFiles(x86)%/Puppet Labs/puppet/misc/versions.txt'
+              "\\\"%ProgramFiles%\\Puppet Labs\\puppet\\misc\\versions.txt\\\"",
+              "\\\"%ProgramFiles(x86)%\\Puppet Labs\\puppet\\misc\\versions.txt\\\""
             ].each do |path|
-              on(host, Command.new(%{if exist "#{path}" more "#{path}"}, [], { :cmdexe => true }))
+              on host, Command.new("\"if exist #{path} type #{path}\"", [], { :cmdexe => true })
             end
           end
         end
@@ -204,22 +199,24 @@ exit /B %errorlevel%
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
-              on host, Command.new(%{"#{batch_path}"}, [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
+              on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
             rescue
-              on host, Command.new(%{more "#{log_file}"}, [], { :cmdexe => true })
+              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
               raise
             end
 
             if opts[:debug]
-              on host, Command.new(%{more "#{log_file}"}, [], { :cmdexe => true })
+              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
             end
 
             if !host.is_cygwin?
               # HACK: for some reason, post install we need to refresh the connection to make puppet available for execution
               host.close
             end
+
           end
         end
+
       end
     end
   end
