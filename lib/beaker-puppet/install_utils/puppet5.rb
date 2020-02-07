@@ -118,7 +118,7 @@ module Beaker
           repoconfig_url  = "#{build_url}/#{repoconfig_buildserver_path}" unless repoconfig_buildserver_path.nil?
           artifact_url_correct = link_exists?( artifact_url )
           logger.debug("- artifact url: '#{artifact_url}'. Exists? #{artifact_url_correct}")
-          fail_test('artifact url built incorrectly') unless artifact_url_correct
+          fail_test('artifact url built incorrectly') if !artifact_url_correct
 
           return artifact_url, repoconfig_url
         end
@@ -208,11 +208,10 @@ module Beaker
         #
         # @return nil
         def install_from_build_data_url(project_name, sha_yaml_url, local_hosts = nil)
-          unless link_exists?( sha_yaml_url )
+          if !link_exists?( sha_yaml_url )
             message = <<-EOF
               Unable to locate a downloadable build of #{project_name} (tried #{sha_yaml_url})
             EOF
-
             fail_test( message )
           end
 

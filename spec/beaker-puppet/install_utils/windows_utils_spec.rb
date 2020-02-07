@@ -12,7 +12,7 @@ end
 
 describe ClassMixedWithDSLInstallUtils do
   let(:windows_temp)        { 'C:\\Windows\\Temp' }
-  let(:batch_path)          { '/fake/batch/path' }
+  let( :batch_path )        { '/fake/batch/path' }
   let(:msi_path)            { 'c:\\foo\\puppet.msi' }
   let(:winhost)             { make_host( 'winhost',
                             { :platform => Beaker::Platform.new('windows-2008r2-64'),
@@ -42,11 +42,11 @@ describe ClassMixedWithDSLInstallUtils do
 
   def expect_version_log_called(times = hosts.length)
     [
-      %{%ProgramFiles%/Puppet Labs/puppet/misc/versions.txt},
-      %{%ProgramFiles(x86)%/Puppet Labs/puppet/misc/versions.txt}
+      "\\\"%ProgramFiles%\\Puppet Labs\\puppet\\misc\\versions.txt\\\"",
+      "\\\"%ProgramFiles(x86)%\\Puppet Labs\\puppet\\misc\\versions.txt\\\"",
     ].each do |path|
       expect( Beaker::Command ).to receive( :new )
-        .with( %{if exist "#{path}" more "#{path}"}, [], {:cmdexe => true} )
+        .with( "\"if exist #{path} type #{path}\"", [], {:cmdexe => true} )
         .exactly( times ).times
     end
   end
@@ -71,25 +71,15 @@ describe ClassMixedWithDSLInstallUtils do
       .exactly(times).times
   end
 
-  def expect_check_puppet_path_called(times = 1)
-    expect( Beaker::Command ).to receive( :new )
-      .with( 'puppet -h', [], {:cmdexe => true} )
-      .exactly( times ).times
-  end
-
   describe "#install_msi_on" do
     let( :log_file )    { '/fake/log/file.log' }
     before :each do
-      exit_code_result = Beaker::Result.new(nil, 'temp')
-      exit_code_result.exit_code = 0
-
-      allow( subject ).to receive( :on ).and_return( exit_code_result )
+      allow( subject ).to receive( :on ).and_return( true )
       allow( subject ).to receive( :create_install_msi_batch_on ).and_return( [batch_path, log_file] )
     end
 
     it "will specify a PUPPET_AGENT_STARTUP_MODE of Manual (disabling the service) by default" do
       expect_install_called
-      expect_check_puppet_path_called
       expect_status_called
       expect_reg_query_called
       expect_version_log_called
@@ -101,7 +91,6 @@ describe ClassMixedWithDSLInstallUtils do
 
     it "allows configuration of PUPPET_AGENT_STARTUP_MODE" do
       expect_install_called
-      expect_check_puppet_path_called
       expect_status_called
       expect_reg_query_called
       expect_version_log_called
@@ -114,9 +103,8 @@ describe ClassMixedWithDSLInstallUtils do
 
     it "will not generate a command to emit a log file without the :debug option set" do
       expect_install_called
-      expect_check_puppet_path_called
       expect_status_called
-      expect( Beaker::Command ).not_to receive( :new ).with( /^more .*\.log$/, [], {:cmdexe => true} )
+      expect( Beaker::Command ).not_to receive( :new ).with( /^type .*\.log$/, [], {:cmdexe => true} )
       subject.install_msi_on(hosts, msi_path)
     end
 
@@ -125,28 +113,25 @@ describe ClassMixedWithDSLInstallUtils do
       hosts_affected = 1
 
       expect_install_called(hosts_affected) { |e| e.and_raise }
-      expect_check_puppet_path_called(0)
       expect_status_called(0)
 
-      expect( Beaker::Command ).to receive( :new ).with( /^more \".*\.log\"$/, [], {:cmdexe => true} ).exactly( hosts_affected ).times
+      expect( Beaker::Command ).to receive( :new ).with( /^type \".*\.log\"$/, [], {:cmdexe => true} ).exactly( hosts_affected ).times
       expect { subject.install_msi_on(hosts, msi_path) }.to raise_error(RuntimeError)
     end
 
     it "will generate a command to emit a log file with the :debug option set" do
       expect_install_called
       expect_reg_query_called
-      expect_check_puppet_path_called
       expect_status_called
       expect_version_log_called
 
-      expect( Beaker::Command ).to receive( :new ).with( /^more \".*\.log\"$/, [], {:cmdexe => true} ).exactly( hosts.length ).times
+      expect( Beaker::Command ).to receive( :new ).with( /^type \".*\.log\"$/, [], {:cmdexe => true} ).exactly( hosts.length ).times
       subject.install_msi_on(hosts, msi_path, {}, { :debug => true })
     end
 
     it 'will pass msi_path to #create_install_msi_batch_on as-is' do
       expect_install_called
       expect_reg_query_called
-      expect_check_puppet_path_called
       expect_status_called
       expect_version_log_called
       test_path = 'test/path'
@@ -157,7 +142,6 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'will search in Wow6432Node for the remembered startup setting on 64-bit hosts' do
       expect_install_called
-      expect_check_puppet_path_called
       expect_status_called
       expect_version_log_called
 
@@ -174,7 +158,6 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'will omit Wow6432Node in the registry search for remembered startup setting on 32-bit hosts' do
       expect_install_called
-      expect_check_puppet_path_called
       expect_status_called
       expect_version_log_called
 

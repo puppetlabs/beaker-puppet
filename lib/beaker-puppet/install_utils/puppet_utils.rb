@@ -46,7 +46,6 @@ module Beaker
           if not host.is_powershell?
             separator = ':'
           end
-
           path.join(separator)
         end
 
@@ -56,7 +55,6 @@ module Beaker
         def add_puppet_paths_on(hosts)
           block_on hosts do | host |
             puppet_path = construct_puppet_path(host)
-
             host.add_env_var('PATH', puppet_path)
             host.add_env_var('PATH', 'PATH') # don't destroy the path!
           end
