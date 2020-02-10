@@ -692,9 +692,8 @@ module Beaker
             install_msi_on(host, msi_download_path, {}, opts)
 
             configure_type_defaults_on( host )
-            if not host.is_cygwin?
-              host.mkdir_p host['distmoduledir']
-            end
+
+            host.mkdir_p host['distmoduledir'] unless host.is_cygwin?
           end
         end
 

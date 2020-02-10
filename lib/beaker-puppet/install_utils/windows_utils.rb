@@ -32,9 +32,9 @@ module Beaker
 
           # msiexec requires quotes around paths with backslashes - c:\ or file://c:\
           # not strictly needed for http:// but it simplifies this code
-          batch_contents = <<-BATCH
-start /w msiexec.exe /i \"#{msi_path}\" /qn /L*V #{log_path} #{msi_params}
-exit /B %errorlevel%
+          batch_contents = <<~BATCH
+            start /w msiexec.exe /i \"#{msi_path}\" /qn /L*V #{log_path} #{msi_params}
+            exit /B %errorlevel%
           BATCH
         end
 
@@ -122,17 +122,22 @@ exit /B %errorlevel%
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
               on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
             rescue
-              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
+              logger.info(file_contents_on(host, log_file))
               raise
             end
 
             if opts[:debug]
-              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
+              logger.info(file_contents_on(host, log_file))
             end
 
-            if !host.is_cygwin?
-              # HACK: for some reason, post install we need to refresh the connection to make puppet available for execution
+            unless host.is_cygwin?
+              # Enable the PATH updates
               host.close
+
+              # Some systems require a full reboot to trigger the enabled path
+              unless on(host, Command.new('puppet -h', [], { :cmdexe => true}), :accept_all_exit_codes => true).exit_code == 0
+                host.reboot
+              end
             end
 
             # verify service status post install
@@ -170,10 +175,12 @@ exit /B %errorlevel%
             # emit the misc/versions.txt file which contains component versions for
             # puppet, facter, hiera, pxp-agent, packaging and vendored Ruby
             [
-              "\\\"%ProgramFiles%\\Puppet Labs\\puppet\\misc\\versions.txt\\\"",
-              "\\\"%ProgramFiles(x86)%\\Puppet Labs\\puppet\\misc\\versions.txt\\\""
+              '%ProgramFiles%/Puppet Labs/puppet/misc/versions.txt',
+              '%ProgramFiles(x86)%/Puppet Labs/puppet/misc/versions.txt'
             ].each do |path|
-              on host, Command.new("\"if exist #{path} type #{path}\"", [], { :cmdexe => true })
+              if file_exists_on(host, path)
+                logger.info(file_contents_on(host, path)) && break
+              end
             end
           end
         end
@@ -201,22 +208,18 @@ exit /B %errorlevel%
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
               on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
             rescue
-              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
+              logger.info(file_contents_on(host, log_file))
+
               raise
             end
 
             if opts[:debug]
-              on host, Command.new("type \"#{log_file}\"", [], { :cmdexe => true })
+              logger.info(file_contents_on(host, log_file))
             end
 
-            if !host.is_cygwin?
-              # HACK: for some reason, post install we need to refresh the connection to make puppet available for execution
-              host.close
-            end
-
+            host.close unless host.is_cygwin?
           end
         end
-
       end
     end
   end
