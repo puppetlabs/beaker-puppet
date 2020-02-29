@@ -526,6 +526,13 @@ module Beaker
               puppet_apply_opts = host[:default_apply_opts].merge( puppet_apply_opts )
             end
 
+            # Not all puppet commands function properly when run through
+            # different versions of powershell. They work properly when run
+            # through the regular shell.
+            if host[:platform] =~ /windows/
+              on_options.merge!({:cmd_exe => true})
+            end
+
             on host, puppet('apply', file_path, puppet_apply_opts), on_options, &block
           end
         end
