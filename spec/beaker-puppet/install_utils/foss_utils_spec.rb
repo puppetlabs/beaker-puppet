@@ -341,7 +341,7 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'installs puppet on cygwin windows' do
       allow(subject).to receive(:link_exists?).and_return( true )
-      expect(subject).to receive(:on).with(winhost, "curl --connect-timeout 5 --retry 20 --retry-delay 10 -o \"#{win_temp}\\puppet-3.7.1-x64.msi\" -O http://downloads.puppet.com/windows/puppet-3.7.1-x64.msi")
+      expect(subject).to receive(:on).with(winhost, "curl -o \"#{win_temp}\\puppet-3.7.1-x64.msi\" -O http://downloads.puppet.com/windows/puppet-3.7.1-x64.msi")
       expect(subject).to receive(:on).with(winhost, " echo 'export PATH=$PATH:\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\"' > /etc/bash.bashrc ")
       expect(subject).to receive(:install_msi_on).with(winhost, "#{win_temp}\\puppet-3.7.1-x64.msi", {}, {:debug => nil})
 
@@ -350,7 +350,7 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'installs puppet on cygwin windows via proxy' do
       allow(subject).to receive(:link_exists?).and_return( true )
-      expect(subject).to receive(:on).with(winhost, "curl --connect-timeout 5 --retry 20 --retry-delay 10 -x https://proxy.com -o \"#{win_temp}\\puppet-3.7.1-x64.msi\" -O http://downloads.puppet.com/windows/puppet-3.7.1-x64.msi")
+      expect(subject).to receive(:on).with(winhost, "curl -x https://proxy.com -o \"#{win_temp}\\puppet-3.7.1-x64.msi\" -O http://downloads.puppet.com/windows/puppet-3.7.1-x64.msi")
       expect(subject).to receive(:on).with(winhost, " echo 'export PATH=$PATH:\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\"' > /etc/bash.bashrc ")
       expect(subject).to receive(:install_msi_on).with(winhost, "#{win_temp}\\puppet-3.7.1-x64.msi", {}, {:debug => nil})
 
