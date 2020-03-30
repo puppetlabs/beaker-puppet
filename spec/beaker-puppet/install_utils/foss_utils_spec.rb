@@ -38,6 +38,7 @@ describe ClassMixedWithDSLInstallUtils do
                                                 :working_dir => '/tmp',
                                                 :type => 'foss',
                                                 :is_cygwin => 'false' } ) }
+
   let(:machost)       { make_host( 'machost', { :platform => 'osx-10.9-x86_64',
                                                 :pe_ver => '3.0',
                                                 :type => 'foss',
@@ -347,6 +348,15 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_puppet_from_msi( winhost, {:version => '3.7.1', :win_download_url => 'http://downloads.puppet.com/windows'}  )
     end
 
+    it 'installs puppet on cygwin windows via proxy' do
+      allow(subject).to receive(:link_exists?).and_return( true )
+      expect(subject).to receive(:on).with(winhost, "curl -x https://proxy.com -o \"#{win_temp}\\puppet-3.7.1-x64.msi\" -O http://downloads.puppet.com/windows/puppet-3.7.1-x64.msi")
+      expect(subject).to receive(:on).with(winhost, " echo 'export PATH=$PATH:\"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin\":\"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin\"' > /etc/bash.bashrc ")
+      expect(subject).to receive(:install_msi_on).with(winhost, "#{win_temp}\\puppet-3.7.1-x64.msi", {}, {:debug => nil})
+
+      subject.install_puppet_from_msi( winhost, {:version => '3.7.1', :win_download_url => 'http://downloads.puppet.com/windows', :package_proxy => 'https://proxy.com'}  )
+    end
+
     it 'installs puppet on non-cygwin windows' do
       allow(subject).to receive(:link_exists?).and_return( true )
 
@@ -354,12 +364,28 @@ describe ClassMixedWithDSLInstallUtils do
 
       expect(subject).to receive(:on).with(winhost_non_cygwin, instance_of( Beaker::Command )) do |host, beaker_command|
         expect(beaker_command.command).to eq('powershell.exe')
-        expect(beaker_command.args).to eq(["-ExecutionPolicy Bypass", "-InputFormat None", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command $webclient = New-Object System.Net.WebClient;  $webclient.DownloadFile('http://downloads.puppet.com/windows/puppet-3.7.1.msi','#{win_temp}\\puppet-3.7.1.msi')"])
+        expect(beaker_command.args).to eq(["-ExecutionPolicy Bypass", "-InputFormat None", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command $webclient = New-Object System.Net.WebClient; $webclient.DownloadFile('http://downloads.puppet.com/windows/puppet-3.7.1.msi','#{win_temp}\\puppet-3.7.1.msi')"])
       end.once
 
       expect(subject).to receive(:install_msi_on).with(winhost_non_cygwin, "#{win_temp}\\puppet-3.7.1.msi", {}, {:debug => nil})
 
       subject.install_puppet_from_msi( winhost_non_cygwin, {:version => '3.7.1', :win_download_url => 'http://downloads.puppet.com/windows'}   )
+    end
+
+    it 'installs puppet on non-cygwin windows via proxy' do
+      allow(subject).to receive(:link_exists?).and_return( true )
+
+      expect(winhost_non_cygwin).to receive(:mkdir_p).with('C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules')
+
+      expect(subject).to receive(:on).with(winhost_non_cygwin, instance_of( Beaker::Command )) do |host, beaker_command|
+        expect(beaker_command.command).to eq('powershell.exe')
+        expect(beaker_command.args).to eq(["-ExecutionPolicy Bypass", "-InputFormat None", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command $webclient = New-Object System.Net.WebClient; $webclient.Proxy = New-Object System.Net.WebProxy('https://proxy.com',$true); $webclient.DownloadFile('http://downloads.puppet.com/windows/puppet-3.7.1.msi','#{win_temp}\\puppet-3.7.1.msi')"])
+      end.once
+
+      expect(subject).to receive(:install_msi_on).with(winhost_non_cygwin, "#{win_temp}\\puppet-3.7.1.msi", {}, {:debug => nil})
+
+      subject.install_puppet_from_msi( winhost_non_cygwin, {:version => '3.7.1', :win_download_url => 'http://downloads.puppet.com/windows', :package_proxy => 'https://proxy.com'})
+
     end
   end
 
