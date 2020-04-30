@@ -115,19 +115,21 @@ module Beaker
           block_on hosts do | host |
             msi_opts['PUPPET_AGENT_STARTUP_MODE'] ||= 'Manual'
             batch_path, log_file = create_install_msi_batch_on(host, msi_path, msi_opts)
-
+            # Powershell command looses an escaped slash resulting in cygwin relative path
+            # See https://github.com/puppetlabs/beaker/pull/1626#issuecomment-621341555
+            log_file_escaped = log_file.gsub('\\','\\\\\\')
             # begin / rescue here so that we can reuse existing error msg propagation
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
               on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
             rescue
-              logger.info(file_contents_on(host, log_file))
+              logger.info(file_contents_on(host, log_file_escaped))
               raise
             end
 
             if opts[:debug]
-              logger.info(file_contents_on(host, log_file))
+              logger.info(file_contents_on(host, log_file_escaped))
             end
 
             unless host.is_cygwin?
@@ -201,20 +203,22 @@ module Beaker
         def generic_install_msi_on(hosts, msi_path, msi_opts = {}, opts = {})
           block_on hosts do | host |
             batch_path, log_file = create_install_msi_batch_on(host, msi_path, msi_opts)
-
+            # Powershell command looses an escaped slash resulting in cygwin relative path
+            # See https://github.com/puppetlabs/beaker/pull/1626#issuecomment-621341555
+            log_file_escaped = log_file.gsub('\\','\\\\\\')
             # begin / rescue here so that we can reuse existing error msg propagation
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
               on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
             rescue
-              logger.info(file_contents_on(host, log_file))
+              logger.info(file_contents_on(host, log_file_escaped))
 
               raise
             end
 
             if opts[:debug]
-              logger.info(file_contents_on(host, log_file))
+              logger.info(file_contents_on(host, log_file_escaped))
             end
 
             host.close unless host.is_cygwin?
