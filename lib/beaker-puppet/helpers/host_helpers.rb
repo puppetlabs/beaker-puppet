@@ -7,7 +7,11 @@ module Beaker
       module HostHelpers
 
         def ruby_command(host)
-          "env PATH=\"#{host['privatebindir']}:${PATH}\" ruby"
+          if host['platform'] =~ /windows/ && !host.is_cygwin?
+            "cmd /V /C \"set PATH=#{host['privatebindir']};!PATH! && ruby\""
+          else
+            "env PATH=\"#{host['privatebindir']}:${PATH}\" ruby"
+          end
         end
 
         # Returns an array containing the owner, group and mode of
