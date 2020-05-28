@@ -589,8 +589,8 @@ module Beaker
         # @param ip_spec [Hash{String=>String}] a hash containing the host to ip
         #   mappings
         # @param alias_spec [Hash{String=>Array[String]] an hash containing the host to alias(es) mappings to apply
-        # @example Stub forgeapi.puppetlabs.com on the master to 127.0.0.1 with an alias forgeapi.example.com
-        #   with_host_stubbed_on(master, {'forgeapi.puppetlabs.com' => '127.0.0.1'}, {'forgeapi.puppetlabs.com' => ['forgeapi.example.com']}) do
+        # @example Stub forgeapi.puppet.com on the master to 127.0.0.1 with an alias forgeapi.example.com
+        #   with_host_stubbed_on(master, {'forgeapi.puppet.com' => '127.0.0.1'}, {'forgeapi.puppet.com' => ['forgeapi.example.com']}) do
         #     puppet( "module install puppetlabs-stdlib" )
         #   end
         def with_host_stubbed_on(host, ip_spec, alias_spec={}, &block)
@@ -639,7 +639,7 @@ module Beaker
         # the forge alias.
         #
         # forge api v1 canonical source is forge.puppetlabs.com
-        # forge api v3 canonical source is forgeapi.puppetlabs.com
+        # forge api v3 canonical source is forgeapi.puppet.com
         #
         # @deprecated this method should not be used because stubbing the host
         # breaks TLS validation.
@@ -649,13 +649,13 @@ module Beaker
         #                             global options hash
         def stub_forge_on(machine, forge_host = nil)
           #use global options hash
-          primary_forge_name = 'forge.puppetlabs.com'
+          primary_forge_name = 'forgeapi.puppet.com'
           forge_host ||= options[:forge_host]
           forge_ip = resolve_hostname_on(machine, forge_host)
           raise "Failed to resolve forge host '#{forge_host}'" unless forge_ip
           @forge_ip ||= forge_ip
           block_on machine do | host |
-            stub_hosts_on(host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forgeapi.puppet.com']})
+            stub_hosts_on(host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forge.puppetlabs.com']})
           end
         end
 
@@ -663,7 +663,7 @@ module Beaker
         # the forge alias.
         #
         # forge api v1 canonical source is forge.puppetlabs.com
-        # forge api v3 canonical source is forgeapi.puppetlabs.com
+        # forge api v3 canonical source is forgeapi.puppet.com
         #
         # @deprecated this method should not be used because stubbing the host
         # breaks TLS validation.
@@ -673,12 +673,12 @@ module Beaker
         #                             global options hash
         def with_forge_stubbed_on( host, forge_host = nil, &block )
           #use global options hash
-          primary_forge_name = 'forge.puppetlabs.com'
+          primary_forge_name = 'forgeapi.puppet.com'
           forge_host ||= options[:forge_host]
           forge_ip = resolve_hostname_on(host, forge_host)
           raise "Failed to resolve forge host '#{forge_host}'" unless forge_ip
           @forge_ip ||= forge_ip
-          with_host_stubbed_on( host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forgeapi.puppet.com']}, &block )
+          with_host_stubbed_on( host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forge.puppetlabs.com']}, &block )
         end
 
         # This wraps `with_forge_stubbed_on` and provides it the default host
