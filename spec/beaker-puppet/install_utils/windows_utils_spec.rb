@@ -41,7 +41,7 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   def expect_version_log_called(times = hosts.length)
-    path = %{%ProgramFiles%/Puppet Labs/puppet/misc/versions.txt}
+    path = %{"${env:ProgramFiles}/Puppet Labs/puppet/misc/versions.txt"}
 
     expect( subject ).to receive( :file_exists_on )
       .with(anything, path)
