@@ -627,7 +627,7 @@ describe ClassMixedWithDSLInstallUtils do
       end
       it 'falls back to installing from gem when given :default_action => "gem_install"' do
         result = double
-        gem_env_string = '{"RubyGems Environment": [ {"GEM PATHS": [], "EXECUTABLE DIRECTORY": "/does/not/exist" } ] }'
+        gem_env_string = '{"RubyGems Environment": [ {"RUBYGEMS VERSION": "2.6.14.4", "GEM PATHS": [], "EXECUTABLE DIRECTORY": "/does/not/exist" } ] }'
         allow( result ).to receive(:stdout).and_return gem_env_string
         allow(subject).to receive(:on).with(host, /gem environment/).and_return result
         expect(subject).to receive(:on).with(host, /gem install/)
@@ -1647,4 +1647,36 @@ describe ClassMixedWithDSLInstallUtils do
     end
   end
 
+  describe '#install_puppet_from_gem_on' do
+    let(:host) { FakeHost.create('fakevm', platform.to_s) }
+    let(:hosts) { [host] }
+
+    context 'with gem < 3.0' do
+      let(:platform) { Beaker::Platform.new('ubuntu-16.04-amd64') }
+
+      it 'uses the old --no-ri --no-rdoc documentation options' do
+        result = double
+        gem_env_string = '{"RubyGems Environment": [ {"RUBYGEMS VERSION": "2.6.14.4", "GEM PATHS": [], "EXECUTABLE DIRECTORY": "/does/not/exist" } ] }'
+        allow(result).to receive(:stdout).and_return gem_env_string
+        allow(subject).to receive(:on).with(host, /gem environment/).and_return result
+        allow(subject).to receive(:on).with(host, /echo 'export PATH=.*' >> ~\/.bashrc/).and_return result
+        expect(subject).to receive(:on).with(host, /gem install.*--no-ri --no-rdoc/)
+        subject.install_puppet_from_gem_on hosts, opts
+      end
+    end
+
+    context 'with gem >= 3.0' do
+      let(:platform) { Beaker::Platform.new('ubuntu-20.04-amd64') }
+
+      it 'uses the -no-document documentation option' do
+        result = double
+        gem_env_string = '{"RubyGems Environment": [ {"RUBYGEMS VERSION": "3.1.2", "GEM PATHS": [], "EXECUTABLE DIRECTORY": "/does/not/exist" } ] }'
+        allow(result).to receive(:stdout).and_return gem_env_string
+        allow(subject).to receive(:on).with(host, /gem environment/).and_return result
+        allow(subject).to receive(:on).with(host, /echo 'export PATH=.*' >> ~\/.bashrc/).and_return result
+        expect(subject).to receive(:on).with(host, /gem install.*--no-document/)
+        subject.install_puppet_from_gem_on hosts, opts
+      end
+    end
+  end
 end

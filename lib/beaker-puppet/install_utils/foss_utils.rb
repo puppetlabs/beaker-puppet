@@ -942,14 +942,21 @@ module Beaker
               on host, 'ln -s /opt/csw/bin/gem /usr/bin/gem'
             end
 
+            gem_env = YAML.load( on( host, 'gem environment' ).stdout )
+
             if host['platform'] =~ /debian|ubuntu|solaris|cumulus|huaweios/
-              gem_env = YAML.load( on( host, 'gem environment' ).stdout )
               gem_paths_array = gem_env['RubyGems Environment'].find {|h| h['GEM PATHS'] != nil }['GEM PATHS']
               path_with_gem = 'export PATH=' + gem_paths_array.join(':') + ':${PATH}'
               on host, "echo '#{path_with_gem}' >> ~/.bashrc"
             end
 
-            gemflags = '--no-ri --no-rdoc --no-format-executable'
+            # --no-ri and --no-rdoc were removed in gem >= 3.0
+            gem_version = gem_env['RubyGems Environment'].find {|h| h['RUBYGEMS VERSION'] != nil }['RUBYGEMS VERSION']
+            if gem_version and not version_is_less(gem_version, '3.0')
+              gemflags = '--no-document --no-format-executable'
+            else
+              gemflags = '--no-ri --no-rdoc --no-format-executable'
+            end
 
             if opts[:facter_version]
               on host, "gem install facter -v'#{opts[:facter_version]}' #{gemflags}"
