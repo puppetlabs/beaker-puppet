@@ -1,0 +1,25 @@
+name: Gem Release
+
+on:
+  create:
+    ref_type: tag
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.repository == 'voxpupuli/beaker-puppet'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Ruby 2.6
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+      - name: Build gem
+        run: gem build *.gemspec
+      - name: Setup credentials
+        run: |
+          mkdir -p ~/.gem
+          echo -e "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}" > ~/.gem/credentials
+          chmod 0600 ~/.gem/credentials
+      - name: Publish gem
+        run: gem push *.gem
