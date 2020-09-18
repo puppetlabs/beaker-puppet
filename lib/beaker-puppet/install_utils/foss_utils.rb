@@ -72,6 +72,9 @@ module Beaker
         def dev_builds_accessible_on?(host, url = FOSS_DEFAULT_DOWNLOAD_URLS[:dev_builds_url])
           return true if host.host_hash[:template] =~ /^amazon-*/ && host.hostname =~ /.puppet.net$/
 
+          # redhat-8-arm64 is provided from amazon
+          return true if host.host_hash[:template] == 'redhat-8-arm64' && host.hostname =~ /.puppet.net$/
+
           result = on(host, %(curl -fI "#{url}"), accept_all_exit_codes: true)
           return result.exit_code.zero?
         end
