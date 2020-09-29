@@ -952,7 +952,7 @@ module Beaker
               on host, "echo '#{path_with_gem}' >> ~/.bashrc"
             end
 
-            gemflags = '--no-ri --no-rdoc --no-format-executable'
+            gemflags = '--no-document --no-format-executable'
 
             if opts[:facter_version]
               on host, "gem install facter -v'#{opts[:facter_version]}' #{gemflags}"
