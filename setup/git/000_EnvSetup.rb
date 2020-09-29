@@ -145,6 +145,6 @@ step "Install bundler" do
   configure_gem_mirror(agents)
 
   agents.each do |host|
-    on host, "#{gem_command(host)} install bundler --no-ri --no-rdoc"
+    on host, "#{gem_command(host)} install bundler --no-document"
   end
 end
