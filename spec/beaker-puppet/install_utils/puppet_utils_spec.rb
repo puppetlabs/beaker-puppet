@@ -137,6 +137,20 @@ describe ClassMixedWithDSLInstallUtils do
 
   end
 
+  describe '#puppetserver_version_on' do
+    it 'returns the tag on a released version' do
+      result = object_double(Beaker::Result.new({}, 'puppetserver --version'), :stdout => "puppetserver version: 6.13.0", :exit_code => 0)
+      expect(subject).to receive(:on).with(hosts.first, 'puppetserver --version', accept_all_exit_codes: true).and_return(result)
+      expect(subject.puppetserver_version_on(hosts.first)).to eq('6.13.0')
+    end
+
+    it 'returns the tag on a nightly version' do
+      result = object_double(Beaker::Result.new({}, 'puppetserver --version'), :stdout => "puppetserver version: 7.0.0.SNAPSHOT.2020.10.14T0512", :exit_code => 0)
+      expect(subject).to receive(:on).with(hosts.first, 'puppetserver --version', accept_all_exit_codes: true).and_return(result)
+      expect(subject.puppetserver_version_on(hosts.first)).to eq('7.0.0')
+    end
+  end
+
   describe '#puppet_collection_for' do
     it 'raises an error when given an invalid package' do
       expect { subject.puppet_collection_for(:foo, '5.5.4') }.to raise_error

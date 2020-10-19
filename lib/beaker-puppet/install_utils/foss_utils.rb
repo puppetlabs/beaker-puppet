@@ -1435,7 +1435,7 @@ module Beaker
         def install_puppetserver_on(host, opts = {})
           opts = sanitize_opts(opts)
 
-          # Default to installing latest from nightlies
+          # Default to installing latest
           opts[:version] ||= 'latest'
 
           # If inside the Puppet VPN, install from development builds.
@@ -1456,8 +1456,10 @@ module Beaker
           # here would be incorrect - that refers to FOSS puppet 3 only).
           host[:type] = :aio
 
-          if opts[:version] == 'latest' || opts[:nightlies]
-            release_stream += '-nightly' unless release_stream.end_with? "-nightly"
+          if opts[:version] == 'latest'
+            if opts[:nightlies]
+              release_stream += '-nightly' unless release_stream.end_with? "-nightly"
+            end
 
             # Since we have modified the collection, we don't want to pass `latest`
             # in to `install_package` as the version. That'll fail. Instead, if

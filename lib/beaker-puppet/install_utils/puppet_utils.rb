@@ -152,7 +152,7 @@ module Beaker
           result = on(host, 'puppetserver --version', accept_all_exit_codes: true)
           if result.exit_code.zero?
             matched = result.stdout.strip.scan(%r{\d+\.\d+\.\d+})
-            return matched.last
+            return matched.first
           end
           nil
         end
