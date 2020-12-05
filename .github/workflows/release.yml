@@ -10,16 +10,13 @@ jobs:
     if: github.repository == 'voxpupuli/beaker-puppet'
     steps:
       - uses: actions/checkout@v2
-      - name: Install Ruby 2.6
+      - name: Install Ruby 2.7
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.6'
+          ruby-version: '2.7'
       - name: Build gem
         run: gem build *.gemspec
-      - name: Setup credentials
-        run: |
-          mkdir -p ~/.gem
-          echo -e "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}" > ~/.gem/credentials
-          chmod 0600 ~/.gem/credentials
       - name: Publish gem
         run: gem push *.gem
+        env:
+          GEM_HOST_API_KEY: '${{ secrets.RUBYGEMS_AUTH_TOKEN }}'
