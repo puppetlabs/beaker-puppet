@@ -2,7 +2,9 @@ source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
 gemspec
 
-
+group :release do
+  gem 'github_changelog_generator',  :require => false, :git => 'https://github.com/voxpupuli/github-changelog-generator', :branch => 'voxpupuli_essential_fixes'
+end
 
 def location_for(place, fake_version = nil)
   if place =~ /^(git:[^#]*)#(.*)/
