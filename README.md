@@ -80,6 +80,6 @@ Please refer to puppetlabs/beaker's [contributing](https://github.com/puppetlabs
 
 # Releasing
 
-To release the gem, update the version at `lib/beaker-puppet/version` then tag
+To release the gem, update the version at `lib/beaker-puppet/version.rb` then tag
 the repo with the corresponding version. Once tagged, a Github Action will
 trigger which builds and publishes the gem.
