@@ -1406,7 +1406,7 @@ describe ClassMixedWithDSLInstallUtils do
       it 'sets correct file paths when agent version is set to latest' do
         host['platform'] = platform
         agentversion = 'latest'
-        collection = 'PC1'
+        collection = 'puppet'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}" }
 
         expect(subject).to receive(:fetch_http_file).once.with(
@@ -1424,10 +1424,10 @@ describe ClassMixedWithDSLInstallUtils do
         subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
       end
 
-      it 'sets correct file paths for agent version < 5.5.4' do
+      it 'sets correct file paths for agent version 1.x.x' do
         host['platform'] = platform
-        agentversion = '5.3.3'
-        collection = 'PC1'
+        agentversion = '1.x.x'
+        collection = 'pc1'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
 
         expect(subject).to receive(:fetch_http_file).once.with(
@@ -1467,7 +1467,7 @@ describe ClassMixedWithDSLInstallUtils do
 
       it 'sets correct file paths for agent version > 5.99' do
         host['platform'] = platform
-        agentversion = '6.0'
+        agentversion = '6.0.0'
         collection = 'puppet6'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
 
