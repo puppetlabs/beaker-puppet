@@ -56,7 +56,6 @@ module Beaker
           block_on hosts do | host |
             puppet_path = construct_puppet_path(host)
             host.add_env_var('PATH', puppet_path)
-            host.add_env_var('PATH', 'PATH') # don't destroy the path!
           end
         end
 
@@ -68,7 +67,6 @@ module Beaker
           block_on hosts do | host |
             puppet_path = construct_puppet_path(host)
             host.delete_env_var('PATH', puppet_path)
-            host.add_env_var('PATH', 'PATH') # don't destroy the path!
           end
         end
 
