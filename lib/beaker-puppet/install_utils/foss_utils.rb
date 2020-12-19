@@ -419,6 +419,8 @@ module Beaker
                 install_puppet_agent_from_msi_on(host, opts)
               when /osx/
                 install_puppet_agent_from_dmg_on(host, opts)
+              when /archlinux/
+                install_puppet_from_pacman_on(host, opts)
               else
                 if opts[:default_action] == 'gem_install'
                   opts[:version] = opts[:puppet_gem_version]
