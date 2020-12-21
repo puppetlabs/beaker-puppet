@@ -5,7 +5,7 @@ This includes all helper & installer methods.
 
 It might not be up to that state yet, but that's the goal for this library. If
 you see anything puppet-specific that you'd like to pull into this library out
-of beaker, please do, we would love any help that you'd like to provide. 
+of beaker, please do, we would love any help that you'd like to provide.
 
 # How Do I Use This?
 
@@ -80,6 +80,25 @@ Please refer to puppetlabs/beaker's [contributing](https://github.com/puppetlabs
 
 # Releasing
 
-To release the gem, update the version at `lib/beaker-puppet/version` then tag
-the repo with the corresponding version. Once tagged, a Github Action will
-trigger which builds and publishes the gem.
+* Install the required gems to generate the changelog:
+
+```
+bundle install --path .vendor/ --jobs=$(nproc) --with release
+```
+
+* Update the gem version in `lib/beaker-puppet/version.rb`
+
+* Export a GitHub access token:
+
+```
+export CHANGELOG_GITHUB_TOKEN=...
+```
+
+* Generate the changelog
+
+```
+bundle exec rake changelog
+```
+
+* Create a PR with the changes
+* After the merge, create a git tag and push it, GitHub Actions will do the release

@@ -8,6 +8,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     if: github.repository == 'voxpupuli/beaker-puppet'
+    env:
+      BUNDLE_WITHOUT: release
     steps:
       - uses: actions/checkout@v2
       - name: Install Ruby 2.7
