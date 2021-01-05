@@ -124,6 +124,8 @@ module Beaker
 
             return 'pc1' if x == pc1_x[package]
 
+            return 'pc1' if package == :puppet_agent && x > 4 && version_is_less(version, "5.5.4")
+
             # A y version >= 99 indicates a pre-release version of the next x release
             x += 1 if y >= 99
             "puppet#{x}" if x > 4

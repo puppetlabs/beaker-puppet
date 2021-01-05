@@ -1361,6 +1361,8 @@ module Beaker
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:copy_dir_external]  ||= host.external_copy_base
             opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version])
+            opts[:puppet_collection] = 'PC1' if opts[:puppet_collection] == 'pc1'
+
             add_role(host, 'aio') #we are installing agent, so we want aio role
             release_path = opts[:download_url]
             variant, version, arch, codename = host['platform'].to_array

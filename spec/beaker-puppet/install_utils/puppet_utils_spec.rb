@@ -161,8 +161,10 @@ describe ClassMixedWithDSLInstallUtils do
         {
           '1.10.14'     => 'pc1',
           '1.10.x'      => 'pc1',
-          '5.3.1'       => 'puppet5',
-          '5.3.x'       => 'puppet5',
+          '5.3.1'       => 'pc1',
+          '5.3.x'       => 'pc1',
+          '5.5.3'       => 'pc1',
+          '5.5.4'       => 'puppet5',
           '5.99.0'      => 'puppet6',
           '6.1.99-foo'  => 'puppet6',
           '6.99.99'     => 'puppet7',

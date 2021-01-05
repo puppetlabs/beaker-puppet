@@ -1424,10 +1424,10 @@ describe ClassMixedWithDSLInstallUtils do
         subject.install_puppet_agent_pe_promoted_repo_on( host, opts )
       end
 
-      it 'sets correct file paths for agent version 1.x.x' do
+      it 'sets correct file paths for agent version < 5.5.4' do
         host['platform'] = platform
-        agentversion = '1.x.x'
-        collection = 'pc1'
+        agentversion = '5.3.3'
+        collection = 'PC1'
         opts = { :puppet_agent_version => "#{agentversion}" , :pe_promoted_builds_url => "#{downloadurl}"}
 
         expect(subject).to receive(:fetch_http_file).once.with(
