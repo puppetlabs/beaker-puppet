@@ -1036,8 +1036,11 @@ module Beaker
               # package. We'll have to remember to update this block when
               # we update the signing keys
               if variant == 'sles' && version >= '11'
-                on host, "wget -O /tmp/puppet-gpg-key http://yum.puppetlabs.com/RPM-GPG-KEY-puppet"
-                on host, "rpm --import /tmp/puppet-gpg-key"
+                %w[puppet puppet-20250406].each do |gpg_key|
+                  on host, "wget -O /tmp/#{gpg_key} https://yum.puppet.com/RPM-GPG-KEY-#{gpg_key}"
+                  on host, "rpm --import /tmp/#{gpg_key}"
+                  on host, "rm -f /tmp/#{gpg_key}"
+                end
               end
 
               if variant == 'cisco_nexus'
