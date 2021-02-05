@@ -1037,7 +1037,7 @@ module Beaker
               # we update the signing keys
               if variant == 'sles' && version >= '11'
                 %w[puppet puppet-20250406].each do |gpg_key|
-                  on host, "wget -O /tmp/#{gpg_key} http://yum.puppetlabs.com/RPM-GPG-KEY-#{gpg_key}"
+                  on host, "wget -O /tmp/#{gpg_key} https://yum.puppet.com/RPM-GPG-KEY-#{gpg_key}"
                   on host, "rpm --import /tmp/#{gpg_key}"
                   on host, "rm -f /tmp/#{gpg_key}"
                 end
