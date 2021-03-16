@@ -1229,10 +1229,6 @@ describe ClassMixedWithDSLHelpers do
   end
 
   describe '#bounce_service' do
-    # let( :options ) {
-    #   opts = StringifyHash.new
-    #   opts
-    # }
     let( :options ) { Beaker::Options::Presets.new.presets }
     let( :result ) { double.as_null_object }
     before :each do
@@ -1285,12 +1281,13 @@ describe ClassMixedWithDSLHelpers do
   end
 
   describe '#sleep_until_puppetdb_started' do
-    let( :options ) {
-      opts = StringifyHash.new # defaults from presets.rb
-      opts[:puppetdb_port_nonssl] = 8080
-      opts[:puppetdb_port_ssl] = 8081
-      opts
-    }
+    let( :options ) do # defaults from presets.rb
+      {
+        :puppetdb_port_nonssl => 8080,
+        :puppetdb_port_ssl => 8081
+      }
+    end
+
     before :each do
       allow( subject ).to receive( :options ) { options }
       allow( hosts[0] ).to receive( :node_name ).and_return( '' )
@@ -1347,11 +1344,10 @@ describe ClassMixedWithDSLHelpers do
   end
 
   describe '#sleep_until_puppetserver_started' do
-    let( :options ) {
-      opts = StringifyHash.new
-      opts[:puppetserver_port] = 8140
-      opts
-    }
+    let( :options ) do
+      { :puppetserver_port => 8140 }
+    end
+
     before :each do
       allow( subject ).to receive( :options ) { options }
       allow( hosts[0] ).to receive( :node_name )
@@ -1371,11 +1367,10 @@ describe ClassMixedWithDSLHelpers do
   end
 
   describe '#sleep_until_nc_started' do
-    let( :options ) { # defaults from presets.rb
-      opts = StringifyHash.new
-      opts[:nodeclassifier_port] = 4433
-      opts
-    }
+    let( :options ) do # defaults from presets.rb
+      { :nodeclassifier_port => 4433 }
+    end
+
     before :each do
       allow( subject ).to receive( :options ) { options }
       allow( hosts[0] ).to receive( :node_name )
