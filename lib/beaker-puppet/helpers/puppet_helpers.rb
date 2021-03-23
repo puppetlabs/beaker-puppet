@@ -589,8 +589,8 @@ module Beaker
         # @param ip_spec [Hash{String=>String}] a hash containing the host to ip
         #   mappings
         # @param alias_spec [Hash{String=>Array[String]] an hash containing the host to alias(es) mappings to apply
-        # @example Stub forgeapi.puppetlabs.com on the master to 127.0.0.1 with an alias forgeapi.example.com
-        #   with_host_stubbed_on(master, {'forgeapi.puppetlabs.com' => '127.0.0.1'}, {'forgeapi.puppetlabs.com' => ['forgeapi.example.com']}) do
+        # @example Stub host.example.com on the master to 127.0.0.1 with an alias alias.example.com
+        #   with_host_stubbed_on(master, {'host.example.com' => '127.0.0.1'}, {'host.example.com' => ['alias.example.com']}) do
         #     puppet( "module install puppetlabs-stdlib" )
         #   end
         def with_host_stubbed_on(host, ip_spec, alias_spec={}, &block)
@@ -633,74 +633,6 @@ module Beaker
         # @see #stub_hosts_on
         def stub_hosts(ip_spec)
           stub_hosts_on(default, ip_spec)
-        end
-
-        # This wraps the method `stub_hosts_on` and makes the stub specific to
-        # the forge alias.
-        #
-        # forge api v1 canonical source is forge.puppetlabs.com
-        # forge api v3 canonical source is forgeapi.puppetlabs.com
-        #
-        # @deprecated this method should not be used because stubbing the host
-        # breaks TLS validation.
-        #
-        # @param machine [String] the host to perform the stub on
-        # @param forge_host [String] The URL to use as the forge alias, will default to using :forge_host in the
-        #                             global options hash
-        def stub_forge_on(machine, forge_host = nil)
-          #use global options hash
-          primary_forge_name = 'forge.puppetlabs.com'
-          forge_host ||= options[:forge_host]
-          forge_ip = resolve_hostname_on(machine, forge_host)
-          raise "Failed to resolve forge host '#{forge_host}'" unless forge_ip
-          @forge_ip ||= forge_ip
-          block_on machine do | host |
-            stub_hosts_on(host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forgeapi.puppet.com']})
-          end
-        end
-
-        # This wraps the method `with_host_stubbed_on` and makes the stub specific to
-        # the forge alias.
-        #
-        # forge api v1 canonical source is forge.puppetlabs.com
-        # forge api v3 canonical source is forgeapi.puppetlabs.com
-        #
-        # @deprecated this method should not be used because stubbing the host
-        # breaks TLS validation.
-        #
-        # @param host [String] the host to perform the stub on
-        # @param forge_host [String] The URL to use as the forge alias, will default to using :forge_host in the
-        #                             global options hash
-        def with_forge_stubbed_on( host, forge_host = nil, &block )
-          #use global options hash
-          primary_forge_name = 'forge.puppetlabs.com'
-          forge_host ||= options[:forge_host]
-          forge_ip = resolve_hostname_on(host, forge_host)
-          raise "Failed to resolve forge host '#{forge_host}'" unless forge_ip
-          @forge_ip ||= forge_ip
-          with_host_stubbed_on( host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forgeapi.puppet.com']}, &block )
-        end
-
-        # This wraps `with_forge_stubbed_on` and provides it the default host
-        # @see with_forge_stubbed_on
-        #
-        # @deprecated this method should not be used because stubbing the host
-        # breaks TLS validation.
-        def with_forge_stubbed( forge_host = nil, &block )
-          with_forge_stubbed_on( default, forge_host, &block )
-        end
-
-        # This wraps the method `stub_hosts` and makes the stub specific to
-        # the forge alias.
-        #
-        # @deprecated this method should not be used because stubbing the host
-        # breaks TLS validation.
-        #
-        # @see #stub_forge_on
-        def stub_forge(forge_host = nil)
-          #use global options hash
-          forge_host ||= options[:forge_host]
-          stub_forge_on(default, forge_host)
         end
 
         # Waits until a successful curl check has happened against puppetdb
