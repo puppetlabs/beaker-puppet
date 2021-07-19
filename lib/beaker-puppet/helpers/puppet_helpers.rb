@@ -519,7 +519,7 @@ module Beaker
               puppet_apply_opts['ENV'] = opts[:environment]
             end
 
-            file_path = host.tmpfile('apply_manifest.pp')
+            file_path = host.tmpfile(%(apply_manifest_#{Time.now.strftime("%H%M%S%L")}.pp))
             create_remote_file(host, file_path, manifest + "\n")
 
             if host[:default_apply_opts].respond_to? :merge
