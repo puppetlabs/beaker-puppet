@@ -5,9 +5,9 @@ require 'beaker-puppet/version'
 Gem::Specification.new do |s|
   s.name        = "beaker-puppet"
   s.version     = BeakerPuppet::VERSION
-  s.authors     = ["Puppet"]
-  s.email       = ["delivery@puppet.com"]
-  s.homepage    = "https://github.com/puppetlabs/beaker-puppet"
+  s.authors     = ["Vox Pupuli"]
+  s.email       = ["voxpupuli@groups.io"]
+  s.homepage    = "https://github.com/voxpupuli/beaker-puppet"
   s.summary     = %q{Beaker's Puppet DSL Extension Helpers!}
   s.description = %q{For use for the Beaker acceptance testing tool}
   s.license     = 'Apache2'
@@ -22,8 +22,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec-its'
   s.add_development_dependency 'fakefs', '>= 0.6', '< 2.0'
   s.add_development_dependency 'rake', '~> 13.0'
-  s.add_development_dependency 'simplecov'
-  s.add_development_dependency 'pry', '~> 0.10'
 
   # Acceptance Testing Dependencies
   s.add_development_dependency 'beaker-vmpooler'

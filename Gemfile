@@ -2,10 +2,6 @@ source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
 gemspec
 
-group :release do
-  gem 'github_changelog_generator',  :require => false, :git => 'https://github.com/voxpupuli/github-changelog-generator', :branch => 'voxpupuli_essential_fixes'
-end
-
 def location_for(place, fake_version = nil)
   if place =~ /^(git:[^#]*)#(.*)/
     [fake_version, { :git => $1, :branch => $2, :require => false }].compact
@@ -18,11 +14,15 @@ end
 
 
 group :test do
-  gem "beaker", *location_for(ENV['BEAKER_VERSION'] || ['>= 4.16.0', '< 5.0.0'])
+  gem "beaker", *location_for(ENV['BEAKER_VERSION'] || ['>= 4.30.0', '< 5.0.0'])
   gem "beaker-abs", *location_for(ENV['ABS_VERSION'] || '~> 0.4.0')
 end
 
+group :release do
+  gem 'github_changelog_generator', require: false
+end
 
-if File.exists? "#{__FILE__}.local"
-  eval(File.read("#{__FILE__}.local"), binding)
+group :coverage, optional: ENV['COVERAGE']!='yes' do
+  gem 'simplecov-console', :require => false
+  gem 'codecov', :require => false
 end
