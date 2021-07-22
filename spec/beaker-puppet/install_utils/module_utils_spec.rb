@@ -32,13 +32,6 @@ describe ClassMixedWithDSLInstallUtils do
 
   describe '#install_dev_puppet_module_on' do
     context 'having set allow( a ).to receive forge' do
-      it 'stubs the forge on the host' do
-        master = hosts.first
-        allow( subject ).to receive( :options ).and_return( {:forge_host => 'ahost.com'} )
-
-        subject.install_dev_puppet_module_on( master, {:source => '/module', :module_name => 'test'} )
-      end
-
       it 'installs via #install_puppet_module_via_pmt' do
         master = hosts.first
         allow( subject ).to receive( :options ).and_return( {:forge_host => 'ahost.com'} )

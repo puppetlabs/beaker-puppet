@@ -500,30 +500,6 @@ describe ClassMixedWithDSLHelpers do
     end
   end
 
-  describe '#stub_forge_on' do
-    it 'stubs forge.puppetlabs.com with the value of `forge`' do
-      allow( subject ).to receive( :resolve_hostname_on ).and_return ( '127.0.0.1' )
-      host = make_host('my_host', {})
-      expect( subject ).to receive( :stub_hosts_on ).
-        with( host, {'forge.puppetlabs.com' => '127.0.0.1'}, {'forge.puppetlabs.com' => ['forge.puppet.com','forgeapi.puppetlabs.com','forgeapi.puppet.com']} )
-
-      subject.stub_forge_on( host, 'my_forge.example.com' )
-    end
-  end
-
-  describe "#stub_forge" do
-    it "delegates to stub_forge_on with the default host" do
-      allow( subject ).to receive( :options ).and_return( {} )
-      allow( subject ).to receive( :hosts ).and_return( hosts )
-
-      expect( subject ).to receive( :default ).and_return( master )
-      expect( subject ).to receive( :stub_forge_on ).with( master, nil ).once
-
-      subject.stub_forge( )
-
-    end
-  end
-
   describe "#stop_agent_on" do
     let( :result_fail ) { Beaker::Result.new( [], "" ) }
     let( :result_pass ) { Beaker::Result.new( [], "" ) }
