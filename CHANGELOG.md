@@ -2,9 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v1.21.0](https://github.com/voxpupuli/beaker-puppet/tree/v1.21.0) (2020-12-21)
+## [v1.22.0](https://github.com/voxpupuli/beaker-puppet/tree/v1.22.0) (2021-08-09)
 
-[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.20.0...v1.21.0)
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.21.0...v1.22.0)
+
+**Implemented enhancements:**
+
+- Create better puppet apply tmpfiles [\#161](https://github.com/voxpupuli/beaker-puppet/pull/161) ([trevor-vaughan](https://github.com/trevor-vaughan))
+- Drop stringify-hash dependency [\#158](https://github.com/voxpupuli/beaker-puppet/pull/158) ([ekohl](https://github.com/ekohl))
+
+**Merged pull requests:**
+
+- Implement codecov; update README.md [\#162](https://github.com/voxpupuli/beaker-puppet/pull/162) ([bastelfreak](https://github.com/bastelfreak))
+- Add both GPG keys when installing repos on SLES [\#157](https://github.com/voxpupuli/beaker-puppet/pull/157) ([GabrielNagy](https://github.com/GabrielNagy))
+
+## [1.21.0](https://github.com/voxpupuli/beaker-puppet/tree/1.21.0) (2020-12-21)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.20.0...1.21.0)
 
 **Fixed bugs:**
 
