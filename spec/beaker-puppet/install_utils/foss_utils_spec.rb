@@ -1632,19 +1632,4 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
   end
-
-  describe '#get_latest_puppet_agent_build_from_url' do
-    let(:urls) {['https://downloads.puppet.com/mac/10.9/PC1/x86_64',
-            'https://downloads.puppet.com/mac/10.10/PC1/x86_64',
-            'https://downloads.puppet.com/mac/10.11/PC1/x86_64',
-            'https://downloads.puppet.com/mac/10.12/PC1/x86_64',
-            'https://downloads.puppet.com/windows']}
-
-    it "gets the right version" do
-      urls.each do |url|
-        expect(subject.get_latest_puppet_agent_build_from_url(url)).to match(/\d*.\d*.\d*/)
-      end
-    end
-  end
-
 end
