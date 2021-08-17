@@ -12,7 +12,7 @@ module Beaker
 
         # Return the regular expression pattern for an IPv4 address
         def ipv4_regex
-          Resolv::IPv4::Regex
+          return /(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/
         end
 
         # Return the IP address that given hostname returns when resolved on
