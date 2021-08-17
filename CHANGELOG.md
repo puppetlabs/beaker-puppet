@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v1.22.0](https://github.com/voxpupuli/beaker-puppet/tree/v1.22.0) (2021-08-09)
+## [v1.22.0](https://github.com/voxpupuli/beaker-puppet/tree/v1.22.0) (2021-08-17)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.21.0...v1.22.0)
 
@@ -13,6 +13,8 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
+- Remove mentions of Beaker 3 [\#165](https://github.com/voxpupuli/beaker-puppet/pull/165) ([ekohl](https://github.com/ekohl))
+- Use the built-in Resolv::IPv4::Regex [\#164](https://github.com/voxpupuli/beaker-puppet/pull/164) ([ekohl](https://github.com/ekohl))
 - Implement codecov; update README.md [\#162](https://github.com/voxpupuli/beaker-puppet/pull/162) ([bastelfreak](https://github.com/bastelfreak))
 - Add both GPG keys when installing repos on SLES [\#157](https://github.com/voxpupuli/beaker-puppet/pull/157) ([GabrielNagy](https://github.com/GabrielNagy))
 
