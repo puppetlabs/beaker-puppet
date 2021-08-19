@@ -306,7 +306,7 @@ begin
     config.exclude_labels = %w{duplicate question invalid wontfix wont-fix skip-changelog}
     config.user = 'voxpupuli'
     config.project = 'beaker-puppet'
-    config.future_release = "v#{Gem::Specification.load("#{config.project}.gemspec").version}"
+    config.future_release = "#{Gem::Specification.load("#{config.project}.gemspec").version}"
   end
 rescue LoadError
 end

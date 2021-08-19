@@ -2,9 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v1.22.0](https://github.com/voxpupuli/beaker-puppet/tree/v1.22.0) (2021-08-17)
+## [1.22.1](https://github.com/voxpupuli/beaker-puppet/tree/1.22.1) (2021-08-19)
 
-[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.21.0...v1.22.0)
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.22.0...1.22.1)
+
+**Merged pull requests:**
+
+- Revert "Use the built-in Resolv::IPv4::Regex" [\#168](https://github.com/voxpupuli/beaker-puppet/pull/168) ([kenyon](https://github.com/kenyon))
+
+## [1.22.0](https://github.com/voxpupuli/beaker-puppet/tree/1.22.0) (2021-08-17)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.21.0...1.22.0)
 
 **Implemented enhancements:**
 
