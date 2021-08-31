@@ -303,7 +303,7 @@ module Beaker
             # run_in_parallel option includes install
             run_in_parallel = run_in_parallel? opts, @options, 'install'
             block_on hosts, { :run_in_parallel => run_in_parallel } do |host|
-              if host['platform'] =~ /el-(5|6|7)/
+              if host['platform'] =~ /el-(5|6|7|8)/
                 relver = $1
                 install_puppet_from_rpm_on(host, opts.merge(:release => relver, :family => 'el'))
               elsif host['platform'] =~ /fedora-(\d+)/
