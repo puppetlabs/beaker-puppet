@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.22.2](https://github.com/voxpupuli/beaker-puppet/tree/1.22.2) (2021-12-31)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.22.1...1.22.2)
+
+**Merged pull requests:**
+
+- Fix install\_puppet\_on on el8 [\#170](https://github.com/voxpupuli/beaker-puppet/pull/170) ([gcampbell12](https://github.com/gcampbell12))
+
 ## [1.22.1](https://github.com/voxpupuli/beaker-puppet/tree/1.22.1) (2021-08-19)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.22.0...1.22.1)
