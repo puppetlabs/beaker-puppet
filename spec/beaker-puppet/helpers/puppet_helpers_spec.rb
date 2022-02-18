@@ -174,7 +174,7 @@ describe ClassMixedWithDSLHelpers do
 
       expect( subject ).to receive( :on ).
         with( agent, 'puppet_command',
-              :acceptable_exit_codes => [0] )
+              {:acceptable_exit_codes => [0]} )
 
       subject.apply_manifest_on( agent, 'class { "boo": }')
     end
@@ -189,7 +189,7 @@ describe ClassMixedWithDSLHelpers do
           and_return( 'puppet_command' )
 
         expect( subject ).to receive( :on ).
-          with( host, 'puppet_command', :acceptable_exit_codes => [0] )
+          with( host, 'puppet_command', {:acceptable_exit_codes => [0]} )
       end
 
       result = subject.apply_manifest_on( the_hosts, 'include foobar' )
@@ -209,7 +209,7 @@ describe ClassMixedWithDSLHelpers do
         and_return( 'puppet_command' )
       the_hosts.each do |host|
         allow( subject ).to receive( :on ).
-            with( host, 'puppet_command', :acceptable_exit_codes => [0] )
+          with( host, 'puppet_command', {:acceptable_exit_codes => [0]} )
       end
 
       result = nil
@@ -228,11 +228,11 @@ describe ClassMixedWithDSLHelpers do
         and_return( 'puppet_command' )
       the_hosts.each do |host|
         allow( subject ).to receive( :on ).
-          with( host, 'puppet_command', :acceptable_exit_codes => [0] )
+          with( host, 'puppet_command', {:acceptable_exit_codes => [0]} )
       end
       expect( subject ).to receive( :block_on ).with(
         anything,
-        :run_in_parallel => true
+        {:run_in_parallel => true}
       )
 
       subject.apply_manifest_on( the_hosts, 'include foobar', { :run_in_parallel => true } )
@@ -246,11 +246,11 @@ describe ClassMixedWithDSLHelpers do
 
       expect( subject ).to receive( :on ).
         with( agent, 'puppet_command',
-              :acceptable_exit_codes => [0,2] )
+              {:acceptable_exit_codes => [0,2]} )
 
       subject.apply_manifest_on( agent,
                                 'class { "boo": }',
-                                :catch_failures => true )
+                                {:catch_failures => true} )
     end
     it 'allows acceptable exit codes through :catch_failures' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
@@ -260,12 +260,12 @@ describe ClassMixedWithDSLHelpers do
 
       expect( subject ).to receive( :on ).
         with( agent, 'puppet_command',
-              :acceptable_exit_codes => [4,0,2] )
+             {:acceptable_exit_codes => [4,0,2]} )
 
       subject.apply_manifest_on( agent,
                                 'class { "boo": }',
-                                :acceptable_exit_codes => [4],
-                                :catch_failures => true )
+                                {:acceptable_exit_codes => [4],
+                                 :catch_failures => true} )
     end
     it 'enforces a 0 exit code through :catch_changes' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
@@ -276,13 +276,13 @@ describe ClassMixedWithDSLHelpers do
       expect( subject ).to receive( :on ).with(
         agent,
         'puppet_command',
-        :acceptable_exit_codes => [0]
+        {:acceptable_exit_codes => [0]}
       )
 
       subject.apply_manifest_on(
         agent,
         'class { "boo": }',
-        :catch_changes => true
+        {:catch_changes => true}
       )
     end
     it 'enforces a 2 exit code through :expect_changes' do
@@ -294,13 +294,13 @@ describe ClassMixedWithDSLHelpers do
       expect( subject ).to receive( :on ).with(
         agent,
         'puppet_command',
-        :acceptable_exit_codes => [2]
+        {:acceptable_exit_codes => [2]}
       )
 
       subject.apply_manifest_on(
         agent,
         'class { "boo": }',
-        :expect_changes => true
+        {:expect_changes => true}
       )
     end
     it 'enforces exit codes through :expect_failures' do
@@ -312,13 +312,13 @@ describe ClassMixedWithDSLHelpers do
       expect( subject ).to receive( :on ).with(
         agent,
         'puppet_command',
-        :acceptable_exit_codes => [1,4,6]
+        {:acceptable_exit_codes => [1,4,6]}
       )
 
       subject.apply_manifest_on(
         agent,
         'class { "boo": }',
-        :expect_failures => true
+        {:expect_failures => true}
       )
     end
     it 'enforces exit codes through :expect_failures' do
@@ -341,14 +341,14 @@ describe ClassMixedWithDSLHelpers do
       expect( subject ).to receive( :on ).with(
         agent,
         'puppet_command',
-        :acceptable_exit_codes => [1,2,3,4,5,6]
+        {:acceptable_exit_codes => [1,2,3,4,5,6]}
       )
 
       subject.apply_manifest_on(
         agent,
         'class { "boo": }',
-        :acceptable_exit_codes => (1..5),
-        :expect_failures       => true
+        {:acceptable_exit_codes => (1..5),
+         :expect_failures       => true}
       )
     end
 

@@ -99,7 +99,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect_version_log_called
       expect( subject ).to receive( :create_install_msi_batch_on ).with(
           anything, anything,
-          'PUPPET_AGENT_STARTUP_MODE' => 'Manual')
+          {'PUPPET_AGENT_STARTUP_MODE' => 'Manual'})
       subject.install_msi_on(hosts, msi_path, {})
     end
 
@@ -112,7 +112,7 @@ describe ClassMixedWithDSLInstallUtils do
       value = 'Automatic'
       expect( subject ).to receive( :create_install_msi_batch_on ).with(
           anything, anything,
-          'PUPPET_AGENT_STARTUP_MODE' => value)
+          {'PUPPET_AGENT_STARTUP_MODE' => value})
       subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => value})
     end
 
