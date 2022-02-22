@@ -761,9 +761,9 @@ module Beaker
                 raise "You need to specify versions for OSX host\n eg. install_puppet({:version => '3.6.2',:facter_version => '2.1.0',:hiera_version  => '1.3.4',})"
               end
 
-              on host, "curl -O #{opts[:mac_download_url]}/puppet-#{puppet_ver}.dmg"
-              on host, "curl -O #{opts[:mac_download_url]}/facter-#{facter_ver}.dmg"
-              on host, "curl -O #{opts[:mac_download_url]}/hiera-#{hiera_ver}.dmg"
+              on host, "curl --location --remote-name #{opts[:mac_download_url]}/puppet-#{puppet_ver}.dmg"
+              on host, "curl --location --remote-name #{opts[:mac_download_url]}/facter-#{facter_ver}.dmg"
+              on host, "curl --location --remote-name #{opts[:mac_download_url]}/hiera-#{hiera_ver}.dmg"
 
               host.install_package("puppet-#{puppet_ver}")
               host.install_package("facter-#{facter_ver}")
@@ -815,7 +815,7 @@ module Beaker
 
             pkg_name = "puppet-agent-#{agent_version}*"
             dmg_name = "puppet-agent-#{agent_version}-1.osx#{version}.dmg"
-            on host, "curl -O #{download_url}/#{dmg_name}"
+            on host, "curl --location --remote-name #{download_url}/#{dmg_name}"
 
             host.install_package(pkg_name)
 
@@ -826,7 +826,7 @@ module Beaker
         # Returns the latest puppet-agent version number from a given url.
         #
         # @param [String] url         URL containing list of puppet-agent packages.
-        #                             Example: https://downloads.puppetlabs.com/mac/10.11/PC1/x86_64
+        #                             Example: https://downloads.puppetlabs.com/mac/puppet7/10.15/x86_64/
         #
         # @return [String] version    puppet-agent version number (e.g. 1.4.1)
         #                             Empty string if none found.
@@ -834,8 +834,20 @@ module Beaker
         def get_latest_puppet_agent_build_from_url(url)
           require 'oga'
           require 'net/http'
-          body = Net::HTTP.get(URI.parse("#{url}/index_by_lastModified_reverse.html"))
-          document = Oga.parse_html(body)
+
+          full_url = "#{url}/index_by_lastModified_reverse.html"
+          response = Net::HTTP.get_response(URI(full_url))
+          counter = 0
+
+          # Redirect following
+          while response.is_a?(Net::HTTPRedirection) && counter < 15
+            response = Net::HTTP.get_response(URI.parse(Net::HTTP.get_response(URI(full_url))['location']))
+            counter = counter + 1
+          end
+
+          raise "The URL for puppet-agent download, #{response.uri}, returned #{response.message} with #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+          document = Oga.parse_html(response.body)
           agents = document.xpath('//a[contains(@href, "puppet-agent")]')
 
           latest_match = agents.shift.attributes[0].value
