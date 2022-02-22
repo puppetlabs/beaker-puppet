@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.23.0](https://github.com/voxpupuli/beaker-puppet/tree/1.23.0) (2022-02-23)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.22.2...1.23.0)
+
+**Implemented enhancements:**
+
+- \(maint\) Follow redirects when curling MSI [\#176](https://github.com/voxpupuli/beaker-puppet/pull/176) ([joshcooper](https://github.com/joshcooper))
+- Update agent download from URL logic to handle redirects [\#173](https://github.com/voxpupuli/beaker-puppet/pull/173) ([cthorn42](https://github.com/cthorn42))
+
+**Merged pull requests:**
+
+- Update specs to fix ruby 3 spec failures [\#174](https://github.com/voxpupuli/beaker-puppet/pull/174) ([cthorn42](https://github.com/cthorn42))
+
 ## [1.22.2](https://github.com/voxpupuli/beaker-puppet/tree/1.22.2) (2021-12-31)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.22.1...1.22.2)
