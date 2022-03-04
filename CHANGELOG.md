@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.24.0](https://github.com/voxpupuli/beaker-puppet/tree/1.24.0) (2022-03-04)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.23.0...1.24.0)
+
+**Implemented enhancements:**
+
+- module setup on the target: Igrore files at the root level only [\#177](https://github.com/voxpupuli/beaker-puppet/pull/177) ([smortex](https://github.com/smortex))
+
+**Merged pull requests:**
+
+- gemspec: fix typo in Apache-2.0 license [\#180](https://github.com/voxpupuli/beaker-puppet/pull/180) ([bastelfreak](https://github.com/bastelfreak))
+- Add Ruby 3.1 to CI [\#179](https://github.com/voxpupuli/beaker-puppet/pull/179) ([bastelfreak](https://github.com/bastelfreak))
+- Depend on Ruby 2.4 or newer in gemspec [\#178](https://github.com/voxpupuli/beaker-puppet/pull/178) ([bastelfreak](https://github.com/bastelfreak))
+
 ## [1.23.0](https://github.com/voxpupuli/beaker-puppet/tree/1.23.0) (2022-02-23)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.22.2...1.23.0)
