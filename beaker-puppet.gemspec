@@ -12,6 +12,8 @@ Gem::Specification.new do |s|
   s.description = %q{For use for the Beaker acceptance testing tool}
   s.license     = 'Apache2'
 
+  s.required_ruby_version = '>= 2.4'
+
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
