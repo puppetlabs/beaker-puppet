@@ -311,6 +311,7 @@ def pre_suites(type)
   when :aio
     [
       "#{beaker_root}/setup/common/000-delete-puppet-when-none.rb",
+      "#{beaker_root}/setup/common/003_solaris_cert_fix.rb",
       "#{beaker_root}/setup/aio/010_Install_Puppet_Agent.rb",
       "#{beaker_root}/setup/common/011_Install_Puppet_Server.rb",
       "#{beaker_root}/setup/common/012_Finalize_Installs.rb",
