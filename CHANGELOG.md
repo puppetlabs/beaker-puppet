@@ -2,13 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.25.0](https://github.com/voxpupuli/beaker-puppet/tree/1.25.0) (2022-03-16)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.24.0...1.25.0)
+
+**Implemented enhancements:**
+
+- \(PA-4331\) Add a step for updating Solaris CA Keystore [\#182](https://github.com/voxpupuli/beaker-puppet/pull/182) ([cthorn42](https://github.com/cthorn42))
+
+**Fixed bugs:**
+
+- \(PA-4331\) Fix the logic to only run on older solaris versions [\#183](https://github.com/voxpupuli/beaker-puppet/pull/183) ([cthorn42](https://github.com/cthorn42))
+
 ## [1.24.0](https://github.com/voxpupuli/beaker-puppet/tree/1.24.0) (2022-03-04)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.23.0...1.24.0)
 
 **Implemented enhancements:**
 
-- module setup on the target: Igrore files at the root level only [\#177](https://github.com/voxpupuli/beaker-puppet/pull/177) ([smortex](https://github.com/smortex))
+- module setup on the target: Ignore files at the root level only [\#177](https://github.com/voxpupuli/beaker-puppet/pull/177) ([smortex](https://github.com/smortex))
 
 **Merged pull requests:**
 
