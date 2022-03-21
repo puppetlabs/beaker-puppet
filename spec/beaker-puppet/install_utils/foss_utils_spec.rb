@@ -1493,7 +1493,7 @@ describe ClassMixedWithDSLInstallUtils do
 
     context 'with default arguments' do
       it "installs the latest puppetserver from the default 'puppet' release stream" do
-        expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', include(release_yum_repo_url: "http://yum.puppet.com"))
+        expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', include(release_yum_repo_url: "https://yum.puppet.com"))
         expect(subject).to receive(:install_package).with(host, 'puppetserver', nil)
         subject.install_puppetserver_on(host)
       end

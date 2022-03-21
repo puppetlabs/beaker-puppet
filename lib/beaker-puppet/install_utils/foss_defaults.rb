@@ -8,17 +8,17 @@ module Beaker
 
         #Here be the default download URLs
         FOSS_DEFAULT_DOWNLOAD_URLS = {
-          :win_download_url         => "http://downloads.puppet.com/windows",
-          :mac_download_url         => "http://downloads.puppet.com/mac",
-          :pe_promoted_builds_url   => "http://pm.puppet.com",
-          :release_apt_repo_url     => "http://apt.puppet.com",
-          :release_yum_repo_url     => "http://yum.puppet.com",
-          :nightly_builds_url       => "http://nightlies.puppet.com",
-          :nightly_apt_repo_url     => "http://nightlies.puppet.com/apt",
-          :nightly_yum_repo_url     => "http://nightlies.puppet.com/yum",
-          :nightly_win_download_url => "http://nightlies.puppet.com/downloads/windows",
-          :nightly_mac_download_url => "http://nightlies.puppet.com/downloads/mac",
-          :dev_builds_url           => "http://builds.delivery.puppetlabs.net",
+          :win_download_url         => "https://downloads.puppet.com/windows",
+          :mac_download_url         => "https://downloads.puppet.com/mac",
+          :pe_promoted_builds_url   => "https://pm.puppet.com",
+          :release_apt_repo_url     => "https://apt.puppet.com",
+          :release_yum_repo_url     => "https://yum.puppet.com",
+          :nightly_builds_url       => "https://nightlies.puppet.com",
+          :nightly_apt_repo_url     => "https://nightlies.puppet.com/apt",
+          :nightly_yum_repo_url     => "https://nightlies.puppet.com/yum",
+          :nightly_win_download_url => "https://nightlies.puppet.com/downloads/windows",
+          :nightly_mac_download_url => "https://nightlies.puppet.com/downloads/mac",
+          :dev_builds_url           => "https://builds.delivery.puppetlabs.net",
         }
 
         #Here be the pathing and default values for FOSS installs
