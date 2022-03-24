@@ -2,17 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.26.0](https://github.com/voxpupuli/beaker-puppet/tree/1.26.0) (2022-03-23)
+## [1.26.1](https://github.com/voxpupuli/beaker-puppet/tree/1.26.1) (2022-03-24)
 
-[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.25.0...1.26.0)
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.26.0...1.26.1)
 
 **Implemented enhancements:**
 
 - \(maint\) Adds CA to Solaris 11 SPARC setup [\#186](https://github.com/voxpupuli/beaker-puppet/pull/186) ([mhashizume](https://github.com/mhashizume))
 
+**Fixed bugs:**
+
+- \(maint\) Fixes Solaris cert setup step [\#188](https://github.com/voxpupuli/beaker-puppet/pull/188) ([mhashizume](https://github.com/mhashizume))
+
 **Merged pull requests:**
 
 - \(PA-4332\) Changes download links to HTTPS [\#185](https://github.com/voxpupuli/beaker-puppet/pull/185) ([mhashizume](https://github.com/mhashizume))
+
+## [1.26.0](https://github.com/voxpupuli/beaker-puppet/tree/1.26.0) (2022-03-23)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.25.0...1.26.0)
 
 ## [1.25.0](https://github.com/voxpupuli/beaker-puppet/tree/1.25.0) (2022-03-16)
 
