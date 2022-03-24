@@ -71,6 +71,7 @@ Q+6IHdfGjjxDah2nGN59PRbxYvnKkKj9
 EOM
 
 hosts.each do |host|
+  next unless host.platform =~ /solaris-11(\.2)?-(i386|sparc)/ 
   create_remote_file(host, "DigiCertTrustedRootG4.crt.pem", DigiCert)
   on(host, 'chmod a+r /root/DigiCertTrustedRootG4.crt.pem')
   on(host, 'cp -p /root/DigiCertTrustedRootG4.crt.pem /etc/certs/CA/')
