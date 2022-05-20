@@ -1625,12 +1625,18 @@ module Beaker
         # Configures gem sources on hosts to use a mirror, if specified
         # This is a duplicate of the Gemfile logic.
         def configure_gem_mirror(hosts)
-          gem_source = ENV['GEM_SOURCE'] || 'https://rubygems.org'
+          gem_source = ENV['GEM_SOURCE']
 
-          Array(hosts).each do |host|
-            gem = gem_command(host)
-            on host, "#{gem} source --clear-all"
-            on host, "#{gem} source --add #{gem_source}"
+          # Newer versions of rubygems always default the source to https://rubygems.org
+          # and versions >= 3.1 will try to prompt (and fail) if you add a source that is
+          # too similar to rubygems.org to prevent typo squatting:
+          # https://github.com/rubygems/rubygems/commit/aa967b85dd96bbfb350f104125f23d617e82a00a
+          if gem_source && gem_source !~ /rubygems\.org/
+            Array(hosts).each do |host|
+              gem = gem_command(host)
+              on host, "#{gem} source --clear-all"
+              on(host, "#{gem} source --add #{gem_source}")
+            end
           end
         end
       end
