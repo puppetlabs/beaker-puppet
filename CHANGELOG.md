@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.27.0](https://github.com/voxpupuli/beaker-puppet/tree/1.27.0) (2022-05-26)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.26.1...1.27.0)
+
+**Merged pull requests:**
+
+- \(PA-4178\) Only clear and add non-default gem sources [\#190](https://github.com/voxpupuli/beaker-puppet/pull/190) ([joshcooper](https://github.com/joshcooper))
+
 ## [1.26.1](https://github.com/voxpupuli/beaker-puppet/tree/1.26.1) (2022-03-24)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.26.0...1.26.1)
