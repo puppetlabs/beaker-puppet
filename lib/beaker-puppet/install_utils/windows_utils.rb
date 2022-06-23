@@ -177,11 +177,13 @@ module Beaker
             # emit the misc/versions.txt file which contains component versions for
             # puppet, facter, hiera, pxp-agent, packaging and vendored Ruby
             [
-              '"${env:ProgramFiles}/Puppet Labs/puppet/misc/versions.txt"',
-              '"${env:ProgramFiles(x86)}/Puppet Labs/puppet/misc/versions.txt"'
+              "'%PROGRAMFILES%\\Puppet Labs\\puppet\\misc\\versions.txt'",
+              "'%PROGRAMFILES(X86)%\\Puppet Labs\\puppet\\misc\\versions.txt'",
             ].each do |path|
-              if file_exists_on(host, path)
-                logger.info(file_contents_on(host, path)) && break
+              result = on(host, "cmd /c type #{path}", :accept_all_exit_codes => true)
+              if result.exit_code == 0
+                logger.info(result.stdout)
+                break
               end
             end
           end

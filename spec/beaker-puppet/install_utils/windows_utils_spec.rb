@@ -57,16 +57,14 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   def expect_version_log_called(times = hosts.length)
-    path = %{"${env:ProgramFiles}/Puppet Labs/puppet/misc/versions.txt"}
+    path = "'%PROGRAMFILES%\\Puppet Labs\\puppet\\misc\\versions.txt'"
 
-    expect( subject ).to receive( :file_exists_on )
-      .with(anything, path)
-      .exactly( times ).times
-      .and_return(true)
+    result = Beaker::Result.new(nil, 'temp')
+    result.exit_code = 0
 
-    expect( subject ).to receive( :file_contents_on )
-      .with(anything, path)
-      .exactly( times ).times
+    hosts.each do |host|
+      expect(subject).to receive(:on).with(host, "cmd /c type #{path}", anything).and_return(result)
+    end
   end
 
   def expect_script_matches(hosts, contents)
