@@ -26,31 +26,45 @@ describe ClassMixedWithDSLInstallUtils do
                                 :is_cygwin => 'false' } ) }
   let(:hosts)              { [ winhost, winhost_non_cygwin ] }
 
-  def expect_install_called(times = hosts.length)
-    result = expect( Beaker::Command ).to receive( :new )
-      .with( /^"#{batch_path}"$/, [], {:cmdexe => true})
-      .exactly( times ).times
+  def expect_install_called
+    result = Beaker::Result.new(nil, 'temp')
+    result.exit_code = 0
 
-    yield result if block_given?
+    hosts.each do |host|
+      expectation = expect(subject).to receive(:on).with(host, having_attributes(command: "\"#{batch_path}\""), anything).and_return(result)
+      if block_given?
+        should_break = yield expectation
+        break if should_break
+      end
+    end
   end
 
-  def expect_status_called(times = hosts.length)
-    expect( Beaker::Command ).to receive( :new )
-      .with( "sc qc puppet || sc qc pe-puppet", [], {:cmdexe => true} )
-      .exactly( times ).times
+  def expect_status_called(start_type = 'DEMAND_START')
+    result = Beaker::Result.new(nil, 'temp')
+    result.exit_code = 0
+    result.stdout = case start_type
+                    when 'DISABLED'
+                      "        START_TYPE         : 4   DISABLED"
+                    when 'AUTOMATIC'
+                      "        START_TYPE         : 2   AUTO_START"
+                    else # 'DEMAND_START'
+                      "        START_TYPE         : 3   DEMAND_START"
+                    end
+
+    hosts.each do |host|
+      expect(subject).to receive(:on).with(host, having_attributes(command: "sc qc puppet || sc qc pe-puppet")).and_yield(result)
+    end
   end
 
   def expect_version_log_called(times = hosts.length)
-    path = %{"${env:ProgramFiles}/Puppet Labs/puppet/misc/versions.txt"}
+    path = "'%PROGRAMFILES%\\Puppet Labs\\puppet\\misc\\versions.txt'"
 
-    expect( subject ).to receive( :file_exists_on )
-      .with(anything, path)
-      .exactly( times ).times
-      .and_return(true)
+    result = Beaker::Result.new(nil, 'temp')
+    result.exit_code = 0
 
-    expect( subject ).to receive( :file_contents_on )
-      .with(anything, path)
-      .exactly( times ).times
+    hosts.each do |host|
+      expect(subject).to receive(:on).with(host, "cmd /c type #{path}", anything).and_return(result)
+    end
   end
 
   def expect_script_matches(hosts, contents)
@@ -68,30 +82,43 @@ describe ClassMixedWithDSLInstallUtils do
       expect(host).to receive(:is_x86_64?).and_return(:true)
     end
 
-    expect( Beaker::Command ).to receive( :new )
-      .with(%r{reg query "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller}, [], {:cmdexe => true})
-      .exactly(times).times
+    hosts.each do |host|
+      expect(subject).to receive(:on)
+        .with(host, having_attributes(command: %r{reg query "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller}))
+    end
   end
 
-  def expect_puppet_path_called(times = 1)
-    expect( Beaker::Command ).to receive( :new )
-      .with( 'puppet -h', [], {:cmdexe => true} )
-      .exactly( times ).times
+  def expect_puppet_path_called
+    hosts.each do |host|
+      next if host.is_cygwin?
+
+      result = Beaker::Result.new(nil, 'temp')
+      result.exit_code = 0
+
+      expect(subject).to receive(:on)
+        .with(host, having_attributes(command: 'puppet -h'), anything)
+        .and_return(result)
+    end
   end
 
   describe "#install_msi_on" do
     let( :log_file )    { '/fake/log/file.log' }
 
     before :each do
-      exit_code_result = Beaker::Result.new(nil, 'temp')
-      exit_code_result.exit_code = 0
+      result = Beaker::Result.new(nil, 'temp')
+      result.exit_code = 0
 
-      allow( subject ).to receive( :on ).and_return( exit_code_result )
+      hosts.each do |host|
+        allow(subject).to receive(:on)
+          .with(host, having_attributes(command: "\"#{batch_path}\""))
+          .and_return(result)
+      end
+
       allow( subject ).to receive( :file_exists_on ).and_return(true)
       allow( subject ).to receive( :create_install_msi_batch_on ).and_return( [batch_path, log_file] )
     end
 
-    it "will specify a PUPPET_AGENT_STARTUP_MODE of Manual (disabling the service) by default" do
+    it "will specify a PUPPET_AGENT_STARTUP_MODE of Manual by default" do
       expect_install_called
       expect_puppet_path_called
       expect_status_called
@@ -103,16 +130,29 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_msi_on(hosts, msi_path, {})
     end
 
-    it "allows configuration of PUPPET_AGENT_STARTUP_MODE" do
+    it "allows configuration of PUPPET_AGENT_STARTUP_MODE to Automatic" do
       expect_install_called
       expect_puppet_path_called
-      expect_status_called
+      expect_status_called('AUTOMATIC')
       expect_reg_query_called
       expect_version_log_called
       value = 'Automatic'
       expect( subject ).to receive( :create_install_msi_batch_on ).with(
           anything, anything,
           {'PUPPET_AGENT_STARTUP_MODE' => value})
+      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => value})
+    end
+
+    it "allows configuration of PUPPET_AGENT_STARTUP_MODE to Disabled" do
+      expect_install_called
+      expect_puppet_path_called
+      expect_status_called('DISABLED')
+      expect_reg_query_called
+      expect_version_log_called
+      value = 'Disabled'
+      expect( subject ).to receive( :create_install_msi_batch_on ).with(
+        anything, anything,
+        {'PUPPET_AGENT_STARTUP_MODE' => value})
       subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => value})
     end
 
@@ -130,13 +170,15 @@ describe ClassMixedWithDSLInstallUtils do
 
     it "will generate a command to emit a log file when the install script fails" do
       # note a single failure aborts executing against remaining hosts
-      hosts_affected = 1
-
-      expect_install_called(hosts_affected) { |e| e.and_raise }
-      expect_status_called(0)
+      expect_install_called do |e|
+        e.and_raise
+        true # break
+      end
 
       expect( subject ).to receive( :file_contents_on ).with(anything, log_file)
-      expect { subject.install_msi_on(hosts, msi_path) }.to raise_error(RuntimeError)
+      expect {
+        subject.install_msi_on(hosts, msi_path)
+      }.to raise_error(RuntimeError)
     end
 
     it "will generate a command to emit a log file with the :debug option set" do
@@ -146,7 +188,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect_status_called
       expect_version_log_called
 
-      expect( subject ).to receive( :file_contents_on ).with(anything, log_file).twice
+      expect( subject ).to receive( :file_contents_on ).with(anything, log_file).exactly(hosts.length).times
 
       subject.install_msi_on(hosts, msi_path, {}, { :debug => true })
     end
@@ -171,13 +213,12 @@ describe ClassMixedWithDSLInstallUtils do
 
       hosts.each do |host|
         expect(host).to receive(:is_x86_64?).and_return(true)
+
+        expect(subject).to receive(:on)
+        .with(host, having_attributes(command: 'reg query "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller" /v "RememberedPuppetAgentStartupMode" | findstr Manual'))
       end
 
-      expect( Beaker::Command ).to receive( :new )
-        .with('reg query "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller" /v "RememberedPuppetAgentStartupMode" | findstr Foo', [], {:cmdexe => true})
-        .exactly(hosts.length).times
-
-      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => "Foo"})
+      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => "Manual"})
     end
 
     it 'will omit Wow6432Node in the registry search for remembered startup setting on 32-bit hosts' do
@@ -188,13 +229,12 @@ describe ClassMixedWithDSLInstallUtils do
 
       hosts.each do |host|
         expect(host).to receive(:is_x86_64?).and_return(false)
+
+        expect(subject).to receive(:on)
+          .with(host, having_attributes(command: 'reg query "HKLM\\SOFTWARE\\Puppet Labs\\PuppetInstaller" /v "RememberedPuppetAgentStartupMode" | findstr Manual'))
       end
 
-      expect( Beaker::Command ).to receive( :new )
-        .with('reg query "HKLM\\SOFTWARE\\Puppet Labs\\PuppetInstaller" /v "RememberedPuppetAgentStartupMode" | findstr Foo', [], {:cmdexe => true})
-        .exactly(hosts.length).times
-
-      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => "Foo"})
+      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => "Manual"})
     end
   end
 

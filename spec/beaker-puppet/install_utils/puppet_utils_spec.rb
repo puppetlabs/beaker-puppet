@@ -153,7 +153,9 @@ describe ClassMixedWithDSLInstallUtils do
 
   describe '#puppet_collection_for' do
     it 'raises an error when given an invalid package' do
-      expect { subject.puppet_collection_for(:foo, '5.5.4') }.to raise_error
+      expect {
+        subject.puppet_collection_for(:foo, '5.5.4')
+      }.to raise_error(RuntimeError, /package must be one of puppet_agent, puppet, puppetserver/)
     end
 
     context 'when the :puppet_agent package is passed in' do
