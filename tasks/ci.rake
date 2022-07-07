@@ -25,6 +25,7 @@ Usage: bundle exec rake <target> [arguments]
 
 where <target> is one of:
 
+  ci:test:setup
   ci:test:git
   ci:test:aio
   ci:test:gem
@@ -126,8 +127,19 @@ namespace :ci do
   end
 
   task :check_env do
-    if ENV['SHA'].nil?
+    sha = ENV['SHA']
+    case sha
+    when /^\d+\.\d+\.\d+$/
+      # tags are ok
+    when /^[0-9a-f]{40}$/
+      # full SHAs are ok
+    when nil
       puts "Error: A SHA must be specified"
+      puts "\n"
+      puts USAGE
+      exit 1
+    else
+      puts "Error: Expected SHA to be a tag or 40 digit SHA, not '#{sha}'"
       puts "\n"
       puts USAGE
       exit 1
@@ -206,6 +218,35 @@ EOS
     end
 
     desc <<-EOS
+Setup acceptance tests using puppet-agent (AIO) packages.
+
+  $ SHA=<tag or full sha> HOSTS=<hosts> bundle exec rake ci:test:setup
+
+SHA should be the tag or full SHA for the puppet-agent package.
+
+HOSTS can be a beaker-hostgenerator string or existing file.
+EOS
+    task :setup => ['ci:check_env'] do |t, args|
+      unless ENV['HOSTS']
+        case File.basename(Dir.pwd.sub(/\/acceptance$/, ''))
+        when 'pxp-agent', 'puppet'
+          ENV['HOSTS'] ||= 'redhat7-64m-redhat7-64a'
+        else
+          ENV['HOSTS'] ||= 'redhat7-64a'
+        end
+      end
+
+      Rake::Task[:'ci:gen_hosts'].invoke('abs')
+      beaker_setup(:aio)
+      puts "\nSetup completed on:"
+      YAML.load_file('.beaker/subcommand_options.yaml').fetch('HOSTS', {}).each_pair do |hostname, data|
+        roles = data.fetch('roles', []).join(', ')
+        puts "- #{hostname} (#{roles})"
+      end
+      puts "\nRun 'bundle exec beaker exec <path>' where <path> is a directory or comma-separated list of tests."
+    end
+
+    desc <<-EOS
 Run the acceptance tests against puppet gem on various platforms, performing a
 basic smoke test.
 
@@ -263,6 +304,13 @@ def beaker(command, *argv)
   argv.concat(ENV['OPTIONS'].split(' ')) if ENV['OPTIONS']
 
   sh('beaker', command.to_s, *argv)
+end
+
+def beaker_setup(type)
+  beaker(:init, '--hosts', ENV['HOSTS'], '--preserve-hosts', 'always', '--options-file', "config/#{String(type)}/options.rb")
+  beaker(:provision)
+  beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
+  beaker(:exec, 'pre-suite', '--preserve-state')
 end
 
 def beaker_suite(type)
