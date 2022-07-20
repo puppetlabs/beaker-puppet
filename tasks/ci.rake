@@ -285,17 +285,22 @@ def beaker_suite_retry(type)
   beaker(:provision)
 
   begin
-    json_results_file = Tempfile.new
-
     beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
     beaker(:exec, 'pre-suite', '--preserve-state')
-    beaker(:exec, ENV['TESTS'], '--test-results-file', json_results_file.path)
-  rescue RuntimeError
-    tests_to_rerun = JSON.load(File.read(json_results_file.path))
-    if tests_to_rerun.length > 0
-      puts '*** Retrying the following:'
-      puts tests_to_rerun.map { |spec| "  #{spec}" }
-      beaker(:exec, tests_to_rerun.map { |str| "#{str}" }.join(',') )
+
+    begin
+      json_results_file = Tempfile.new
+      beaker(:exec, ENV['TESTS'], '--test-results-file', json_results_file.path)
+    rescue RuntimeError => e
+      puts "ERROR: #{e.message}"
+      tests_to_rerun = JSON.load(File.read(json_results_file.path))
+      if tests_to_rerun.nil? || tests_to_rerun.empty?
+        raise e
+      else
+        puts '*** Retrying the following:'
+        puts tests_to_rerun.map { |spec| "  #{spec}" }
+        beaker(:exec, tests_to_rerun.map { |str| "#{str}" }.join(',') )
+      end
     end
   ensure
     beaker(:exec, 'post-suite')
