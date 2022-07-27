@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.26.3](https://github.com/voxpupuli/beaker-puppet/tree/1.26.3) (2022-07-27)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.26.2...1.26.3)
+
+**Fixed bugs:**
+
+- Actually print the versions.txt file [\#193](https://github.com/voxpupuli/beaker-puppet/pull/193) ([joshcooper](https://github.com/joshcooper))
+
 ## [1.26.2](https://github.com/voxpupuli/beaker-puppet/tree/1.26.2) (2022-05-31)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.26.1...1.26.2)
