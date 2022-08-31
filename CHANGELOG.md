@@ -2,13 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.26.3](https://github.com/voxpupuli/beaker-puppet/tree/1.26.3) (2022-07-27)
+## [1.27.0](https://github.com/voxpupuli/beaker-puppet/tree/1.27.0) (2022-08-31)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.26.3...1.27.0)
+
+**Implemented enhancements:**
+
+- \(ITSYS-2543\) Adds workaround for EL8 PPCLE [\#198](https://github.com/voxpupuli/beaker-puppet/pull/198) ([mhashizume](https://github.com/mhashizume))
+
+**Fixed bugs:**
+
+- \(PA-4566\) Retry beaker exec if presuite completes [\#195](https://github.com/voxpupuli/beaker-puppet/pull/195) ([joshcooper](https://github.com/joshcooper))
+
+## [1.26.3](https://github.com/voxpupuli/beaker-puppet/tree/1.26.3) (2022-08-09)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.26.2...1.26.3)
 
 **Fixed bugs:**
 
 - Actually print the versions.txt file [\#193](https://github.com/voxpupuli/beaker-puppet/pull/193) ([joshcooper](https://github.com/joshcooper))
+
+**Merged pull requests:**
+
+- Release 1.26.3 [\#196](https://github.com/voxpupuli/beaker-puppet/pull/196) ([joshcooper](https://github.com/joshcooper))
 
 ## [1.26.2](https://github.com/voxpupuli/beaker-puppet/tree/1.26.2) (2022-05-31)
 
