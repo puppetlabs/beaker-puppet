@@ -110,8 +110,8 @@ SERVER:
 
 $project_SERVER:
     Similar to SERVER, but project specific. If you have only one project (i.e., hiera) that you
-    want to pull from a different server then all the others, you could set HIERA_SERVER=179.0.0.1,
-    and you would get back 'https://179.0.0.1/puppetlabs-hiera.git'.
+    want to pull from a different server then all the others, you could set HIERA_SERVER=192.0.2.1,
+    and you would get back 'https://192.0.2.1/puppetlabs-hiera.git'.
 
 RUNTIME_BRANCH:
     Currently only used with git-based testing. This must correspond to a branch in the
