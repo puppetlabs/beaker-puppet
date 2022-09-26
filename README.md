@@ -41,6 +41,23 @@ require 'beaker-puppet'
 Doing this will include (automatically) the beaker-puppet DSL methods in the
 beaker DSL. Then you can call beaker-puppet methods, exactly as you did before.
 
+## Running Puppet in debug mode
+
+When using `apply_manifest` to run Puppet, it is common that you need debug
+output. To achieve this, the debug option can be passed.
+
+```ruby
+apply_manifest_on(host, manifest, { debug: true })
+```
+
+This has the downside that Puppet always runs in debug mode, which is very
+verbose. Of course you can modify the spec, but that's tedious. An easier
+alternative is to use the environment variable `BEAKER_PUPPET_DEBUG`.
+
+```sh
+BEAKER_PUPPET_DEBUG=1 rspec spec/acceptance/my_spec.rb
+```
+
 # How Do I Test This?
 
 ### Unit / Spec Testing

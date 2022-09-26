@@ -459,7 +459,7 @@ module Beaker
             on_options[:acceptable_exit_codes] = Array(opts[:acceptable_exit_codes])
 
             puppet_apply_opts = {}
-            if opts[:debug]
+            if opts[:debug] || ENV['BEAKER_PUPPET_DEBUG']
               puppet_apply_opts[:debug] = nil
             else
               puppet_apply_opts[:verbose] = nil
