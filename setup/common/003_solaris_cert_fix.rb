@@ -72,10 +72,10 @@ EOM
 
 hosts.each do |host|
   next unless host.platform =~ /solaris-11(\.2)?-(i386|sparc)/ 
-  create_remote_file(host, "DigiCertTrustedRootG4.crt.pem", DigiCert)
-  on(host, 'chmod a+r /root/DigiCertTrustedRootG4.crt.pem')
-  on(host, 'cp -p /root/DigiCertTrustedRootG4.crt.pem /etc/certs/CA/')
-  on(host, 'rm /root/DigiCertTrustedRootG4.crt.pem')
+  create_remote_file(host, "DigiCert_Trusted_Root_G4.pem", DigiCert)
+  on(host, 'chmod a+r /root/DigiCert_Trusted_Root_G4.pem')
+  on(host, 'cp -p /root/DigiCert_Trusted_Root_G4.pem /etc/certs/CA/')
+  on(host, 'rm /root/DigiCert_Trusted_Root_G4.pem')
 
   if host.platform=~ /solaris-11-sparc/
     create_remote_file(host, "USERTrust_RSA_Certification_Authority.pem", USERTrust)
