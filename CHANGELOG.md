@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.29.0](https://github.com/voxpupuli/beaker-puppet/tree/1.29.0) (2022-11-02)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.28.0...1.29.0)
+
+**Implemented enhancements:**
+
+- Introduce BEAKER\_PUPPET\_DEBUG env var [\#197](https://github.com/voxpupuli/beaker-puppet/pull/197) ([ekohl](https://github.com/ekohl))
+
+**Fixed bugs:**
+
+- \(maint\) Fix DigiCert root cert to match fully patched Solaris 11.4 [\#202](https://github.com/voxpupuli/beaker-puppet/pull/202) ([yachub](https://github.com/yachub))
+
+**Merged pull requests:**
+
+- \(maint\) Uses RFC 5737 IP space in example [\#200](https://github.com/voxpupuli/beaker-puppet/pull/200) ([mhashizume](https://github.com/mhashizume))
+
 ## [1.28.0](https://github.com/voxpupuli/beaker-puppet/tree/1.28.0) (2022-09-08)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.27.0...1.28.0)
