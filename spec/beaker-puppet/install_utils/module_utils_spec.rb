@@ -158,7 +158,7 @@ describe ClassMixedWithDSLInstallUtils do
           expect( subject).to_not receive(:parse_for_modulename)
         end
 
-        allow( File ).to receive(:exists?).with(any_args()).and_return(false)
+        allow( File ).to receive(:exist?).with(any_args()).and_return(false)
         allow( File ).to receive(:directory?).with(any_args()).and_return(false)
 
         expect( subject ).to receive(:scp_to).with(host,source, File.dirname(target), {:ignore => ignore_list})
@@ -295,15 +295,15 @@ describe ClassMixedWithDSLInstallUtils do
   describe 'parse_for_modulename' do
     directory = '/testfilepath/myname-testmodule'
     it 'should return name from metadata.json' do
-      allow( File ).to receive(:exists?).with("#{directory}/metadata.json").and_return(true)
+      allow( File ).to receive(:exist?).with("#{directory}/metadata.json").and_return(true)
       allow( File ).to receive(:read).with("#{directory}/metadata.json").and_return(" {\"name\":\"myname-testmodule\"} ")
       expect( subject.logger ).to receive(:debug).with("Attempting to parse Modulename from metadata.json")
       expect(subject.logger).to_not receive(:debug).with('Unable to determine name, returning null')
       expect(subject.parse_for_modulename(directory)).to eq(['myname', 'testmodule'])
     end
     it 'should return name from Modulefile' do
-      allow( File ).to receive(:exists?).with("#{directory}/metadata.json").and_return(false)
-      allow( File ).to receive(:exists?).with("#{directory}/Modulefile").and_return(true)
+      allow( File ).to receive(:exist?).with("#{directory}/metadata.json").and_return(false)
+      allow( File ).to receive(:exist?).with("#{directory}/Modulefile").and_return(true)
       allow( File ).to receive(:read).with("#{directory}/Modulefile").and_return("name    'myname-testmodule'  \nauthor   'myname'")
       expect( subject.logger ).to receive(:debug).with("Attempting to parse Modulename from Modulefile")
       expect(subject.logger).to_not receive(:debug).with("Unable to determine name, returning null")
@@ -315,16 +315,16 @@ describe ClassMixedWithDSLInstallUtils do
     directory = '/testfilepath/myname-testmodule'
     describe 'stops searching when either' do
       it 'finds a Modulefile' do
-        allow( File ).to receive(:exists?).and_return(false)
-        allow( File ).to receive(:exists?).with("#{directory}/Modulefile").and_return(true)
+        allow( File ).to receive(:exist?).and_return(false)
+        allow( File ).to receive(:exist?).with("#{directory}/Modulefile").and_return(true)
 
         expect( subject.logger ).to_not receive(:debug).with("At root, can't parse for another directory")
         expect( subject.logger ).to receive(:debug).with("No Modulefile or metadata.json found at #{directory}/acceptance, moving up")
         expect(subject.parse_for_moduleroot("#{directory}/acceptance")).to eq(directory)
       end
       it 'finds a metadata.json file' do
-        allow( File ).to receive(:exists?).and_return(false)
-        allow( File ).to receive(:exists?).with("#{directory}/metadata.json").and_return(true)
+        allow( File ).to receive(:exist?).and_return(false)
+        allow( File ).to receive(:exist?).with("#{directory}/metadata.json").and_return(true)
 
         expect( subject.logger ).to_not receive(:debug).with("At root, can't parse for another directory")
         expect( subject.logger ).to receive(:debug).with("No Modulefile or metadata.json found at #{directory}/acceptance, moving up")
@@ -332,7 +332,7 @@ describe ClassMixedWithDSLInstallUtils do
       end
     end
     it 'should recersively go up the directory to find the module files' do
-      allow( File ).to receive(:exists?).and_return(false)
+      allow( File ).to receive(:exist?).and_return(false)
       expect( subject.logger ).to receive(:debug).with("No Modulefile or metadata.json found at #{directory}, moving up")
       expect( subject.logger ).to receive(:error).with("At root, can't parse for another directory")
       expect(subject.parse_for_moduleroot(directory)).to eq(nil)

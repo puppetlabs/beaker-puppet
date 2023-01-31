@@ -170,7 +170,7 @@ namespace :ci do
         end
       end
 
-    if File.exists?(hosts)
+    if File.exist?(hosts)
       ENV['HOSTS'] = hosts
     else
       hosts_file = "tmp/#{hosts}-#{SecureRandom.uuid}.yaml"
