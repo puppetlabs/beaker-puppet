@@ -126,7 +126,6 @@ module PlatformHelpers
 
   DEBIANPLATFORMS = ['debian',
                      'ubuntu',
-                     'cumulus',
                      'huaweios']
 
 
