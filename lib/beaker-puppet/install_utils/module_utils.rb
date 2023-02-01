@@ -173,7 +173,7 @@ module Beaker
         #
         # @return [String,nil]
         def parse_for_moduleroot(possible_module_directory)
-          if File.exists?("#{possible_module_directory}/Modulefile") || File.exists?("#{possible_module_directory}/metadata.json")
+          if File.exist?("#{possible_module_directory}/Modulefile") || File.exist?("#{possible_module_directory}/metadata.json")
             possible_module_directory
           elsif possible_module_directory === '/'
             logger.error "At root, can't parse for another directory"
@@ -190,14 +190,14 @@ module Beaker
         # @return [String] module name
         def parse_for_modulename(root_module_dir)
           author_name, module_name = nil, nil
-          if File.exists?("#{root_module_dir}/metadata.json")
+          if File.exist?("#{root_module_dir}/metadata.json")
             logger.debug "Attempting to parse Modulename from metadata.json"
             module_json = JSON.parse(File.read "#{root_module_dir}/metadata.json")
             if(module_json.has_key?('name'))
               author_name, module_name = get_module_name(module_json['name'])
             end
           end
-          if !module_name && File.exists?("#{root_module_dir}/Modulefile")
+          if !module_name && File.exist?("#{root_module_dir}/Modulefile")
             logger.debug "Attempting to parse Modulename from Modulefile"
             if /^name\s+'?(\w+-\w+)'?\s*$/i.match(File.read("#{root_module_dir}/Modulefile"))
               author_name, module_name = get_module_name(Regexp.last_match[1])
