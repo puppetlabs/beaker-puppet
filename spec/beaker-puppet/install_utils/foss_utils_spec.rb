@@ -1595,7 +1595,6 @@ describe ClassMixedWithDSLInstallUtils do
                               'solaris-10-x86_64',
                               'solaris-10-x86_64',
                               'solaris-11-x86_64',
-                              'cumulus-2.2-amd64',
                               'el-6-x86_64',
                               'redhat-7-x86_64',
                               'centos-7-x86_64',

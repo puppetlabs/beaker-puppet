@@ -275,7 +275,7 @@ module Beaker
         #  install_puppet_on(hosts)
         #
         # @note This will attempt to add a repository for apt.puppetlabs.com on
-        #       Debian, Ubuntu, or Cumulus machines, or yum.puppetlabs.com on EL or Fedora
+        #       Debian or Ubuntu machines, or yum.puppetlabs.com on EL or Fedora
         #       machines, then install the package 'puppet' or 'puppet-agent'.
         #
         # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
@@ -307,7 +307,7 @@ module Beaker
                 family = $1
                 relver = $2
                 install_puppet_from_rpm_on(host, opts.merge(:release => relver, :family => family))
-              elsif host['platform'] =~ /(ubuntu|debian|cumulus|huaweios)/
+              elsif host['platform'] =~ /(ubuntu|debian|huaweios)/
                 install_puppet_from_deb_on(host, opts)
               elsif host['platform'] =~ /windows/
                 relver = opts[:version]
@@ -357,7 +357,7 @@ module Beaker
         #  install_puppet_agent_on(hosts)
         #
         # @note This will attempt to add a repository for apt.puppetlabs.com on
-        #       Debian, Ubuntu, or Cumulus machines, or yum.puppetlabs.com on EL or Fedora
+        #       Debian or Ubuntu machines, or yum.puppetlabs.com on EL or Fedora
         #       machines, then install the package 'puppet-agent'.
         #
         # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
@@ -410,7 +410,7 @@ module Beaker
               when /el-|redhat|fedora|sles|centos|cisco_/
                 package_name = 'puppet-agent'
                 package_name << "-#{opts[:puppet_agent_version]}" if opts[:puppet_agent_version]
-              when /debian|ubuntu|cumulus|huaweios/
+              when /debian|ubuntu|huaweios/
                 package_name = 'puppet-agent'
                 package_name << "=#{opts[:puppet_agent_version]}-1#{host['platform'].codename}" if opts[:puppet_agent_version]
               when /windows/
@@ -941,7 +941,7 @@ module Beaker
               gempkg = case host['platform']
                        when /solaris-11/                            then 'ruby-18'
                        when /ubuntu-14/                             then 'ruby'
-                       when /solaris-10|ubuntu|debian|el-|cumulus|huaweios/  then 'rubygems'
+                       when /solaris-10|ubuntu|debian|el-|huaweios/  then 'rubygems'
                        when /openbsd/                               then 'ruby'
                        else
                          raise "install_puppet() called with default_action " +
@@ -957,7 +957,7 @@ module Beaker
               on host, 'ln -s /opt/csw/bin/gem /usr/bin/gem'
             end
 
-            if host['platform'] =~ /debian|ubuntu|solaris|cumulus|huaweios/
+            if host['platform'] =~ /debian|ubuntu|solaris|huaweios/
               gem_env = YAML.load( on( host, 'gem environment' ).stdout )
               gem_paths_array = gem_env['RubyGems Environment'].find {|h| h['GEM PATHS'] != nil }['GEM PATHS']
               path_with_gem = 'export PATH=' + gem_paths_array.join(':') + ':${PATH}'
@@ -1065,7 +1065,7 @@ module Beaker
                   { :package_proxy => opts[:package_proxy] } )
               end
 
-            when /^(debian|ubuntu|cumulus|huaweios)$/
+            when /^(debian|ubuntu|huaweios)$/
               if repo_name.match(/puppet\d*/)
                 url = if repo_name.match(/-nightly$/)
                         opts[:nightly_apt_repo_url]
@@ -1145,7 +1145,7 @@ module Beaker
           end
           scp_to( host, repo, to_path )
 
-          on( host, 'apt-get update' ) if host['platform'] =~ /ubuntu-|debian-|cumulus-|huaweios-/
+          on( host, 'apt-get update' ) if host['platform'] =~ /ubuntu-|debian-|huaweios-/
           nil
         end
 
@@ -1175,7 +1175,7 @@ module Beaker
                                   repo_configs_dir = nil,
                                   opts = options )
           variant, version, arch, codename = host['platform'].to_array
-          if variant !~ /^(fedora|el|redhat|centos|debian|ubuntu|cumulus|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
+          if variant !~ /^(fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
             raise "No repository installation step for #{variant} yet..."
           end
           repo_configs_dir ||= 'tmp/repo_configs'
@@ -1207,7 +1207,7 @@ module Beaker
         # @note This method is paired to be run directly after {#install_puppetlabs_dev_repo}
         #
         def install_packages_from_local_dev_repo( host, package_name )
-          if host['platform'] =~ /debian|ubuntu|cumulus|huaweios/
+          if host['platform'] =~ /debian|ubuntu|huaweios/
             find_filename = '*.deb'
             find_command  = 'dpkg -i'
           elsif host['platform'] =~ /fedora|el|redhat|centos/
@@ -1283,7 +1283,7 @@ module Beaker
             onhost_copy_base = opts[:copy_dir_external] || host.external_copy_base
 
             case variant
-            when /^(fedora|el|redhat|centos|debian|ubuntu|cumulus|huaweios|cisco_nexus|cisco_ios_xr)$/
+            when /^(fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr)$/
               if arch== 's390x' || host['hypervisor'] == 'ec2'
                 logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
               else
@@ -1485,7 +1485,7 @@ module Beaker
 
           # We have to do some silly version munging if we're on a deb-based platform
           case host['platform']
-          when /debian|ubuntu|cumulus|huaweios/
+          when /debian|ubuntu|huaweios/
             opts[:version] = "#{opts[:version]}-1#{host['platform'].codename}" if opts[:version]
           end
 
@@ -1507,7 +1507,7 @@ module Beaker
             cmdline_args = ''
             # query packages
             case host[:platform]
-            when /cumulus|huaweios|ubuntu/
+            when /huaweios|ubuntu/
               pkgs = on(host, "dpkg-query -l  | awk '{print $2}' | grep -E '(^pe-|puppet)'", :acceptable_exit_codes => [0,1]).stdout.chomp.split(/\n+/)
             when /aix|sles|el|redhat|centos|oracle|scientific/
               pkgs = on(host, "rpm -qa  | grep -E '(^pe-|puppet)'", :acceptable_exit_codes => [0,1]).stdout.chomp.split(/\n+/)
@@ -1563,7 +1563,7 @@ module Beaker
         def install_packages_on(hosts, package_hash, options = {})
           platform_patterns = {
             :redhat        => /fedora|el-|centos/,
-            :debian        => /debian|ubuntu|cumulus/,
+            :debian        => /debian|ubuntu/,
             :debian_ruby18 => /debian|ubuntu-lucid|ubuntu-precise/,
             :solaris_10    => /solaris-10/,
             :solaris_11    => /solaris-11/,
