@@ -1060,10 +1060,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'raises an exception when host platform is unsupported' do
-      platform = Object.new()
-      allow(platform).to receive(:to_array) { ['ptan', '5', 'x4']}
       host = basic_hosts.first
-      host['platform'] = platform
+      host['platform'] = Beaker::Platform.new('f5-5-x4')
       opts = { :version => '0.1.0' }
       allow( subject ).to receive( :options ).and_return( {} )
 
@@ -1073,10 +1071,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'runs the correct install for el-based platforms' do
-      platform = Object.new()
-      allow(platform).to receive(:to_array) { ['el', '5', 'x4']}
       host = basic_hosts.first
-      host['platform'] = platform
+      host['platform'] = Beaker::Platform.new('el-5-x86_64')
       sha_value = 'ereiuwoiur'
       opts = { :version => '0.1.0', :puppet_agent_sha => sha_value }
       allow( subject ).to receive( :options ).and_return( {} )
@@ -1089,10 +1085,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'runs the correct install for el-based platforms on s390x architectures' do
-      platform = Object.new()
-      allow(platform).to receive(:to_array) { ['el', '5', 's390x'] }
       host = basic_hosts.first
-      host['platform'] = platform
+      host['platform'] = Beaker::Platform.new('el-5-s390x')
       sha_value = 'ereiuwoiur'
       opts = { :version => '0.1.0', :puppet_agent_sha => sha_value }
       allow( subject ).to receive( :options ).and_return( {} )
@@ -1113,10 +1107,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'runs the correct agent install for el-based platforms on ec2 hypervisor' do
-      platform = Object.new()
-      allow(platform).to receive(:to_array) { ['el', '5', 'x4'] }
       host = basic_hosts.first
-      host['platform'] = platform
+      host['platform'] = Beaker::Platform.new('el-5-x86_64')
       host['hypervisor'] = 'ec2'
       sha_value = 'ereiuwoiur'
       opts = { :version => '0.1.0', :puppet_agent_sha => sha_value }
@@ -1138,8 +1130,7 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'runs the correct install for debian-based platforms' do
-      platform = Object.new()
-      allow(platform).to receive(:to_array) { ['debian', '5', 'x4']}
+      platform = Beaker::Platform.new('debian-5-x86_64')
       host = basic_hosts.first
       host['platform'] = platform
       sha_value = 'ereigregerge'
@@ -1172,10 +1163,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'runs the correct install for osx platforms' do
-      platform = Object.new()
-      allow(platform).to receive(:to_array) { ['osx', '10.9', 'x86_64', 'mavericks']}
       host = machost
-      host['platform'] = platform
+      host['platform'] = Beaker::Platform.new('osx-109-x86_64')
       sha_value = 'runs the correct install for osx platforms'
       copy_dir_external = 'fake_15_copy_dir_external'
       opts = {
@@ -1222,10 +1211,8 @@ describe ClassMixedWithDSLInstallUtils do
     it 'allows you to override the local copy directory' do
       # only applies to hosts that don't go down the
       # install_puppetlabs_dev_repo route
-      platform = Object.new()
-      allow( platform ).to receive( :to_array ) { ['eos', '5', 'x4'] }
       host = eoshost
-      host['platform'] = platform
+      host['platform'] = Beaker::Platform.new('eos-5-x86_64')
       sha_value = 'dahdahdahdah'
       copy_base_local_override = 'face'
       opts = {
@@ -1244,10 +1231,8 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'allows you to override the external copy directory' do
-      platform = Object.new()
-      allow(platform).to receive(:to_array) { ['osx', '5', 'x4']}
       host = basic_hosts.first
-      host['platform'] = platform
+      host['platform'] = Beaker::Platform.new('osx-5-x86_64')
       copy_dir_custom = 'muppetsBB8-1435'
       opts = { :version => '0.1.0', :copy_dir_external => copy_dir_custom }
       allow( subject ).to receive( :options ).and_return( {} )
@@ -1278,21 +1263,19 @@ describe ClassMixedWithDSLInstallUtils do
       mhosts[3] = eoshost
 
       mhosts.each_with_index do |host, index|
-        platform = Object.new()
         if index == 0
-          allow(platform).to receive(:to_array) { ['solaris', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('solaris-5-x4')
           allow(host).to receive(:external_copy_base) {'/host0'}
         elsif index == 1
-          allow(platform).to receive(:to_array) { ['windows', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('windows-5-x4')
           allow(host).to receive(:external_copy_base) {'/host1'}
         elsif index == 2
-          allow(platform).to receive(:to_array) { ['osx', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('osx-5-x4')
           allow(host).to receive(:external_copy_base) {'/host2'}
         elsif index == 3
-          allow(platform).to receive(:to_array) { ['eos', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('eos-5-x4')
           allow(host).to receive(:external_copy_base) {'/host3'}
         end
-        host['platform'] = platform
         allow(host).to receive(:puppet_agent_dev_package_info).with(any_args).and_return(["test", "blah"])
       end
 
@@ -1319,22 +1302,20 @@ describe ClassMixedWithDSLInstallUtils do
       mhosts[3] = eoshost
 
       mhosts.each_with_index do |host, index|
-        platform = Object.new()
         if index == 0
-          allow(platform).to receive(:to_array) { ['solaris', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('solaris-5-x4')
           allow(host).to receive(:external_copy_base) {'/host0'}
         elsif index == 1
-          allow(platform).to receive(:to_array) { ['windows', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('windows-5-x4')
           allow(host).to receive(:external_copy_base) {'/host1'}
         elsif index == 2
-          allow(platform).to receive(:to_array) { ['osx', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('osx-5-x4')
           allow(host).to receive(:external_copy_base) {'/host2'}
         elsif index == 3
-          allow(platform).to receive(:to_array) { ['eos', '5', 'x4']}
+          host['platform'] = Beaker::Platform.new('eos-5-x4')
           allow(host).to receive(:external_copy_base) {'/host3'}
         end
         allow(host).to receive(:puppet_agent_dev_package_info).with(any_args).and_return(["test", "/blah"])
-        host['platform'] = platform
       end
 
       expect( subject ).to receive(:add_role).with( any_args ).exactly(mhosts.length).times
@@ -1394,10 +1375,9 @@ describe ClassMixedWithDSLInstallUtils do
 
     context 'when setting different agent versions' do
       let( :host ) { basic_hosts.first }
-      let( :platform ) { Object.new() }
+      let( :platform ) { Beaker::Platform.new('el-6-x86_64') }
       let( :downloadurl ) { 'http://pm.puppet.com' }
       before :each do
-        allow( platform ).to receive( :to_array ) { ['el', '6', 'x4'] }
         allow( subject ).to receive( :options ).and_return( opts )
         allow( subject ).to receive( :scp_to )
         allow( subject ).to receive( :configure_type_defaults_on ).with( host )
