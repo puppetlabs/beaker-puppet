@@ -417,6 +417,8 @@ module Beaker
                 install_puppet_agent_from_msi_on(host, opts)
               when /osx/
                 install_puppet_agent_from_dmg_on(host, opts)
+              when /freebsd/
+                install_puppet_from_freebsd_ports_on(host, opts)
               when /archlinux/
                 install_puppet_from_pacman_on(host, opts)
               else
@@ -717,11 +719,7 @@ module Beaker
           end
 
           block_on hosts do |host|
-            if host['platform'] =~ /freebsd-9/
-              host.install_package("puppet")
-            else
-              host.install_package("sysutils/puppet")
-            end
+            host.install_package("sysutils/puppet7")
           end
 
         end

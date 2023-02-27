@@ -43,10 +43,10 @@ describe ClassMixedWithDSLInstallUtils do
                                                 :pe_ver => '3.0',
                                                 :type => 'foss',
                                                 :working_dir => '/tmp' } ) }
-  let(:freebsdhost9)   { make_host( 'freebsdhost9', { :platform => 'freebsd-9-x64',
+  let(:freebsdhost12)   { make_host( 'freebsdhost12', { :platform => 'freebsd-12-amd64',
                                                 :pe_ver => '3.0',
                                                 :working_dir => '/tmp' } ) }
-  let(:freebsdhost10)   { make_host( 'freebsdhost10', { :platform => 'freebsd-10-x64',
+  let(:freebsdhost13)   { make_host( 'freebsdhost13', { :platform => 'freebsd-13-amd64',
                                                 :pe_ver => '3.0',
                                                 :working_dir => '/tmp' } ) }
   let(:unixhost)      { make_host( 'unixhost', { :platform => 'linux',
@@ -319,16 +319,16 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   context 'install_puppet_from_freebsd_ports_on' do
-    it 'installs puppet on FreeBSD 9' do
-      expect(freebsdhost9).to receive(:install_package).with('puppet')
+    it 'installs puppet on FreeBSD 12' do
+      expect(freebsdhost12).to receive(:install_package).with('sysutils/puppet7')
 
-      subject.install_puppet_from_freebsd_ports_on( freebsdhost9, {}  )
+      subject.install_puppet_from_freebsd_ports_on( freebsdhost12, {}  )
     end
 
-    it 'installs puppet on FreeBSD 10' do
-      expect(freebsdhost10).to receive(:install_package).with('sysutils/puppet')
+    it 'installs puppet on FreeBSD 13' do
+      expect(freebsdhost13).to receive(:install_package).with('sysutils/puppet7')
 
-      subject.install_puppet_from_freebsd_ports_on( freebsdhost10, {}  )
+      subject.install_puppet_from_freebsd_ports_on( freebsdhost13, {}  )
     end
   end
 
@@ -556,6 +556,13 @@ describe ClassMixedWithDSLInstallUtils do
       let(:platform) { Beaker::Platform.new('archlinux-2015.09.01-x86_84') }
       it 'installs' do
         expect(hosts[0]).to receive(:install_package).with('puppet')
+        subject.install_puppet
+      end
+    end
+    context 'on freebsd' do
+      let(:platform) { Beaker::Platform.new('freebsd-13-amd64') }
+      it 'installs' do
+        expect(hosts[0]).to receive(:install_package).with('sysutils/puppet7')
         subject.install_puppet
       end
     end
