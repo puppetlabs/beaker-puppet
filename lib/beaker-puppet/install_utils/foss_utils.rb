@@ -720,8 +720,8 @@ module Beaker
 
           block_on hosts do |host|
             host.install_package("sysutils/puppet7")
+            configure_type_defaults_on( host )
           end
-
         end
         alias_method :install_puppet_from_freebsd_ports, :install_puppet_from_freebsd_ports_on
 
