@@ -1057,8 +1057,6 @@ describe ClassMixedWithDSLHelpers do
       end
 
       context 'running from source' do
-        let('use-service') { false }
-
         it 'does not try to stop if not started' do
           expect( subject ).to receive(:start_puppet_from_source_on!).and_return false
           expect( subject ).to_not receive(:stop_puppet_from_source_on)
