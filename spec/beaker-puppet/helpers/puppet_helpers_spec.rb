@@ -1237,7 +1237,6 @@ describe ClassMixedWithDSLHelpers do
       host = FakeHost.create
       allow( result ).to receive( :exit_code ).and_return( 0 )
       allow( host ).to receive( :any_exec_result ).and_return( result )
-      allow( host ).to receive( :graceful_restarts? ).and_return( false )
 
       expect( Beaker::Command ).to receive( :new ).with(
         /service not_real_service reload/
@@ -1259,7 +1258,6 @@ describe ClassMixedWithDSLHelpers do
 
     it 'uses the default port argument if none given' do
       host = FakeHost.create
-      expect( host ).to receive( :graceful_restarts? ).and_return( false )
       allow( result ).to receive( :exit_code ).and_return( 1 )
       expect( subject ).to receive( :curl_with_retries ).with(
         anything, anything, /8140/, anything, anything
@@ -1269,7 +1267,6 @@ describe ClassMixedWithDSLHelpers do
 
     it 'takes the port argument' do
       host = FakeHost.create
-      expect( host ).to receive( :graceful_restarts? ).and_return( false )
       allow( result ).to receive( :exit_code ).and_return( 1 )
       expect( subject ).to receive( :curl_with_retries ).with(
         anything, anything, /8000/, anything, anything

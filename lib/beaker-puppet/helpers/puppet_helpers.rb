@@ -200,11 +200,7 @@ module Beaker
                                           'puppet.conf')
             lay_down_new_puppet_conf host, conf_opts, testdir
 
-            if host.use_service_scripts? && !service_args[:bypass_service_script]
-              bounce_service( host, host['puppetservice'], curl_retries )
-            else
-              puppet_master_started = start_puppet_from_source_on!( host, cmdline_args )
-            end
+            puppet_master_started = start_puppet_from_source_on!( host, cmdline_args )
 
             yield self if block_given?
 
@@ -227,21 +223,12 @@ module Beaker
           ensure
             begin
 
-              if host.use_service_scripts? && !service_args[:bypass_service_script]
-                restore_puppet_conf_from_backup( host, backup_file )
-                if restart_when_done
-                  bounce_service( host, host['puppetservice'], curl_retries )
-                else
-                  host.exec puppet_resource('service', host['puppetservice'], 'ensure=stopped')
-                end
+              if puppet_master_started
+                stop_puppet_from_source_on( host )
               else
-                if puppet_master_started
-                  stop_puppet_from_source_on( host )
-                else
-                  dump_puppet_log(host)
-                end
-                restore_puppet_conf_from_backup( host, backup_file )
+                dump_puppet_log(host)
               end
+              restore_puppet_conf_from_backup( host, backup_file )
 
             rescue Exception => teardown_exception
               begin
@@ -360,19 +347,13 @@ module Beaker
         def bounce_service host, service, curl_retries = nil, port = nil
           curl_retries = 120 if curl_retries.nil?
           port = options[:puppetserver_port] if port.nil?
-          if host.graceful_restarts?
-            service = host.check_for_command('apache2ctl') ? 'apache2ctl' : 'apachectl'
-            apachectl_path = host.is_pe? ? "#{host['puppetsbindir']}/#{service}" : service
-            host.exec(Command.new("#{apachectl_path} graceful"))
+          result = host.exec(Command.new("service #{service} reload"),
+                             :acceptable_exit_codes => [0,1,3])
+          if result.exit_code == 0
+            return result
           else
-            result = host.exec(Command.new("service #{service} reload"),
-                               :acceptable_exit_codes => [0,1,3])
-            if result.exit_code == 0
-              return result
-            else
-              host.exec puppet_resource('service', service, 'ensure=stopped')
-              host.exec puppet_resource('service', service, 'ensure=running')
-            end
+            host.exec puppet_resource('service', service, 'ensure=stopped')
+            host.exec puppet_resource('service', service, 'ensure=running')
           end
           curl_with_retries(" #{service} ", host, "https://localhost:#{port}", [35, 60], curl_retries)
         end

@@ -58,11 +58,6 @@ describe ClassMixedWithDSLInstallUtils do
       subject.configure_defaults_on(hosts, 'aio')
     end
 
-    it "can set pe defaults" do
-      expect(subject).to receive(:add_pe_defaults_on).exactly(hosts.length).times
-      subject.configure_defaults_on(hosts, 'pe')
-    end
-
     it 'can remove old defaults ands replace with new' do
       # fake the results of calling configure_pe_defaults_on
       hosts.each do |host|
@@ -116,25 +111,6 @@ describe ClassMixedWithDSLInstallUtils do
       expect(subject).to receive(:add_aio_defaults_on).exactly(hosts.length).times
       subject.configure_type_defaults_on(hosts)
     end
-
-    it "can set pe defaults for pe type" do
-      hosts.each do |host|
-        host['type'] = 'pe'
-      end
-      expect(subject).to receive(:add_pe_defaults_on).exactly(hosts.length).times
-      subject.configure_type_defaults_on(hosts)
-    end
-
-    it "adds aio defaults to pe hosts when they an aio pe version" do
-      hosts.each do |host|
-        host['type'] = 'pe'
-        host['pe_ver'] = '4.0'
-      end
-      expect(subject).to receive(:add_pe_defaults_on).exactly(hosts.length).times
-      expect(subject).to receive(:add_aio_defaults_on).exactly(hosts.length).times
-      subject.configure_type_defaults_on(hosts)
-    end
-
   end
 
   describe '#puppetserver_version_on' do
