@@ -12,6 +12,12 @@ def location_for(place, fake_version = nil)
   end
 end
 
+ group :rubocop do
+  gem 'rubocop', '~> 1.12.0'
+  gem 'rubocop-performance'
+  gem 'rubocop-rake'
+  gem 'rubocop-rspec'
+end
 
 group :test do
   gem "beaker", *location_for(ENV['BEAKER_VERSION'] || ['>= 4.30.0', '< 5.0.0'])
@@ -23,6 +29,6 @@ group :release do
 end
 
 group :coverage, optional: ENV['COVERAGE']!='yes' do
-  gem 'simplecov-console', :require => false
   gem 'codecov', :require => false
+  gem 'simplecov-console', :require => false
 end

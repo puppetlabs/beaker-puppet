@@ -20,17 +20,17 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # Testing dependencies
-  s.add_development_dependency 'rspec', '~> 3.0'
-  s.add_development_dependency 'rspec-its'
   s.add_development_dependency 'fakefs', '>= 0.6', '< 2.0'
   s.add_development_dependency 'rake', '~> 13.0'
+  s.add_development_dependency 'rspec', '~> 3.0'
+  s.add_development_dependency 'rspec-its'
 
   # Acceptance Testing Dependencies
   s.add_development_dependency 'beaker-vmpooler'
 
   # Documentation dependencies
-  s.add_development_dependency 'yard'
   s.add_development_dependency 'thin'
+  s.add_development_dependency 'yard'
 
   # Run time dependencies
   s.add_runtime_dependency 'beaker', '~> 4.1'
