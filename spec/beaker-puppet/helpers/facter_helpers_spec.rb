@@ -63,7 +63,7 @@ describe ClassMixedWithDSLHelpers do
       allow( subject ).to receive( :on ).and_return( result )
       structured_fact = subject.fact_on('host','identity')
 
-      expect(structured_fact['uid'].class).to be Fixnum
+      expect(structured_fact['uid'].class).to be Integer
       expect(structured_fact['user'].class).to be String
       expect(structured_fact['privileged'].class).to be (TrueClass or FalseClass)
     end

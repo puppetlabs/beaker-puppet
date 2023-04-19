@@ -9,7 +9,7 @@ module Beaker
         # @!macro [new] common_opts
         #   @param [Hash{Symbol=>String}] opts Options to alter execution.
         #   @option opts [Boolean] :silent (false) Do not produce log output
-        #   @option opts [Array<Fixnum>] :acceptable_exit_codes ([0]) An array
+        #   @option opts [Array<Integer>] :acceptable_exit_codes ([0]) An array
         #     (or range) of integer exit codes that should be considered
         #     acceptable.  An error will be thrown if the exit code does not
         #     match one of the values in this list.

@@ -29,7 +29,7 @@ module Beaker
         # @!macro [new] common_opts
         #   @param [Hash{Symbol=>String}] opts Options to alter execution.
         #   @option opts [Boolean] :silent (false) Do not produce log output
-        #   @option opts [Array<Fixnum>] :acceptable_exit_codes ([0]) An array
+        #   @option opts [Array<Integer>] :acceptable_exit_codes ([0]) An array
         #     (or range) of integer exit codes that should be considered
         #     acceptable.  An error will be thrown if the exit code does not
         #     match one of the values in this list.
@@ -347,8 +347,8 @@ module Beaker
         #
         # @param [Host] host Host the service runs on
         # @param [String] service Name of the service to restart
-        # @param [Fixnum] curl_retries Number of seconds to wait for the restart to complete before failing
-        # @param [Fixnum] port Port to check status at
+        # @param [Integer] curl_retries Number of seconds to wait for the restart to complete before failing
+        # @param [Integer] port Port to check status at
         #
         # @return [Result] Result of last status check
         # @!visibility private
@@ -697,8 +697,8 @@ module Beaker
         # Waits until a successful curl check has happened against puppetdb
         #
         # @param [Host] host Host puppetdb is on
-        # @param [Fixnum] nonssl_port Port to make the HTTP status check over
-        # @param [Fixnum] ssl_port Port to make the HTTPS status check over
+        # @param [Integer] nonssl_port Port to make the HTTP status check over
+        # @param [Integer] ssl_port Port to make the HTTPS status check over
         #
         # @return [Result] Result of the last HTTPS status check
         def sleep_until_puppetdb_started(host, nonssl_port = nil, ssl_port = nil)
@@ -724,7 +724,7 @@ module Beaker
         # Waits until a successful curl check has happened against puppetserver
         #
         # @param [Host] host Host puppetserver is on
-        # @param [Fixnum] port Port to make the HTTPS status check over
+        # @param [Integer] port Port to make the HTTPS status check over
         #
         # @return [Result] Result of the last HTTPS status check
         def sleep_until_puppetserver_started(host, port = nil)
@@ -736,7 +736,7 @@ module Beaker
         # Waits until a successful curl check has happaned against node classifier
         #
         # @param [Host] host Host node classifier is on
-        # @param [Fixnum] port Port to make the HTTPS status check over
+        # @param [Integer] port Port to make the HTTPS status check over
         #
         # @return [Result] Result of the last HTTPS status check
         def sleep_until_nc_started(host, port = nil)
