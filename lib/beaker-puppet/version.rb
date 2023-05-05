@@ -1,3 +1,3 @@
 module BeakerPuppet
-  VERSION = '1.29.0'
+  VERSION = '2.0.0'
 end

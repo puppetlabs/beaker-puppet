@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0](https://github.com/voxpupuli/beaker-puppet/tree/2.0.0) (2023-05-05)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.29.0...2.0.0)
+
+**Breaking changes:**
+
+- Drop Ruby 2.4/2.5/2.6 & GCG: Add faraday-retry dep [\#218](https://github.com/voxpupuli/beaker-puppet/pull/218) ([bastelfreak](https://github.com/bastelfreak))
+- add support for recent FreeBSD versions; Drop FreeBSD 9/10 support [\#207](https://github.com/voxpupuli/beaker-puppet/pull/207) ([evgeni](https://github.com/evgeni))
+- Removes deprecated network device platforms [\#205](https://github.com/voxpupuli/beaker-puppet/pull/205) ([mhashizume](https://github.com/mhashizume))
+
+**Implemented enhancements:**
+
+- Implement RuboCop [\#212](https://github.com/voxpupuli/beaker-puppet/pull/212) ([bastelfreak](https://github.com/bastelfreak))
+- \(maint\) Call `exist?` instead of `exists?` [\#204](https://github.com/voxpupuli/beaker-puppet/pull/204) ([mhashizume](https://github.com/mhashizume))
+
+**Fixed bugs:**
+
+- configure defaults on FreeBSD [\#210](https://github.com/voxpupuli/beaker-puppet/pull/210) ([evgeni](https://github.com/evgeni))
+
+**Merged pull requests:**
+
+- Update fakefs requirement from \>= 0.6, \< 2.0 to \>= 0.6, \< 3.0 [\#222](https://github.com/voxpupuli/beaker-puppet/pull/222) ([dependabot[bot]](https://github.com/apps/dependabot))
+- rubocop: fix layout cops [\#221](https://github.com/voxpupuli/beaker-puppet/pull/221) ([bastelfreak](https://github.com/bastelfreak))
+- rubocop: fix style violations [\#220](https://github.com/voxpupuli/beaker-puppet/pull/220) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Build gems with strictness and verbosity & dependencies: Add version constraints [\#219](https://github.com/voxpupuli/beaker-puppet/pull/219) ([bastelfreak](https://github.com/bastelfreak))
+- CI: apply Vox Pupuli best practices [\#217](https://github.com/voxpupuli/beaker-puppet/pull/217) ([bastelfreak](https://github.com/bastelfreak))
+- Drop in-parallel dependency [\#214](https://github.com/voxpupuli/beaker-puppet/pull/214) ([ekohl](https://github.com/ekohl))
+- Bump actions/checkout from 2 to 3 [\#211](https://github.com/voxpupuli/beaker-puppet/pull/211) ([dependabot[bot]](https://github.com/apps/dependabot))
+- tests: Always set the platform as a Beaker::Platform instance [\#209](https://github.com/voxpupuli/beaker-puppet/pull/209) ([ekohl](https://github.com/ekohl))
+- dependabot: check for github actions [\#208](https://github.com/voxpupuli/beaker-puppet/pull/208) ([bastelfreak](https://github.com/bastelfreak))
+
 ## [1.29.0](https://github.com/voxpupuli/beaker-puppet/tree/1.29.0) (2022-11-02)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.28.0...1.29.0)
