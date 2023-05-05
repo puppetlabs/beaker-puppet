@@ -23,13 +23,13 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'fakefs', '>= 0.6', '< 2.0'
   s.add_development_dependency 'rake', '~> 13.0'
   s.add_development_dependency 'rspec', '~> 3.0'
-  s.add_development_dependency 'rspec-its'
+  s.add_development_dependency 'rspec-its', '~> 1.3'
   s.add_development_dependency 'voxpupuli-rubocop', '~> 1.2'
 
   # Acceptance Testing Dependencies
-  s.add_development_dependency 'beaker-vmpooler'
+  s.add_development_dependency 'beaker-vmpooler', '~> 1.4'
 
   # Run time dependencies
   s.add_runtime_dependency 'beaker', '~> 4.1'
-  s.add_runtime_dependency 'oga'
+  s.add_runtime_dependency 'oga', '~> 3.4'
 end
