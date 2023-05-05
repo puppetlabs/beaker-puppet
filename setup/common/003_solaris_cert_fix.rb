@@ -1,7 +1,7 @@
 test_name 'Add digicert to solaris keystore'
 
 # Only need to run this on soliars 11, 11.2, and sparc
-skip_test 'No solaris 11 version that needed keystore updating' if ! hosts.any? { |host| host.platform=~ /solaris-11(\.2)?-(i386|sparc)/}
+skip_test 'No solaris 11 version that needed keystore updating' unless hosts.any? { |host| host.platform=~ /solaris-11(\.2)?-(i386|sparc)/}
 
 DigiCert = <<-EOM
 -----BEGIN CERTIFICATE-----
@@ -72,13 +72,13 @@ EOM
 
 hosts.each do |host|
   next unless host.platform =~ /solaris-11(\.2)?-(i386|sparc)/ 
-  create_remote_file(host, "DigiCert_Trusted_Root_G4.pem", DigiCert)
+  create_remote_file(host, 'DigiCert_Trusted_Root_G4.pem', DigiCert)
   on(host, 'chmod a+r /root/DigiCert_Trusted_Root_G4.pem')
   on(host, 'cp -p /root/DigiCert_Trusted_Root_G4.pem /etc/certs/CA/')
   on(host, 'rm /root/DigiCert_Trusted_Root_G4.pem')
 
   if host.platform=~ /solaris-11-sparc/
-    create_remote_file(host, "USERTrust_RSA_Certification_Authority.pem", USERTrust)
+    create_remote_file(host, 'USERTrust_RSA_Certification_Authority.pem', USERTrust)
     on(host, 'chmod a+r /root/USERTrust_RSA_Certification_Authority.pem')
     on(host, 'cp -p /root/USERTrust_RSA_Certification_Authority.pem /etc/certs/CA/')
     on(host, 'rm /root/USERTrust_RSA_Certification_Authority.pem')
@@ -87,9 +87,9 @@ hosts.each do |host|
   on(host, '/usr/sbin/svcadm restart /system/ca-certificates')
   timeout = 60
   counter = 0
-  while on(host, 'svcs -x ca-certificates').output !~ /State: online/ do
+  while on(host, 'svcs -x ca-certificates').output !~ /State: online/
     raise 'ca-certificates services failed start up' if counter > timeout
     sleep 5
-    counter = counter + 5
+    counter += 5
   end
 end

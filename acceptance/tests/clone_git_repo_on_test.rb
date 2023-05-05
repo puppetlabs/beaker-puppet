@@ -1,34 +1,34 @@
 require 'beaker-puppet'
 
-confine :except, :platform => /^solaris-10/
+confine :except, platform: /^solaris-10/
 
 test_name 'Clone from git' do
 
   PACKAGES = {
-    :redhat => [
+    redhat: [
       'git',
     ],
-    :debian => [
-      ['git', 'git-core'],
+    debian: [
+      %w[git git-core],
     ],
-    :solaris_11 => [
+    solaris_11: [
       ['git', 'developer/versioning/git'],
     ],
-    :solaris_10 => [
+    solaris_10: [
       'coreutils',
       'curl', # update curl to fix "CURLOPT_SSL_VERIFYHOST no longer supports 1 as value!" issue
       'git',
     ],
-    :windows => [
+    windows: [
       'git',
     ],
-    :sles => [
+    sles: [
       'git-core',
-    ]
+    ],
   }
 
 
-  install_packages_on(hosts, PACKAGES, :check_if_exists => true)
+  install_packages_on(hosts, PACKAGES, check_if_exists: true)
 
   # implicitly tests build_giturl() and lookup_in_env()
   hosts.each do |host|

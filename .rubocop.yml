@@ -4,14 +4,5 @@ inherit_from: .rubocop_todo.yml
 inherit_gem:
   voxpupuli-rubocop: rubocop.yml
 
-Style/HashSyntax:
-  Enabled: false
-
-Metrics:
-  Enabled: false
-
-Style:
-  Enabled: false
-
 Layout:
   Enabled: false

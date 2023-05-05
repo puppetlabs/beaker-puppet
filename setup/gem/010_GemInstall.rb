@@ -1,7 +1,7 @@
-test_name "Install puppet gem"
+test_name 'Install puppet gem'
 
 agents.each do |agent|
-  sha = ENV['SHA']
+  sha = ENV.fetch('SHA', nil)
   base_url = "http://builds.delivery.puppetlabs.net/puppet/#{sha}/artifacts"
 
   ruby_command = ruby_command(agent)
@@ -27,7 +27,7 @@ agents.each do |agent|
   step "Download puppet gem from #{url}"
   on(agent, "curl -s -o puppet.gem #{url}")
 
-  step "Install puppet.gem"
+  step 'Install puppet.gem'
   on(agent, "#{gem_command} install puppet.gem")
 
   step "Verify it's sane"

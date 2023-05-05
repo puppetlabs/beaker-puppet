@@ -1,4 +1,4 @@
-test_name "Install repositories on target machines..." do
+test_name 'Install repositories on target machines...' do
 
   repositories = options[:install].map do |url|
     extract_repo_info_from(build_git_url(url))
@@ -29,14 +29,14 @@ test_name "Install repositories on target machines..." do
       repo_dir = host.tmpdir(repository[:name])
       on(host, "chmod 755 #{repo_dir}")
 
-      gem_source = ENV["GEM_SOURCE"] || "https://rubygems.org"
+      gem_source = ENV['GEM_SOURCE'] || 'https://rubygems.org'
 
       case repository[:path]
       when /^(git:|https:|git@)/
         sha = ENV['SHA'] || `git rev-parse HEAD`.chomp
         gem_path = ":git => '#{repository[:path]}', :ref => '#{sha}'"
-      when /^file:\/\/(.*)/
-        gem_path = ":path => '#{$1}'"
+      when %r{^file://(.*)}
+        gem_path = ":path => '#{Regexp.last_match(1)}'"
       else
         gem_path = repository[:path]
       end
@@ -50,7 +50,7 @@ gem '#{repository[:name]}', #{gem_path}
         # bundle must be passed a Windows style path for a binstubs location
         bindir = host['puppetbindir'].split(':').first
         binstubs_dir = on(host, "cygpath -m \"#{bindir}\"").stdout.chomp
-        # note passing --shebang to bundle is not useful because Cygwin
+        # NOTE: passing --shebang to bundle is not useful because Cygwin
         # already finds the Ruby interpreter OK with the standard shebang of:
         # !/usr/bin/env ruby
         # the problem is a Cygwin style path is passed to the interpreter and this can't be modified:
@@ -70,7 +70,7 @@ gem '#{repository[:name]}', #{gem_path}
     end
   end
 
-  step "Hosts: create environments directory like AIO does" do
+  step 'Hosts: create environments directory like AIO does' do
     agents.each do |host|
       codedir = host.puppet['codedir']
       on host, "mkdir -p #{codedir}/environments/production/manifests"

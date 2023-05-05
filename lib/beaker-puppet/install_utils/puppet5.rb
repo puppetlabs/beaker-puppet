@@ -19,13 +19,11 @@ module Beaker
           dst_folder          = Dir.mktmpdir
 
           at_exit do
-            if $!.nil? || ($!.is_a?(SystemExit) && $!.success?)
-              if File.directory?(dst_folder)
+            if ($!.nil? || ($!.is_a?(SystemExit) && $!.success?)) && File.directory?(dst_folder)
                 require 'fileutils'
 
                 FileUtils.rm_rf(dst_folder)
               end
-            end
           end
 
           sha_yaml_filename   = File.basename(sha_yaml_url)
@@ -34,7 +32,7 @@ module Beaker
           sha_yaml_file_local_path = fetch_http_file(
             sha_yaml_folder_url,
             sha_yaml_filename,
-            dst_folder
+            dst_folder,
           )
 
           file_hash = YAML.load_file(sha_yaml_file_local_path)
@@ -52,7 +50,7 @@ module Beaker
             fail_test(message)
           end
 
-          return sha_yaml_folder_url, file_hash[:platform_data]
+          [sha_yaml_folder_url, file_hash[:platform_data]]
         end
 
         # Get the host's packaging platform, based on beaker-hostgenerator's
@@ -66,7 +64,7 @@ module Beaker
         def host_packaging_platform(host)
           packaging_platform = host[:packaging_platform]
           if ENV['BEAKER_PACKAGING_PLATFORMS']
-            overrides = Hash[ENV['BEAKER_PACKAGING_PLATFORMS'].split(',').map { |e| e.split('=') }]
+            overrides = ENV['BEAKER_PACKAGING_PLATFORMS'].split(',').map { |e| e.split('=') }.to_h
             logger.debug("Found packaging platform overrides: #{overrides}")
             if overrides[host[:platform]]
               platform = overrides[host[:platform]]
@@ -96,7 +94,7 @@ module Beaker
             fail_test( message )
           end
 
-          logger.debug("Platforms available for this build:")
+          logger.debug('Platforms available for this build:')
           logger.debug("#{ build_details.keys }")
           logger.debug("PLATFORM SPECIFIC INFO for #{host} (packaging name '#{packaging_platform}'):")
           packaging_data = build_details[packaging_platform]
@@ -118,9 +116,9 @@ module Beaker
           repoconfig_url  = "#{build_url}/#{repoconfig_buildserver_path}" unless repoconfig_buildserver_path.nil?
           artifact_url_correct = link_exists?( artifact_url )
           logger.debug("- artifact url: '#{artifact_url}'. Exists? #{artifact_url_correct}")
-          fail_test('artifact url built incorrectly') if !artifact_url_correct
+          fail_test('artifact url built incorrectly') unless artifact_url_correct
 
-          return artifact_url, repoconfig_url
+          [artifact_url, repoconfig_url]
         end
 
         # install build artifact on the given host
@@ -131,12 +129,12 @@ module Beaker
         #
         # @return nil
         def install_artifact_on(host, artifact_url, project_name)
-          variant, version, _, _ = host[:platform].to_array
+          variant, version, = host[:platform].to_array
           case variant
           when 'eos'
             host.get_remote_file(artifact_url)
             onhost_package_file = File.basename(artifact_url)
-            # TODO Will be refactored into {Beaker::Host#install_local_package}
+            # TODO: Will be refactored into {Beaker::Host#install_local_package}
             #   immediately following this work. The release timing makes it
             #   necessary to have this here separately for a short while
             host.install_from_file(onhost_package_file)
@@ -166,14 +164,12 @@ module Beaker
             scp_to host, artifact_filename, onhost_package_dir
             onhost_package_file = "#{onhost_package_dir}/#{artifact_filename}"
 
-            # TODO Will be refactored into {Beaker::Host#install_local_package}
+            # TODO: Will be refactored into {Beaker::Host#install_local_package}
             #   immediately following this work. The release timing makes it
             #   necessary to have this here seperately for a short while
             # NOTE: the AIX 7.1 package will only install on 7.2 with
             # --ignoreos. This is a bug in package building on AIX 7.1's RPM
-            if version == "7.2"
-              aix_72_ignoreos_hack = "--ignoreos"
-            end
+            aix_72_ignoreos_hack = '--ignoreos' if version == '7.2'
             on host, "rpm -ivh #{aix_72_ignoreos_hack} #{onhost_package_file}"
           else
             host.install_package(artifact_url)
@@ -208,7 +204,7 @@ module Beaker
         #
         # @return nil
         def install_from_build_data_url(project_name, sha_yaml_url, local_hosts = nil)
-          if !link_exists?( sha_yaml_url )
+          unless link_exists?( sha_yaml_url )
             message = <<-EOF
               Unable to locate a downloadable build of #{project_name} (tried #{sha_yaml_url})
             EOF
@@ -237,9 +233,7 @@ module Beaker
         # @param [String] ref to install (this can be a tag or a long SHA)
         def install_puppet_agent_from_dev_builds_on(one_or_more_hosts, ref)
           block_on(one_or_more_hosts, run_in_parallel: true) do |host|
-            unless dev_builds_accessible_on?(host)
-              fail_test("Can't install puppet-agent #{ref}: unable to access Puppet's internal builds")
-            end
+            fail_test("Can't install puppet-agent #{ref}: unable to access Puppet's internal builds") unless dev_builds_accessible_on?(host)
           end
           sha_yaml_url = File.join(DEFAULT_DEV_BUILDS_URL, 'puppet-agent', ref, 'artifacts', "#{ref}.yaml")
           install_from_build_data_url('puppet-agent', sha_yaml_url, one_or_more_hosts)

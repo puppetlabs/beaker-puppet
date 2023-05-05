@@ -8,17 +8,17 @@ module Beaker
 
         #Here be the default download URLs
         FOSS_DEFAULT_DOWNLOAD_URLS = {
-          :win_download_url         => "https://downloads.puppet.com/windows",
-          :mac_download_url         => "https://downloads.puppet.com/mac",
-          :pe_promoted_builds_url   => "https://pm.puppet.com",
-          :release_apt_repo_url     => "https://apt.puppet.com",
-          :release_yum_repo_url     => "https://yum.puppet.com",
-          :nightly_builds_url       => "https://nightlies.puppet.com",
-          :nightly_apt_repo_url     => "https://nightlies.puppet.com/apt",
-          :nightly_yum_repo_url     => "https://nightlies.puppet.com/yum",
-          :nightly_win_download_url => "https://nightlies.puppet.com/downloads/windows",
-          :nightly_mac_download_url => "https://nightlies.puppet.com/downloads/mac",
-          :dev_builds_url           => "https://builds.delivery.puppetlabs.net",
+          win_download_url: 'https://downloads.puppet.com/windows',
+          mac_download_url: 'https://downloads.puppet.com/mac',
+          pe_promoted_builds_url: 'https://pm.puppet.com',
+          release_apt_repo_url: 'https://apt.puppet.com',
+          release_yum_repo_url: 'https://yum.puppet.com',
+          nightly_builds_url: 'https://nightlies.puppet.com',
+          nightly_apt_repo_url: 'https://nightlies.puppet.com/apt',
+          nightly_yum_repo_url: 'https://nightlies.puppet.com/yum',
+          nightly_win_download_url: 'https://nightlies.puppet.com/downloads/windows',
+          nightly_mac_download_url: 'https://nightlies.puppet.com/downloads/mac',
+          dev_builds_url: 'https://builds.delivery.puppetlabs.net',
         }
 
         #Here be the pathing and default values for FOSS installs
@@ -142,11 +142,11 @@ module Beaker
             host[key] = val
           end
           # add the group and type for backwards compatability 
-          if host['platform'] =~ /windows/
-            host['group'] = 'Administrators'
+          host['group'] = if host['platform'] =~ /windows/
+            'Administrators'
           else
-            host['group'] = 'puppet'
-          end
+            'puppet'
+                          end
           host['type'] = 'foss'
         end
 
@@ -155,22 +155,22 @@ module Beaker
         #                            or a role (String or Symbol) that identifies one or more hosts.
         def add_foss_defaults_on(hosts)
           block_on hosts do | host |
-            case host.class.to_s.downcase
+            platform = case host.class.to_s.downcase
             when /aix|unix/
-              platform = 'unix'
+              'unix'
             when /freebsd/
-              platform = 'freebsd'
+              'freebsd'
             when /openbsd/
-              platform = 'openbsd'
+              'openbsd'
             when /mac/
-              platform = 'mac'
+              'mac'
             when /pswindows/
-              platform = 'pswindows'
+              'pswindows'
             when /archlinux/
-              platform = 'archlinux'
+              'archlinux'
             else
-              platform = 'windows'
-            end
+              'windows'
+                       end
             add_platform_foss_defaults(host, platform)
           end
         end
@@ -191,20 +191,20 @@ module Beaker
         #                            or a role (String or Symbol) that identifies one or more hosts.
         def remove_foss_defaults_on(hosts)
           block_on hosts do | host |
-            case host.class.to_s.downcase
+            platform = case host.class.to_s.downcase
             when /aix|unix/
-              platform = 'unix'
+              'unix'
             when /freebsd/
-              platform = 'freebsd'
+              'freebsd'
             when /openbsd/
-              platform = 'openbsd'
+              'openbsd'
             when /mac/
-              platform = 'mac'
+              'mac'
             when /pswindows/
-              platform = 'pswindows'
+              'pswindows'
             else
-              platform = 'windows'
-            end
+              'windows'
+                       end
             remove_platform_foss_defaults(host, platform)
           end
         end

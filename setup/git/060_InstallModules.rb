@@ -16,11 +16,11 @@ class PuppetModules
       folder = Pathname.new(git_url).basename('.git')
       name = folder.to_s.split('-', 2)[1] || folder.to_s
       {
-        :name     => name,
-        :url      => git_url,
-        :folder   => folder.to_s,
-        :ref      => git_ref,
-        :protocol => git_url.split(':')[0].intern,
+        name: name,
+        url: git_url,
+        folder: folder.to_s,
+        ref: git_ref,
+        protocol: git_url.split(':')[0].intern,
       }
     end
   end
@@ -31,7 +31,7 @@ def install_git_module(mod, hosts)
   # temporary directory to this location.  This will preserve the global
   # state of the system while allowing individual test cases to quickly run
   # with a module "installed" in the module path.
-  moddir = "/opt/puppet-git-repos"
+  moddir = '/opt/puppet-git-repos'
   target = "#{moddir}/#{mod[:name]}"
 
   step "Clone #{mod[:url]} if needed"
@@ -40,19 +40,19 @@ def install_git_module(mod, hosts)
   step "Update #{mod[:name]} and check out revision #{mod[:ref]}"
 
   commands = ["cd #{target}",
-              "remote rm origin",
+              'remote rm origin',
               "remote add origin #{mod[:url]}",
-              "fetch origin",
+              'fetch origin',
               "checkout -f #{mod[:ref]}",
               "reset --hard refs/remotes/origin/#{mod[:ref]}",
-              "clean -fdx",
+              'clean -fdx',
   ]
 
-  on hosts, commands.join(" && git ")
+  on hosts, commands.join(' && git ')
 end
 
 def install_scp_module(mod, hosts)
-  moddir = "/opt/puppet-git-repos"
+  moddir = '/opt/puppet-git-repos'
   target = "#{moddir}/#{mod[:name]}"
 
   step "Purge #{target} if needed"
@@ -68,7 +68,7 @@ skip_test 'not testing with puppetserver' unless @options['is_puppetserver']
 
 modules = PuppetModules.new(options[:modules]).list
 
-step "Masters: Install Puppet Modules"
+step 'Masters: Install Puppet Modules'
 masters = hosts.select { |host| host['roles'].include? 'master' }
 
 modules.each do |mod|

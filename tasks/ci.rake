@@ -120,21 +120,21 @@ RUNTIME_BRANCH:
 EOS
 
 namespace :ci do
-  desc "Print usage information"
+  desc 'Print usage information'
   task :help do
     puts USAGE
     exit 1
   end
 
   task :check_env do
-    sha = ENV['SHA']
+    sha = ENV.fetch('SHA', nil)
     case sha
     when /^\d+\.\d+\.\d+$/
       # tags are ok
     when /^[0-9a-f]{40}$/
       # full SHAs are ok
     when nil
-      puts "Error: A SHA must be specified"
+      puts 'Error: A SHA must be specified'
       puts "\n"
       puts USAGE
       exit 1
@@ -146,7 +146,7 @@ namespace :ci do
     end
 
     if ENV['TESTS'].nil?
-      ENV['TESTS'] ||= ENV['TEST']
+      ENV['TESTS'] ||= ENV.fetch('TEST', nil)
       ENV['TESTS'] ||= 'tests'
     end
   end
@@ -160,14 +160,12 @@ namespace :ci do
       elsif env_config = ENV['CONFIG']
         puts 'Warning: environment variable CONFIG deprecated. Please use HOSTS to match beaker options.'
         env_config
-      else
+      elsif agent_target = ENV['TEST_TARGET']
         # By default we assume TEST_TARGET is an agent-only string
-        if agent_target = ENV['TEST_TARGET']
-          master_target = ENV['MASTER_TEST_TARGET'] || DEFAULT_MASTER_TEST_TARGET
+        master_target = ENV['MASTER_TEST_TARGET'] || DEFAULT_MASTER_TEST_TARGET
           "#{master_target}-#{agent_target}"
         else
           DEFAULT_TEST_TARGETS
-        end
       end
 
     if File.exist?(hosts)
@@ -177,11 +175,9 @@ namespace :ci do
       cli_args = [
         hosts,
         '--disable-default-role',
-        '--osinfo-version', '1'
+        '--osinfo-version', '1',
       ]
-      if args[:hypervisor]
-        cli_args += ['--hypervisor', args[:hypervisor]]
-      end
+      cli_args += ['--hypervisor', args[:hypervisor]] if args[:hypervisor]
       cli = BeakerHostGenerator::CLI.new(cli_args)
       FileUtils.mkdir_p('tmp') # -p ignores when dir already exists
       File.open(hosts_file, 'w') do |fh|
@@ -226,14 +222,14 @@ SHA should be the tag or full SHA for the puppet-agent package.
 
 HOSTS can be a beaker-hostgenerator string or existing file.
 EOS
-    task :setup => ['ci:check_env'] do |t, args|
+    task setup: ['ci:check_env'] do |t, args|
       unless ENV['HOSTS']
-        case File.basename(Dir.pwd.sub(/\/acceptance$/, ''))
+        ENV['HOSTS'] ||= case File.basename(Dir.pwd.sub(%r{/acceptance$}, ''))
         when 'pxp-agent', 'puppet'
-          ENV['HOSTS'] ||= 'redhat7-64m-redhat7-64a'
+          'redhat7-64m-redhat7-64a'
         else
-          ENV['HOSTS'] ||= 'redhat7-64a'
-        end
+          'redhat7-64a'
+                         end
       end
 
       Rake::Task[:'ci:gen_hosts'].invoke('abs')
@@ -254,7 +250,7 @@ basic smoke test.
 
 SHA should be the full SHA for the component.
 EOS
-    task :gem => ['ci:check_env'] do
+    task gem: ['ci:check_env'] do
       beaker(:init, '--hosts', 'config/nodes/gem.yaml', '--options-file', 'config/gem/options.rb')
       beaker(:provision)
       begin
@@ -281,13 +277,13 @@ RUNTIME_BRANCH: the branch of the agent-runtime package to grab, defaults to
   'master'. This tells us which branch of puppet-agent to get the runtime tag
   from and helps us create the archive name when we go to curl it down.
 EOS
-    task :git => ['ci:check_env', 'ci:gen_hosts'] do
+    task git: ['ci:check_env', 'ci:gen_hosts'] do
       beaker_suite(:git)
     end
   end
 
-  task :test_and_preserve_hosts => ['ci:check_env', 'ci:gen_hosts'] do
-    puts "WARNING, the test_and_preserve_hosts task is deprecated, use ci:test:aio instead."
+  task test_and_preserve_hosts: ['ci:check_env', 'ci:gen_hosts'] do
+    puts 'WARNING, the test_and_preserve_hosts task is deprecated, use ci:test:aio instead.'
     Rake::Task['ci:test:aio'].execute
   end
 end
@@ -307,20 +303,20 @@ def beaker(command, *argv)
 end
 
 def beaker_setup(type)
-  beaker(:init, '--hosts', ENV['HOSTS'], '--preserve-hosts', 'always', '--options-file', "config/#{String(type)}/options.rb")
+  beaker(:init, '--hosts', ENV.fetch('HOSTS', nil), '--preserve-hosts', 'always', '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
   beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
   beaker(:exec, 'pre-suite', '--preserve-state')
 end
 
 def beaker_suite(type)
-  beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
+  beaker(:init, '--hosts', ENV.fetch('HOSTS', nil), '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
 
   begin
     beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
     beaker(:exec, 'pre-suite', '--preserve-state')
-    beaker(:exec, ENV['TESTS'])
+    beaker(:exec, ENV.fetch('TESTS', nil))
     beaker(:exec, 'post-suite')
   ensure
     preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
@@ -329,7 +325,7 @@ def beaker_suite(type)
 end
 
 def beaker_suite_retry(type)
-  beaker(:init, '--hosts', ENV['HOSTS'], '--options-file', "config/#{String(type)}/options.rb")
+  beaker(:init, '--hosts', ENV.fetch('HOSTS', nil), '--options-file', "config/#{String(type)}/options.rb")
   beaker(:provision)
 
   begin
@@ -338,17 +334,16 @@ def beaker_suite_retry(type)
 
     begin
       json_results_file = Tempfile.new
-      beaker(:exec, ENV['TESTS'], '--test-results-file', json_results_file.path)
+      beaker(:exec, ENV.fetch('TESTS', nil), '--test-results-file', json_results_file.path)
     rescue RuntimeError => e
       puts "ERROR: #{e.message}"
       tests_to_rerun = JSON.load(File.read(json_results_file.path))
-      if tests_to_rerun.nil? || tests_to_rerun.empty?
-        raise e
-      else
+      raise e if tests_to_rerun.nil? || tests_to_rerun.empty?
+
         puts '*** Retrying the following:'
         puts tests_to_rerun.map { |spec| "  #{spec}" }
         beaker(:exec, tests_to_rerun.map { |str| "#{str}" }.join(',') )
-      end
+
     end
   ensure
     beaker(:exec, 'post-suite')

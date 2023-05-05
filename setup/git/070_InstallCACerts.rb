@@ -1,5 +1,5 @@
-test_name "Install CA Certs"
-confine :to, :platform => 'windows'
+test_name 'Install CA Certs'
+confine :to, platform: 'windows'
 
 GEOTRUST_GLOBAL_CA = <<-EOM
 -----BEGIN CERTIFICATE-----
@@ -78,18 +78,18 @@ EOM
 hosts.each do |host|
   next if host['use_existing_container']
 
-  step "Installing Geotrust CA cert"
-  create_remote_file(host, "geotrustglobal.pem", GEOTRUST_GLOBAL_CA)
-  on host, "chmod 644 geotrustglobal.pem"
-  on host, "cmd /c certutil -v -addstore Root `cygpath -w geotrustglobal.pem`"
+  step 'Installing Geotrust CA cert'
+  create_remote_file(host, 'geotrustglobal.pem', GEOTRUST_GLOBAL_CA)
+  on host, 'chmod 644 geotrustglobal.pem'
+  on host, 'cmd /c certutil -v -addstore Root `cygpath -w geotrustglobal.pem`'
 
-  step "Installing Usertrust Network CA cert"
-  create_remote_file(host, "usertrust-network.pem", USERTRUST_NETWORK_CA)
-  on host, "chmod 644 usertrust-network.pem"
-  on host, "cmd /c certutil -v -addstore Root `cygpath -w usertrust-network.pem`"
+  step 'Installing Usertrust Network CA cert'
+  create_remote_file(host, 'usertrust-network.pem', USERTRUST_NETWORK_CA)
+  on host, 'chmod 644 usertrust-network.pem'
+  on host, 'cmd /c certutil -v -addstore Root `cygpath -w usertrust-network.pem`'
 
-  step "Installing Equifax CA cert"
-  create_remote_file(host, "equifax.pem", EQUIFAX_CA)
-  on host, "chmod 644 equifax.pem"
-  on host, "cmd /c certutil -v -addstore Root `cygpath -w equifax.pem`"
+  step 'Installing Equifax CA cert'
+  create_remote_file(host, 'equifax.pem', EQUIFAX_CA)
+  on host, 'chmod 644 equifax.pem'
+  on host, 'cmd /c certutil -v -addstore Root `cygpath -w equifax.pem`'
 end

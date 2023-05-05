@@ -1,6 +1,6 @@
 require 'beaker-puppet'
 
-test_name "puppet install smoketest"
+test_name 'puppet install smoketest'
 
 step 'puppet install smoketest: verify \'facter --help\' can be successfully called on all hosts'
 hosts.each do |host|
@@ -17,8 +17,8 @@ hosts.each do |host|
   on host, puppet('help')
 end
 
-step "puppet install smoketest: can get a configprint of the puppet server setting on all hosts"
+step 'puppet install smoketest: can get a configprint of the puppet server setting on all hosts'
 
 hosts.each do |host|
-  assert(!host.puppet['server'].empty?, "can get a configprint of the puppet server setting")
+  assert(!host.puppet['server'].empty?, 'can get a configprint of the puppet server setting')
 end

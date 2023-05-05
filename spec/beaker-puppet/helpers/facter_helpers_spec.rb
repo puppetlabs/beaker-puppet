@@ -20,11 +20,11 @@ describe ClassMixedWithDSLHelpers do
   let( :host )   { double.as_null_object }
   let( :result ) { Beaker::Result.new( host, command ) }
 
-  let( :master ) { make_host( 'master',   :roles => %w( master agent default)    ) }
-  let( :agent )  { make_host( 'agent',    :roles => %w( agent )           ) }
-  let( :custom ) { make_host( 'custom',   :roles => %w( custom agent )    ) }
-  let( :dash )   { make_host( 'console',  :roles => %w( dashboard agent ) ) }
-  let( :db )     { make_host( 'db',       :roles => %w( database agent )  ) }
+  let( :master ) { make_host( 'master',   roles: %w[ master agent default]    ) }
+  let( :agent )  { make_host( 'agent',    roles: %w[ agent ]           ) }
+  let( :custom ) { make_host( 'custom',   roles: %w[ custom agent ]    ) }
+  let( :dash )   { make_host( 'console',  roles: %w[ dashboard agent ] ) }
+  let( :db )     { make_host( 'db',       roles: %w[ database agent ]  ) }
   let( :hosts )  { [ master, agent, dash, db, custom ] }
 
   before :each do
@@ -59,7 +59,7 @@ describe ClassMixedWithDSLHelpers do
     end
 
     it 'preserves data types' do
-      result.stdout = "{\"identity\": { \"uid\": 0, \"user\": \"root\", \"privileged\": true }}"
+      result.stdout = '{"identity": { "uid": 0, "user": "root", "privileged": true }}'
       allow( subject ).to receive( :on ).and_return( result )
       structured_fact = subject.fact_on('host','identity')
 
@@ -76,7 +76,7 @@ describe ClassMixedWithDSLHelpers do
 
   describe '#fact' do
     it 'delegates to #fact_on with the default host' do
-      expect( subject ).to receive(:fact_on).with(anything,"osfamily",{}).once
+      expect( subject ).to receive(:fact_on).with(anything,'osfamily',{}).once
       expect( subject ).to receive(:default)
 
       subject.fact('osfamily')

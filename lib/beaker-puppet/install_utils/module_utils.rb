@@ -16,7 +16,7 @@ module Beaker
         # The directories in the module directory that will not be scp-ed to the test system when using
         # `copy_module_to`
         PUPPET_MODULE_INSTALL_IGNORE = ['/.bundle', '/.git', '/.idea', '/.vagrant', '/.vendor', '/vendor', '/acceptance',
-                                        '/bundle', '/spec', '/tests', '/log', '/.svn', '/junit', '/pkg', '/example', '/tmp']
+                                        '/bundle', '/spec', '/tests', '/log', '/.svn', '/junit', '/pkg', '/example', '/tmp',]
 
         # Install the desired module on all hosts using either the PMT or a
         #   staging forge
@@ -29,7 +29,7 @@ module Beaker
             copy_module_to( host, opts )
           end
         end
-        alias :puppet_module_install_on :install_dev_puppet_module_on
+        alias puppet_module_install_on install_dev_puppet_module_on
 
         # Install the desired module on all hosts using either the PMT or a
         #   staging forge
@@ -51,7 +51,7 @@ module Beaker
         def install_dev_puppet_module( opts )
           block_on( hosts ) {|h| install_dev_puppet_module_on( h, opts ) }
         end
-        alias :puppet_module_install :install_dev_puppet_module
+        alias puppet_module_install install_dev_puppet_module
 
         # Install the desired module with the PMT on a given host
         #
@@ -60,7 +60,7 @@ module Beaker
         # @option opts [String] :version The version of the module to be installed
         def install_puppet_module_via_pmt_on( host, opts = {} )
           block_on host do |h|
-            version_info = opts[:version] ? "-v #{opts[:version]}" : ""
+            version_info = opts[:version] ? "-v #{opts[:version]}" : ''
             if opts[:source]
               author_name, module_name = parse_for_modulename( opts[:source] )
               modname = "#{author_name}-#{module_name}"
@@ -69,16 +69,14 @@ module Beaker
             end
 
             puppet_opts = {}
-            if host[:default_module_install_opts].respond_to? :merge
-              puppet_opts = host[:default_module_install_opts].merge( puppet_opts )
-            end
+            puppet_opts = host[:default_module_install_opts].merge( puppet_opts ) if host[:default_module_install_opts].respond_to? :merge
 
             if options[:forge_host]
-              if options[:forge_host] =~ /^http/
-                puppet_opts[:module_repository] = options[:forge_host]
+              puppet_opts[:module_repository] = if options[:forge_host] =~ /^http/
+                options[:forge_host]
               else
-                puppet_opts[:module_repository] = "https://#{options[:forge_host]}"
-              end
+                "https://#{options[:forge_host]}"
+                                                end
             end
 
             on h, puppet("module install #{modname} #{version_info}", puppet_opts)
@@ -113,9 +111,9 @@ module Beaker
         #
         def copy_module_to(one_or_more_hosts, opts = {})
           block_on one_or_more_hosts do |host|
-            opts = {:source => './',
-                    :target_module_path => host['distmoduledir'],
-                    :ignore_list => PUPPET_MODULE_INSTALL_IGNORE}.merge(opts)
+            opts = {source: './',
+                    target_module_path: host['distmoduledir'],
+                    ignore_list: PUPPET_MODULE_INSTALL_IGNORE,}.merge(opts)
 
             ignore_list = build_ignore_list(opts)
             target_module_dir = get_target_module_path(host, opts[:target_module_path])
@@ -128,33 +126,29 @@ module Beaker
             end
 
             target_path = File.join(target_module_dir, module_name)
-            if host.is_powershell? #make sure our slashes are correct
-              target_path = target_path.gsub(/\//,'\\')
-            end
+            target_path = target_path.gsub(%r{/},'\\') if host.is_powershell? #make sure our slashes are correct
 
             opts[:protocol] ||= 'scp'
             case opts[:protocol]
             when 'scp'
               #move to the host
               logger.debug "Using scp to transfer #{source_path} to #{target_path}"
-              scp_to host, source_path, target_module_dir, {:ignore => ignore_list}
+              scp_to host, source_path, target_module_dir, {ignore: ignore_list}
 
               #rename to the selected module name, if not correct
               cur_path = File.join(target_module_dir, source_name)
-              if host.is_powershell? #make sure our slashes are correct
-                cur_path = cur_path.gsub(/\//,'\\')
-              end
+              cur_path = cur_path.gsub(%r{/},'\\') if host.is_powershell? #make sure our slashes are correct
               host.mv cur_path, target_path unless cur_path == target_path
             when 'rsync'
               logger.debug "Using rsync to transfer #{source_path} to #{target_path}"
-              rsync_to host, source_path, target_path, {:ignore => ignore_list}
+              rsync_to host, source_path, target_path, {ignore: ignore_list}
             else
-              logger.debug "Unsupported transfer protocol, returning nil"
+              logger.debug 'Unsupported transfer protocol, returning nil'
               nil
             end
           end
         end
-        alias :copy_root_module_to :copy_module_to
+        alias copy_root_module_to copy_module_to
 
         def get_target_module_path(host, path=nil)
           if path
@@ -189,24 +183,19 @@ module Beaker
         # @param [String] root_module_dir
         # @return [String] module name
         def parse_for_modulename(root_module_dir)
-          author_name, module_name = nil, nil
+          author_name = nil
+          module_name = nil
           if File.exist?("#{root_module_dir}/metadata.json")
-            logger.debug "Attempting to parse Modulename from metadata.json"
-            module_json = JSON.parse(File.read "#{root_module_dir}/metadata.json")
-            if(module_json.has_key?('name'))
-              author_name, module_name = get_module_name(module_json['name'])
-            end
+            logger.debug 'Attempting to parse Modulename from metadata.json'
+            module_json = JSON.parse(File.read("#{root_module_dir}/metadata.json"))
+            author_name, module_name = get_module_name(module_json['name']) if module_json.has_key?('name')
           end
           if !module_name && File.exist?("#{root_module_dir}/Modulefile")
-            logger.debug "Attempting to parse Modulename from Modulefile"
-            if /^name\s+'?(\w+-\w+)'?\s*$/i.match(File.read("#{root_module_dir}/Modulefile"))
-              author_name, module_name = get_module_name(Regexp.last_match[1])
-            end
+            logger.debug 'Attempting to parse Modulename from Modulefile'
+            author_name, module_name = get_module_name(Regexp.last_match[1]) if /^name\s+'?(\w+-\w+)'?\s*$/i.match(File.read("#{root_module_dir}/Modulefile"))
           end
-          if !module_name && !author_name
-            logger.debug "Unable to determine name, returning null"
-          end
-          return author_name, module_name
+          logger.debug 'Unable to determine name, returning null' if !module_name && !author_name
+          [author_name, module_name]
         end
 
         #Parse modulename from the pattern 'Auther-ModuleName'
@@ -217,9 +206,9 @@ module Beaker
         #
         def get_module_name(author_module_name)
           split_name = split_author_modulename(author_module_name)
-          if split_name
-            return split_name[:author], split_name[:module]
-          end
+          return unless split_name
+            [split_name[:author], split_name[:module]]
+          
         end
 
         #Split the Author-Name into a hash
@@ -229,11 +218,9 @@ module Beaker
         #
         def split_author_modulename(author_module_attr)
           result = /(\w+)-(\w+)/.match(author_module_attr)
-          if result
-            {:author => result[1], :module => result[2]}
-          else
-            nil
-          end
+          return unless result
+            {author: result[1], module: result[2]}
+          
         end
 
         # Build an array list of files/directories to ignore when pushing to remote host
@@ -244,9 +231,7 @@ module Beaker
         # @option opts [Array] :ignore_list A list of files/directories to ignore
         def build_ignore_list(opts = {})
           ignore_list = opts[:ignore_list] || PUPPET_MODULE_INSTALL_IGNORE
-          if !ignore_list.kind_of?(Array) || ignore_list.nil?
-            raise ArgumentError "Ignore list must be an Array"
-          end
+          raise ArgumentError 'Ignore list must be an Array' if !ignore_list.is_a?(Array) || ignore_list.nil?
           ignore_list << '.' unless ignore_list.include? '.'
           ignore_list << '..' unless ignore_list.include? '..'
           ignore_list

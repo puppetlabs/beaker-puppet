@@ -14,22 +14,22 @@ module Beaker
         #
         # @param [Host] host A single remote host on which to install the
         #   specified leiningen project.
-        def install_from_ezbake host
+        def install_from_ezbake(host)
           ezbake_validate_support host
           ezbake_tools_available?
           install_ezbake_tarball_on_host host
-          ezbake_installsh host, "service"
+          ezbake_installsh host, 'service'
         end
 
         # Installs termini with given name and version on remote host.
         #
         # @param [Host] host A single remote host on which to install the
         #   specified leiningen project.
-        def install_termini_from_ezbake host
+        def install_termini_from_ezbake(host)
           ezbake_validate_support host
           ezbake_tools_available?
           install_ezbake_tarball_on_host host
-          ezbake_installsh host, "termini"
+          ezbake_installsh host, 'termini'
         end
 
         # Install a development version of ezbake into the local m2 repository
@@ -42,15 +42,15 @@ module Beaker
         #
         # @param url [String] git url
         # @param branch [String] git branch
-        def ezbake_dev_build url = "git@github.com:puppetlabs/ezbake.git",
-                             branch = "master"
+        def ezbake_dev_build(url = 'git@github.com:puppetlabs/ezbake.git',
+                             branch = 'master')
           ezbake_dir = 'tmp/ezbake'
           conditionally_clone url, ezbake_dir, branch
           lp = ezbake_lein_prefix
 
           Dir.chdir(ezbake_dir) do
             ezbake_local_cmd "#{lp} install",
-                              :throw_on_failure => true
+                              throw_on_failure: true
           end
         end
 
@@ -67,25 +67,22 @@ module Beaker
         # @param [Host] host host to check for support
         # @raise [RuntimeError] if OS is not supported
         # @api private
-        def ezbake_validate_support host
-          variant, version, _, _ = host['platform'].to_array
-          unless variant =~ /^(fedora|el|redhat|centos|debian|ubuntu)$/
-            raise RuntimeError,
-                  "No support for #{variant} within ezbake_utils ..."
-          end
+        def ezbake_validate_support(host)
+          variant, version, = host['platform'].to_array
+          return if variant =~ /^(fedora|el|redhat|centos|debian|ubuntu)$/
+            raise "No support for #{variant} within ezbake_utils ..."
+          
         end
 
         # Build, copy & unpack tarball on remote host
         #
         # @param [Host] host installation destination
         # @api private
-        def install_ezbake_tarball_on_host host
-          if not ezbake_config
-            ezbake_stage
-          end
+        def install_ezbake_tarball_on_host(host)
+          ezbake_stage unless ezbake_config
 
           # Skip installation if the remote directory exists
-          result = on host, "test -d #{ezbake_install_dir}", :acceptable_exit_codes => [0, 1]
+          result = on host, "test -d #{ezbake_install_dir}", acceptable_exit_codes: [0, 1]
           return if result.exit_code == 0
 
           ezbake_staging_dir = File.join('target', 'staging')
@@ -93,12 +90,12 @@ module Beaker
             ezbake_local_cmd 'rake package:tar'
           end
 
-          local_tarball = ezbake_staging_dir + "/pkg/" + ezbake_install_name + ".tar.gz"
-          remote_tarball = ezbake_install_dir + ".tar.gz"
+          local_tarball = ezbake_staging_dir + '/pkg/' + ezbake_install_name + '.tar.gz'
+          remote_tarball = ezbake_install_dir + '.tar.gz'
           scp_to host, local_tarball, remote_tarball
 
           # untar tarball on host
-          on host, "tar -xzf " + remote_tarball
+          on host, 'tar -xzf ' + remote_tarball
 
           # Check to ensure directory exists
           on host, "test -d #{ezbake_install_dir}"
@@ -107,7 +104,7 @@ module Beaker
         LOCAL_COMMANDS_REQUIRED = [
           ['leiningen', 'lein --version', nil],
           ['lein-pprint', 'lein with-profile ci pprint :version',
-            'Must have lein-pprint installed under the :ci profile.'],
+            'Must have lein-pprint installed under the :ci profile.',],
           ['java', 'java -version', nil],
           ['git', 'git --version', nil],
           ['rake', 'rake --version', nil],
@@ -120,13 +117,10 @@ module Beaker
         # @api private
         def ezbake_tools_available?
           LOCAL_COMMANDS_REQUIRED.each do |software_name, command, additional_error_message|
-            if not system command
-              error_message = "Must have #{software_name} installed on development system.\n"
-              if additional_error_message
-                error_message += additional_error_message
-              end
-              raise RuntimeError, error_message
-            end
+            next if system command
+            error_message = "Must have #{software_name} installed on development system.\n"
+            error_message += additional_error_message if additional_error_message
+            raise error_message
           end
         end
 
@@ -156,11 +150,11 @@ module Beaker
         def ezbake_stage
           # Install the PuppetDB jar into the local repository
           ezbake_local_cmd "#{ezbake_lein_prefix} install",
-                           :throw_on_failure => true
+                           throw_on_failure: true
 
           # Run ezbake stage
           ezbake_local_cmd "#{ezbake_lein_prefix} with-profile ezbake ezbake stage",
-                           :throw_on_failure => true
+                           throw_on_failure: true
 
           # Boostrap packaging, and grab configuration info from project
           staging_dir = File.join('target','staging')
@@ -184,16 +178,14 @@ module Beaker
         # @raise [RuntimeError] if :throw_on_failure is true and
         #   command fails
         # @api private
-        def ezbake_local_cmd cmd, opts={}
+        def ezbake_local_cmd(cmd, opts={})
           opts = {
-            :throw_on_failure => false,
+            throw_on_failure: false,
           }.merge(opts)
 
           logger.notify "localhost $ #{cmd}"
           result = system cmd
-          if opts[:throw_on_failure] && result == false
-            raise RuntimeError, "Command failure #{cmd}"
-          end
+          raise "Command failure #{cmd}" if opts[:throw_on_failure] && result == false
           result
         end
 
@@ -207,7 +199,7 @@ module Beaker
           ezbake = ezbake_config
           project_package_version = ezbake[:package_version]
           project_name = ezbake[:project]
-          "%s-%s" % [ project_name, project_package_version ]
+          format('%s-%s', project_name, project_package_version)
         end
 
         # Returns the full path to the installed software on the remote host.
@@ -227,7 +219,7 @@ module Beaker
         # @param [Host] host Host to run install.sh on
         # @param [String] task Task to execute with install.sh
         # @api private
-        def ezbake_installsh host, task=""
+        def ezbake_installsh(host, task='')
           on host, "cd #{ezbake_install_dir}; bash install.sh #{task}"
         end
 
@@ -238,7 +230,7 @@ module Beaker
         # @param [String] local_path path to conditionally install to
         # @param [String] branch to checkout
         # @api private
-        def conditionally_clone upstream_uri, local_path, branch="origin/HEAD"
+        def conditionally_clone(upstream_uri, local_path, branch='origin/HEAD')
           if ezbake_local_cmd "git --work-tree=#{local_path} --git-dir=#{local_path}/.git status"
             ezbake_local_cmd "git --work-tree=#{local_path} --git-dir=#{local_path}/.git fetch origin"
             ezbake_local_cmd "git --work-tree=#{local_path} --git-dir=#{local_path}/.git checkout #{branch}"

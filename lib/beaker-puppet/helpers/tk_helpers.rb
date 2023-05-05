@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'hocon'
 require 'hocon/config_error'
 require 'inifile'
@@ -26,18 +25,14 @@ module Beaker
         # the SUT actually is, just that the contents can be parsed into a map.
         #
         def modify_tk_config(host, config_file_path, options_hash, replace=false)
-          if options_hash.empty?
-            return nil
-          end
+          return nil if options_hash.empty?
 
           new_hash = Beaker::Options::OptionsHash.new
 
           if replace
             new_hash.merge!(options_hash)
           else
-            if not host.file_exist?( config_file_path )
-              raise "Error: #{config_file_path} does not exist on #{host}"
-            end
+            raise "Error: #{config_file_path} does not exist on #{host}" unless host.file_exist?( config_file_path )
             file_string = host.exec( Command.new( "cat #{config_file_path}" )).stdout
 
             begin
@@ -80,7 +75,7 @@ module Beaker
               nil
             end
 
-            raise "Failed to read TrapperKeeper config!"
+            raise 'Failed to read TrapperKeeper config!'
         end
       end
 
