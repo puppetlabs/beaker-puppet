@@ -6,5 +6,6 @@ skip_test 'Not Red Hat 8 PPCle' unless hosts.any? { |host| host.platform == 'el-
 hosts.each do |host|
   next unless host.platform == 'el-8-ppc64le'
 
-  on(host, '/usr/sbin/subscription-manager repos --disable rhel-8-for-ppc64le-baseos-rpms && /usr/sbin/subscription-manager repos --enable rhel-8-for-ppc64le-baseos-rpms')
+  on(host,
+     '/usr/sbin/subscription-manager repos --disable rhel-8-for-ppc64le-baseos-rpms && /usr/sbin/subscription-manager repos --enable rhel-8-for-ppc64le-baseos-rpms')
 end

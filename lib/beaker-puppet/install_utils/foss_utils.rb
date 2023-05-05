@@ -23,13 +23,13 @@ module Beaker
         include WindowsUtils
 
         # The default install path
-        SourcePath  = '/opt/puppet-git-repos'
+        SourcePath = '/opt/puppet-git-repos'
 
         # A regex to know if the uri passed is pointing to a git repo
-        GitURI       = %r{^(git|https?|file)://|^git@|^gitmirror@}
+        GitURI = %r{^(git|https?|file)://|^git@|^gitmirror@}
 
         # Github's ssh signature for cloning via ssh
-        GitHubSig   = 'github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
+        GitHubSig = 'github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
 
         # Merge given options with our default options in a consistent way
         # This will remove any nil values so that we always have a set default.
@@ -45,16 +45,16 @@ module Beaker
           opts[:nightly_win_download_url] ||= opts[:nightly_builds_url]
           opts[:nightly_mac_download_url] ||= opts[:nightly_builds_url]
 
-          FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject{|k,v| v.nil?})
+          FOSS_DEFAULT_DOWNLOAD_URLS.merge(opts.reject { |k, v| v.nil? })
         end
 
         # lookup project-specific git environment variables
         # PROJECT_VAR or VAR otherwise return the default
         #
         # @!visibility private
-        def lookup_in_env(env_variable_name, project_name=nil, default=nil)
-          env_variable_name     = "#{env_variable_name.upcase.gsub('-','_')}"
-          project_specific_name = "#{project_name.upcase.gsub('-','_')}_#{env_variable_name}" if project_name
+        def lookup_in_env(env_variable_name, project_name = nil, default = nil)
+          env_variable_name     = "#{env_variable_name.upcase.gsub('-', '_')}"
+          project_specific_name = "#{project_name.upcase.gsub('-', '_')}_#{env_variable_name}" if project_name
           project_name && ENV[project_specific_name] || ENV[env_variable_name] || default # rubocop:disable Style/FetchEnvVar
         end
 
@@ -87,7 +87,7 @@ module Beaker
         # @return [String] Returns a git-usable url
         #
         # TODO: enable other protocols, clarify, http://git-scm.com/book/ch4-1.html
-        def build_git_url(project_name, git_fork = nil, git_server = nil, git_protocol='https')
+        def build_git_url(project_name, git_fork = nil, git_server = nil, git_protocol = 'https')
           git_fork   ||= lookup_in_env('FORK',   project_name, 'puppetlabs')
           git_server ||= lookup_in_env('SERVER', project_name, 'github.com')
 
@@ -137,7 +137,7 @@ module Beaker
         #
         # @!visibility private
         def order_packages(packages_array)
-          puppet = packages_array.select {|e| e[:name] == 'puppet' }
+          puppet = packages_array.select { |e| e[:name] == 'puppet' }
           puppet_depends_on = packages_array.select do |e|
             e[:name] == 'hiera' or e[:name] == 'facter'
           end
@@ -168,7 +168,7 @@ module Beaker
 
           version = {}
           on host, "cd #{path}/#{repository[:name]} && " +
-                    'git describe || true' do
+                   'git describe || true' do
             version[repository[:name]] = stdout.chomp
           end
 
@@ -186,7 +186,7 @@ module Beaker
         #       * {Beaker::DSL::Helpers#on}
         #
         def clone_git_repo_on(host, path, repository, opts = {})
-          opts = {accept_all_exit_codes: true}.merge(opts)
+          opts = { accept_all_exit_codes: true }.merge(opts)
           name          = repository[:name]
           repo          = repository[:path]
           rev           = repository[:rev]
@@ -218,15 +218,15 @@ module Beaker
         # @note This assumes the target repository application
         #   can be installed via an install.rb ruby script.
         def install_from_git_on(host, path, repository, opts = {})
-          opts = {accept_all_exit_codes: true}.merge(opts)
+          opts = { accept_all_exit_codes: true }.merge(opts)
           clone_git_repo_on host, path, repository, opts
-          name          = repository[:name]
+          name = repository[:name]
           logger.notify("\n  * Install #{name} on the system")
           # The solaris ruby IPS package has bindir set to /usr/ruby/1.8/bin.
           # However, this is not the path to which we want to deliver our
           # binaries. So if we are using solaris, we have to pass the bin and
           # sbin directories to the install.rb
-          target        = "#{path}/#{name}"
+          target = "#{path}/#{name}"
           install_opts = ''
           install_opts = '--bindir=/usr/bin --sbindir=/usr/sbin' if host['platform'].include? 'solaris'
 
@@ -239,11 +239,11 @@ module Beaker
 
         # @deprecated Use {#install_puppet_on} instead.
         def install_puppet(opts = {})
-          #send in the global hosts!
+          # send in the global hosts!
           install_puppet_on(hosts, opts)
         end
 
-        #Install FOSS based on specified hosts using provided options
+        # Install FOSS based on specified hosts using provided options
         # @example will install puppet 3.6.1 from native puppetlabs provided packages wherever possible and will fail over to gem installation when impossible
         #  install_puppet_on(hosts, {
         #    :version          => '3.6.1',
@@ -317,12 +317,13 @@ module Beaker
               elsif host['platform'] =~ /archlinux/
                 install_puppet_from_pacman_on(host, opts)
               else
-                raise "install_puppet() called for unsupported platform '#{host['platform']}' on '#{host.name}'" unless opts[:default_action] == 'gem_install'
-                  opts[:version] ||= '~> 3.x'
-                  install_puppet_from_gem_on(host, opts)
-                
-                  
-                
+                unless opts[:default_action] == 'gem_install'
+                  raise "install_puppet() called for unsupported platform '#{host['platform']}' on '#{host.name}'"
+                end
+
+                opts[:version] ||= '~> 3.x'
+                install_puppet_from_gem_on(host, opts)
+
               end
 
               host[:version] = opts[:version]
@@ -373,7 +374,7 @@ module Beaker
         # @raise [FailTest] When error occurs during the actual installation process
         def install_puppet_agent_on(hosts, opts = {})
           opts = sanitize_opts(opts)
-          opts[:puppet_agent_version] ||= opts[:version] #backwards compatability with old parameter name
+          opts[:puppet_agent_version] ||= opts[:version] # backwards compatability with old parameter name
           opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version]) || 'pc1'
 
           # the collection names are case sensitive
@@ -388,7 +389,9 @@ module Beaker
             package_name = nil
 
             # If inside the Puppet VPN, install from development builds.
-            if opts[:puppet_agent_version] && opts[:puppet_agent_version] != 'latest' && dev_builds_accessible_on?(host, opts[:dev_builds_url])
+            if opts[:puppet_agent_version] && opts[:puppet_agent_version] != 'latest' && dev_builds_accessible_on?(
+              host, opts[:dev_builds_url]
+            )
               install_puppet_agent_from_dev_builds_on(host, opts[:puppet_agent_version])
             else
               if opts[:puppet_agent_version] == 'latest'
@@ -408,7 +411,9 @@ module Beaker
                 package_name << "-#{opts[:puppet_agent_version]}" if opts[:puppet_agent_version]
               when /debian|ubuntu|huaweios/
                 package_name = 'puppet-agent'
-                package_name << "=#{opts[:puppet_agent_version]}-1#{host['platform'].codename}" if opts[:puppet_agent_version]
+                if opts[:puppet_agent_version]
+                  package_name << "=#{opts[:puppet_agent_version]}-1#{host['platform'].codename}"
+                end
               when /windows/
                 install_puppet_agent_from_msi_on(host, opts)
               when /osx/
@@ -429,17 +434,17 @@ module Beaker
               end
 
               if package_name
-                install_puppetlabs_release_repo( host, opts[:puppet_collection] , opts)
-                host.install_package( package_name )
+                install_puppetlabs_release_repo(host, opts[:puppet_collection], opts)
+                host.install_package(package_name)
               end
             end
           end
         end
 
         # @deprecated Use {#configure_puppet_on} instead.
-        def configure_puppet(opts={})
+        def configure_puppet(opts = {})
           hosts.each do |host|
-            configure_puppet_on(host,opts)
+            configure_puppet_on(host, opts)
           end
         end
 
@@ -470,14 +475,14 @@ module Beaker
         # @return nil
         def configure_puppet_on(hosts, opts = {})
           puppet_conf_text = ''
-          opts.each do |section,options|
+          opts.each do |section, options|
             puppet_conf_text << "[#{section}]\n"
-            options.each do |option,value|
+            options.each do |option, value|
               puppet_conf_text << "#{option}=#{value}\n"
             end
             puppet_conf_text << "\n"
           end
-          logger.debug( "setting config '#{puppet_conf_text}' on hosts #{hosts}" )
+          logger.debug("setting config '#{puppet_conf_text}' on hosts #{hosts}")
           block_on hosts, opts do |host|
             puppet_conf_path = host.puppet['config']
             create_remote_file(host, puppet_conf_path, puppet_conf_text)
@@ -497,14 +502,14 @@ module Beaker
         #
         # @return nil
         # @api private
-        def install_puppet_from_rpm_on( hosts, opts )
+        def install_puppet_from_rpm_on(hosts, opts)
           block_on hosts do |host|
             if opts[:puppet_collection] && opts[:puppet_collection].match(/puppet\d*/)
-              install_puppetlabs_release_repo(host,opts[:puppet_collection],opts)
+              install_puppetlabs_release_repo(host, opts[:puppet_collection], opts)
             elsif host[:type] == 'aio'
-              install_puppetlabs_release_repo(host,'pc1',opts)
+              install_puppetlabs_release_repo(host, 'pc1', opts)
             else
-              install_puppetlabs_release_repo(host,nil,opts)
+              install_puppetlabs_release_repo(host, nil, opts)
             end
 
             host.install_package("facter-#{opts[:facter_version]}") if opts[:facter_version]
@@ -513,7 +518,7 @@ module Beaker
 
             puppet_pkg = opts[:version] ? "puppet-#{opts[:version]}" : 'puppet'
             host.install_package("#{puppet_pkg}")
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
         alias install_puppet_from_rpm install_puppet_from_rpm_on
@@ -529,7 +534,7 @@ module Beaker
         #
         # @return nil
         # @api private
-        def install_puppet_from_deb_on( hosts, opts )
+        def install_puppet_from_deb_on(hosts, opts)
           block_on hosts do |host|
             install_puppetlabs_release_repo(host)
 
@@ -543,7 +548,7 @@ module Beaker
             else
               host.install_package('puppet')
             end
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
         alias install_puppet_from_deb install_puppet_from_deb_on
@@ -560,7 +565,7 @@ module Beaker
         #
         # @note on windows, the +:ruby_arch+ host parameter can determine in addition
         # to other settings whether the 32 or 64bit install is used
-        def install_puppet_from_msi_on( hosts, opts )
+        def install_puppet_from_msi_on(hosts, opts)
           block_on hosts do |host|
             version = opts[:version]
 
@@ -579,7 +584,7 @@ module Beaker
               install_a_puppet_msi_on(host, opts)
 
             end
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
         alias install_puppet_from_msi install_puppet_from_msi_on
@@ -593,9 +598,9 @@ module Beaker
           # If there's no version declared, install the latest in the 3.x series
           if !version
             host['dist'] = if !host.is_x86_64? || install_32
-              'puppet-latest'
-            else
-              'puppet-x64-latest'
+                             'puppet-latest'
+                           else
+                             'puppet-x64-latest'
                            end
 
           # Install Puppet 3.x with the x86 installer if:
@@ -608,7 +613,7 @@ module Beaker
             host['dist'] = "puppet-#{version}"
 
           elsif host.is_x86_64?
-             host['dist'] = "puppet-#{version}-x64"
+            host['dist'] = "puppet-#{version}-x64"
 
           else
             raise "I don't understand how to install Puppet version: #{version}"
@@ -627,17 +632,16 @@ module Beaker
         # to other settings whether the 32 or 64bit install is used
         def install_puppet_agent_from_msi_on(hosts, opts)
           block_on hosts do |host|
-
-            add_role(host, 'aio') #we are installing agent, so we want aio role
+            add_role(host, 'aio') # we are installing agent, so we want aio role
             is_config_32 = true == (host['ruby_arch'] == 'x86') || host['install_32'] || opts['install_32']
             should_install_64bit = host.is_x86_64? && !is_config_32
             arch = should_install_64bit ? 'x64' : 'x86'
 
             # If we don't specify a version install the latest MSI for puppet-agent
             host['dist'] = if opts[:puppet_agent_version]
-              "puppet-agent-#{opts[:puppet_agent_version]}-#{arch}"
-            else
-              "puppet-agent-#{arch}-latest"
+                             "puppet-agent-#{opts[:puppet_agent_version]}-#{arch}"
+                           else
+                             "puppet-agent-#{arch}-latest"
                            end
 
             install_a_puppet_msi_on(host, opts)
@@ -656,7 +660,8 @@ module Beaker
           else
             link = "#{opts[:win_download_url]}/#{host['dist']}.msi"
           end
-          raise "Puppet MSI at #{link} does not exist!" unless link_exists?( link )
+          raise "Puppet MSI at #{link} does not exist!" unless link_exists?(link)
+
           link
         end
 
@@ -671,20 +676,21 @@ module Beaker
               proxy = opts[:package_proxy] ? "-x #{opts[:package_proxy]} " : ''
               on host, "curl #{proxy}--location --output \"#{msi_download_path}\" --remote-name #{link}"
 
-              #Because the msi installer doesn't add Puppet to the environment path
-              #Add both potential paths for simplicity
-              #NOTE - this is unnecessary if the host has been correctly identified as 'foss' during set up
+              # Because the msi installer doesn't add Puppet to the environment path
+              # Add both potential paths for simplicity
+              # NOTE - this is unnecessary if the host has been correctly identified as 'foss' during set up
               puppetbin_path = '"/cygdrive/c/Program Files (x86)/Puppet Labs/Puppet/bin":"/cygdrive/c/Program Files/Puppet Labs/Puppet/bin"'
               on host, %( echo 'export PATH=$PATH:#{puppetbin_path}' > /etc/bash.bashrc )
             else
               webclient_proxy = opts[:package_proxy] ? "$webclient.Proxy = New-Object System.Net.WebProxy('#{opts[:package_proxy]}',$true); " : ''
-              on host, powershell("$webclient = New-Object System.Net.WebClient; #{webclient_proxy}$webclient.DownloadFile('#{link}','#{msi_download_path}')")
+              on host,
+                 powershell("$webclient = New-Object System.Net.WebClient; #{webclient_proxy}$webclient.DownloadFile('#{link}','#{msi_download_path}')")
             end
 
             opts = { debug: host[:pe_debug] || opts[:pe_debug] }
             install_msi_on(host, msi_download_path, {}, opts)
 
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
 
             host.mkdir_p host['distmoduledir'] unless host.is_cygwin?
           end
@@ -699,12 +705,14 @@ module Beaker
         #
         # @return nil
         # @api private
-        def install_puppet_from_freebsd_ports_on( hosts, opts )
-          logger.warn "If you wish to choose a specific Puppet version, use `install_puppet_from_gem_on('~> 3.*')`" if opts[:version]
+        def install_puppet_from_freebsd_ports_on(hosts, opts)
+          if opts[:version]
+            logger.warn "If you wish to choose a specific Puppet version, use `install_puppet_from_gem_on('~> 3.*')`"
+          end
 
           block_on hosts do |host|
             host.install_package('sysutils/puppet7')
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
         alias install_puppet_from_freebsd_ports install_puppet_from_freebsd_ports_on
@@ -722,7 +730,7 @@ module Beaker
         #
         # @return nil
         # @api private
-        def install_puppet_from_dmg_on( hosts, opts )
+        def install_puppet_from_dmg_on(hosts, opts)
           block_on hosts do |host|
             # install puppet-agent if puppet version > 4.0 OR not puppet version is provided
             if (opts[:version] && !version_is_less(opts[:version], '4.0.0')) || !opts[:version]
@@ -739,7 +747,9 @@ module Beaker
               facter_ver = opts[:facter_version] || 'latest'
               hiera_ver = opts[:hiera_version] || 'latest'
 
-              raise "You need to specify versions for OSX host\n eg. install_puppet({:version => '3.6.2',:facter_version => '2.1.0',:hiera_version  => '1.3.4',})" if [puppet_ver, facter_ver, hiera_ver].include?(nil)
+              raise "You need to specify versions for OSX host\n eg. install_puppet({:version => '3.6.2',:facter_version => '2.1.0',:hiera_version  => '1.3.4',})" if [
+                puppet_ver, facter_ver, hiera_ver,
+              ].include?(nil)
 
               on host, "curl --location --remote-name #{opts[:mac_download_url]}/puppet-#{puppet_ver}.dmg"
               on host, "curl --location --remote-name #{opts[:mac_download_url]}/facter-#{facter_ver}.dmg"
@@ -749,7 +759,7 @@ module Beaker
               host.install_package("facter-#{facter_ver}")
               host.install_package("hiera-#{hiera_ver}")
 
-              configure_type_defaults_on( host )
+              configure_type_defaults_on(host)
             end
           end
         end
@@ -770,8 +780,7 @@ module Beaker
           opts[:puppet_collection] ||= 'PC1'
           opts[:puppet_collection] = opts[:puppet_collection].upcase if opts[:puppet_collection].match(/pc1/i)
           block_on hosts do |host|
-
-            add_role(host, 'aio') #we are installing agent, so we want aio role
+            add_role(host, 'aio') # we are installing agent, so we want aio role
 
             variant, version, arch, codename = host['platform'].to_array
 
@@ -797,7 +806,7 @@ module Beaker
 
             host.install_package(pkg_name)
 
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
 
@@ -823,7 +832,9 @@ module Beaker
             counter += 1
           end
 
-          raise "The URL for puppet-agent download, #{response.uri}, returned #{response.message} with #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+          unless response.is_a?(Net::HTTPSuccess)
+            raise "The URL for puppet-agent download, #{response.uri}, returned #{response.message} with #{response.code}"
+          end
 
           document = Oga.parse_html(response.body)
           agents = document.xpath('//a[contains(@href, "puppet-agent")]')
@@ -831,15 +842,14 @@ module Beaker
           latest_match = agents.shift.attributes[0].value
           latest_match = agents.shift.attributes[0].value while (latest_match =~ /puppet-agent-\d(.*)/).nil?
 
-          re  =  /puppet-agent-(.*)-/
+          re = /puppet-agent-(.*)-/
           latest_match = latest_match.match re
 
           if latest_match
             latest_match[1]
           else
             ''
-                   end
-          
+          end
         end
 
         # Installs Puppet and dependencies from OpenBSD packages
@@ -851,7 +861,9 @@ module Beaker
         # @return nil
         # @api private
         def install_puppet_from_openbsd_packages_on(hosts, opts)
-          logger.warn "If you wish to choose a specific Puppet version, use `install_puppet_from_gem_on('~> 3.*')`" if opts[:version]
+          if opts[:version]
+            logger.warn "If you wish to choose a specific Puppet version, use `install_puppet_from_gem_on('~> 3.*')`"
+          end
 
           block_on hosts do |host|
             host.install_package('puppet')
@@ -893,7 +905,7 @@ module Beaker
         # @return nil
         # @raise [StandardError] if gem does not exist on target host
         # @api private
-        def install_puppet_from_gem_on( hosts, opts )
+        def install_puppet_from_gem_on(hosts, opts)
           block_on hosts do |host|
             # There are a lot of special things to do for Solaris and Solaris 10.
             # This is easier than checking host['platform'] every time.
@@ -907,12 +919,12 @@ module Beaker
             # Solaris doesn't necessarily have this, but gem needs it
             on host, 'mkdir -p /var/lib' if is_solaris
 
-            unless host.check_for_command( 'gem' )
+            unless host.check_for_command('gem')
               gempkg = case host['platform']
                        when /solaris-11/                            then 'ruby-18'
                        when /ubuntu-14/                             then 'ruby'
-                       when /solaris-10|ubuntu|debian|el-|huaweios/  then 'rubygems'
-                       when /openbsd/                               then 'ruby'
+                       when /solaris-10|ubuntu|debian|el-|huaweios/ then 'rubygems'
+                       when /openbsd/ then 'ruby'
                        else
                          raise 'install_puppet() called with default_action ' +
                                "'gem_install' but program `gem' is " +
@@ -926,8 +938,8 @@ module Beaker
             on host, 'ln -s /opt/csw/bin/gem /usr/bin/gem' if is_solaris10
 
             if host['platform'] =~ /debian|ubuntu|solaris|huaweios/
-              gem_env = YAML.load( on( host, 'gem environment' ).stdout )
-              gem_paths_array = gem_env['RubyGems Environment'].find {|h| h['GEM PATHS'] != nil }['GEM PATHS']
+              gem_env = YAML.load(on(host, 'gem environment').stdout)
+              gem_paths_array = gem_env['RubyGems Environment'].find { |h| h['GEM PATHS'] != nil }['GEM PATHS']
               path_with_gem = 'export PATH=' + gem_paths_array.join(':') + ':${PATH}'
               on host, "echo '#{path_with_gem}' >> ~/.bashrc"
             end
@@ -944,12 +956,12 @@ module Beaker
             # Similar to the treatment of 'gem' above.
             # This avoids adding /opt/csw/bin to PATH.
             if is_solaris
-              gem_env = YAML.load( on( host, 'gem environment' ).stdout )
+              gem_env = YAML.load(on(host, 'gem environment').stdout)
               # This is the section we want - this has the dir where gem executables go.
               env_sect = 'EXECUTABLE DIRECTORY'
               # Get the directory where 'gem' installs executables.
               # On Solaris 10 this is usually /opt/csw/bin
-              gem_exec_dir = gem_env['RubyGems Environment'].find {|h| !h[env_sect].nil? }[env_sect]
+              gem_exec_dir = gem_env['RubyGems Environment'].find { |h| !h[env_sect].nil? }[env_sect]
 
               on host, "ln -s #{gem_exec_dir}/hiera /usr/bin/hiera"
               on host, "ln -s #{gem_exec_dir}/facter /usr/bin/facter"
@@ -961,7 +973,7 @@ module Beaker
               host.mkdir_p host.puppet[key] if host.puppet.has_key?(key)
             end
 
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
         alias install_puppet_from_gem install_puppet_from_gem_on
@@ -974,7 +986,7 @@ module Beaker
         #
         # @note This method only works on redhat-like and debian-like hosts.
         #
-        def install_puppetlabs_release_repo_on( hosts, repo = nil, opts = options )
+        def install_puppetlabs_release_repo_on(hosts, repo = nil, opts = options)
           block_on hosts do |host|
             variant, version, arch, codename = host['platform'].to_array
             repo_name = repo || opts[:puppet_collection] || 'puppet'
@@ -999,7 +1011,8 @@ module Beaker
                       end
                 remote = format('%s/%s-release-%s-%s.noarch.rpm', url, repo_name, variant_url_value, version)
               else
-                remote = format('%s/%s-release-%s-%s.noarch.rpm', opts[:release_yum_repo_url], repo_name, variant_url_value, version)
+                remote = format('%s/%s-release-%s-%s.noarch.rpm', opts[:release_yum_repo_url], repo_name,
+                                variant_url_value, version)
               end
 
               # sles 11 and later do not handle gpg keys well. We can't
@@ -1017,14 +1030,14 @@ module Beaker
 
               if variant == 'cisco_nexus'
                 # cisco nexus requires using yum to install the repo
-                host.install_package( remote )
+                host.install_package(remote)
               elsif variant == 'cisco_ios_xr'
                 # cisco ios xr requires using yum to localinstall the repo
                 on host, "yum -y localinstall #{remote}"
               else
                 opts[:package_proxy] ||= false
-                host.install_package_with_rpm( remote, '--replacepkgs',
-                  { package_proxy: opts[:package_proxy] } )
+                host.install_package_with_rpm(remote, '--replacepkgs',
+                                              { package_proxy: opts[:package_proxy] })
               end
 
             when /^(debian|ubuntu|huaweios)$/
@@ -1045,7 +1058,7 @@ module Beaker
             else
               raise "No repository installation step for #{variant} yet..."
             end
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
         alias install_puppetlabs_release_repo install_puppetlabs_release_repo_on
@@ -1060,11 +1073,12 @@ module Beaker
         #
         # @return nil
         def install_repo_configs(host, buildserver_url, package_name, build_version, copy_dir)
-          repo_filename = host.repo_filename( package_name, build_version )
-          repo_config_folder_url = format('%s/%s/%s/repo_configs/%s/', buildserver_url, package_name, build_version, host.repo_type)
+          repo_filename = host.repo_filename(package_name, build_version)
+          repo_config_folder_url = format('%s/%s/%s/repo_configs/%s/', buildserver_url, package_name, build_version,
+                                          host.repo_type)
 
-          repo_config_url = "#{ repo_config_folder_url }/#{ repo_filename }"
-          install_repo_configs_from_url( host, repo_config_url, copy_dir )
+          repo_config_url = "#{repo_config_folder_url}/#{repo_filename}"
+          install_repo_configs_from_url(host, repo_config_url, copy_dir)
         end
 
         # Installs the repo configs on a given host
@@ -1076,8 +1090,8 @@ module Beaker
         # @return nil
         def install_repo_configs_from_url(host, repo_config_url, copy_dir = nil)
           copy_dir ||= Dir.mktmpdir
-          repoconfig_filename = File.basename(  repo_config_url )
-          repoconfig_folder   = File.dirname(   repo_config_url )
+          repoconfig_filename = File.basename(repo_config_url)
+          repoconfig_folder   = File.dirname(repo_config_url)
 
           repo = fetch_http_file(
             repoconfig_folder,
@@ -1098,13 +1112,13 @@ module Beaker
           end
 
           to_path = if host[:platform] =~ /cisco_nexus/
-            "#{host.package_config_dir}/#{File.basename(repo)}"
-          else
-            host.package_config_dir
+                      "#{host.package_config_dir}/#{File.basename(repo)}"
+                    else
+                      host.package_config_dir
                     end
-          scp_to( host, repo, to_path )
+          scp_to(host, repo, to_path)
 
-          on( host, 'apt-get update' ) if host['platform'] =~ /ubuntu-|debian-|huaweios-/
+          on(host, 'apt-get update') if host['platform'] =~ /ubuntu-|debian-|huaweios-/
           nil
         end
 
@@ -1130,11 +1144,14 @@ module Beaker
         #
         # @note This method only works on redhat-like and debian-like hosts.
         #
-        def install_puppetlabs_dev_repo ( host, package_name, build_version,
-                                  repo_configs_dir = nil,
-                                  opts = options )
+        def install_puppetlabs_dev_repo(host, package_name, build_version,
+                                        repo_configs_dir = nil,
+                                        opts = options)
           variant, version, arch, codename = host['platform'].to_array
-          raise "No repository installation step for #{variant} yet..." if variant !~ /^(fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
+          if variant !~ /^(fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
+            raise "No repository installation step for #{variant} yet..."
+          end
+
           repo_configs_dir ||= 'tmp/repo_configs'
 
           platform_configs_dir = File.join(repo_configs_dir, variant)
@@ -1147,10 +1164,10 @@ module Beaker
           dev_builds_url = protocol + hostname
           dev_builds_url = opts[:dev_builds_url] if variant =~ /^(fedora|el|redhat|centos)$/
 
-          install_repo_configs( host, dev_builds_url, package_name,
-                                build_version, platform_configs_dir )
+          install_repo_configs(host, dev_builds_url, package_name,
+                               build_version, platform_configs_dir)
 
-          configure_type_defaults_on( host )
+          configure_type_defaults_on(host)
         end
 
         # Installs packages from the local development repository on the given host
@@ -1163,7 +1180,7 @@ module Beaker
         # @note This method only works on redhat-like and debian-like hosts.
         # @note This method is paired to be run directly after {#install_puppetlabs_dev_repo}
         #
-        def install_packages_from_local_dev_repo( host, package_name )
+        def install_packages_from_local_dev_repo(host, package_name)
           if host['platform'] =~ /debian|ubuntu|huaweios/
             find_filename = '*.deb'
             find_command  = 'dpkg -i'
@@ -1175,7 +1192,7 @@ module Beaker
           end
           find_command = "find /root/#{package_name} -type f -name '#{find_filename}' -exec #{find_command} {} \\;"
           on host, find_command
-          configure_type_defaults_on( host )
+          configure_type_defaults_on(host)
         end
 
         # Install development repo of the puppet-agent on the given host(s).  Downloaded from
@@ -1213,10 +1230,11 @@ module Beaker
         #   install_puppet_agent_dev_repo_on(host, { :puppet_agent_sha => 'd3377feaeac173aada3a2c2cedd141eb610960a7', :puppet_agent_version => '1.1.1.225.gd3377fe'  })
         #
         # @return nil
-        def install_puppet_agent_dev_repo_on( hosts, global_opts )
-
-          global_opts[:puppet_agent_version] ||= global_opts[:version] #backward compatability
-          raise 'must provide :puppet_agent_version (puppet-agent version) for install_puppet_agent_dev_repo_on' unless global_opts[:puppet_agent_version]
+        def install_puppet_agent_dev_repo_on(hosts, global_opts)
+          global_opts[:puppet_agent_version] ||= global_opts[:version] # backward compatability
+          unless global_opts[:puppet_agent_version]
+            raise 'must provide :puppet_agent_version (puppet-agent version) for install_puppet_agent_dev_repo_on'
+          end
 
           block_on hosts do |host|
             opts = global_opts.dup
@@ -1226,23 +1244,23 @@ module Beaker
             puppet_agent_version = opts[:puppet_agent_sha] || opts[:puppet_agent_version]
 
             opts = sanitize_opts(opts)
-            opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{ puppet_agent_version }/repos/"
+            opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{puppet_agent_version}/repos/"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:puppet_collection]  ||= 'PC1'
 
             release_path = opts[:download_url]
 
             variant, version, arch, codename = host['platform'].to_array
-            add_role(host, 'aio') #we are installing agent, so we want aio role
+            add_role(host, 'aio') # we are installing agent, so we want aio role
             copy_dir_local = File.join(opts[:copy_base_local], variant)
             onhost_copy_base = opts[:copy_dir_external] || host.external_copy_base
 
             case variant
             when /^(fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr)$/
-              if arch== 's390x' || host['hypervisor'] == 'ec2'
+              if arch == 's390x' || host['hypervisor'] == 'ec2'
                 logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
               else
-                install_puppetlabs_dev_repo( host, 'puppet-agent', puppet_agent_version, nil, opts )
+                install_puppetlabs_dev_repo(host, 'puppet-agent', puppet_agent_version, nil, opts)
                 host.install_package('puppet-agent')
                 logger.trace('#install_puppet_agent_dev_repo_on: install_puppetlabs_dev_repo finished')
                 next
@@ -1256,21 +1274,22 @@ module Beaker
             end
 
             release_path_end, release_file = host.puppet_agent_dev_package_info(
-              opts[:puppet_collection], opts[:puppet_agent_version], opts )
+              opts[:puppet_collection], opts[:puppet_agent_version], opts
+            )
             release_path << release_path_end
             logger.trace('#install_puppet_agent_dev_repo_on: dev_package_info, continuing...')
 
             if variant =~ /eos/
-              host.get_remote_file( "#{release_path}/#{release_file}" )
+              host.get_remote_file("#{release_path}/#{release_file}")
             else
               onhost_copied_file = File.join(onhost_copy_base, release_file)
-              fetch_http_file( release_path, release_file, copy_dir_local)
+              fetch_http_file(release_path, release_file, copy_dir_local)
               scp_to host, File.join(copy_dir_local, release_file), onhost_copy_base
             end
 
             case variant
             when /^eos/
-              host.install_from_file( release_file )
+              host.install_from_file(release_file)
             when /^(sles|aix|fedora|el|redhat|centos)$/
               # NOTE: AIX does not support repo management. This block assumes
               # that the desired rpm has been mirrored to the 'repos' location.
@@ -1286,9 +1305,9 @@ module Beaker
             when /^osx$/
               host.install_package("puppet-agent-#{opts[:puppet_agent_version]}*")
             when /^solaris$/
-              host.solaris_install_local_package( release_file, onhost_copy_base )
+              host.solaris_install_local_package(release_file, onhost_copy_base)
             end
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
         alias install_puppetagent_dev_repo install_puppet_agent_dev_repo_on
@@ -1317,17 +1336,18 @@ module Beaker
         #   install_puppet_agent_pe_promoted_repo_on(host, { :puppet_agent_version => '1.1.0.227', :pe_ver => '4.0.0-rc1'})
         #
         # @return nil
-        def install_puppet_agent_pe_promoted_repo_on( hosts, opts )
+        def install_puppet_agent_pe_promoted_repo_on(hosts, opts)
           opts[:puppet_agent_version] ||= 'latest'
 
           block_on hosts do |host|
             pe_ver = host[:pe_ver] || opts[:pe_ver] || '4.0.0-rc1'
             opts = sanitize_opts(opts)
-            opts[:download_url] = "#{opts[:pe_promoted_builds_url]}/puppet-agent/#{ pe_ver }/#{ opts[:puppet_agent_version] }/repos"
+            opts[:download_url] =
+              "#{opts[:pe_promoted_builds_url]}/puppet-agent/#{pe_ver}/#{opts[:puppet_agent_version]}/repos"
             opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
             opts[:copy_dir_external]  ||= host.external_copy_base
             opts[:puppet_collection] ||= puppet_collection_for(:puppet_agent, opts[:puppet_agent_version])
-            add_role(host, 'aio') #we are installing agent, so we want aio role
+            add_role(host, 'aio') # we are installing agent, so we want aio role
             release_path = opts[:download_url]
             variant, version, arch, codename = host['platform'].to_array
             copy_dir_local = File.join(opts[:copy_base_local], variant)
@@ -1341,7 +1361,7 @@ module Beaker
 
             onhost_copied_download = File.join(onhost_copy_base, download_file)
             onhost_copied_file = File.join(onhost_copy_base, release_file)
-            fetch_http_file( release_path, download_file, copy_dir_local)
+            fetch_http_file(release_path, download_file, copy_dir_local)
             scp_to host, File.join(copy_dir_local, download_file), onhost_copy_base
 
             if variant == 'windows'
@@ -1358,7 +1378,7 @@ module Beaker
                 onhost_copied_file, download_file, opts
               )
             end
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
 
@@ -1453,20 +1473,24 @@ module Beaker
         #
         # @return nil
         # @api public
-        def remove_puppet_on( hosts )
+        def remove_puppet_on(hosts)
           block_on hosts do |host|
             cmdline_args = ''
             # query packages
             case host[:platform]
             when /huaweios|ubuntu/
-              pkgs = on(host, "dpkg-query -l  | awk '{print $2}' | grep -E '(^pe-|puppet)'", acceptable_exit_codes: [0,1]).stdout.chomp.split(/\n+/)
+              pkgs = on(host, "dpkg-query -l  | awk '{print $2}' | grep -E '(^pe-|puppet)'",
+                        acceptable_exit_codes: [0, 1]).stdout.chomp.split(/\n+/)
             when /aix|sles|el|redhat|centos|oracle|scientific/
-              pkgs = on(host, "rpm -qa  | grep -E '(^pe-|puppet)'", acceptable_exit_codes: [0,1]).stdout.chomp.split(/\n+/)
+              pkgs = on(host, "rpm -qa  | grep -E '(^pe-|puppet)'",
+                        acceptable_exit_codes: [0, 1]).stdout.chomp.split(/\n+/)
             when /solaris-10/
               cmdline_args = '-a noask'
-              pkgs = on(host, "pkginfo | egrep '(^pe-|puppet)' | cut -f2 -d ' '", acceptable_exit_codes: [0,1]).stdout.chomp.split(/\n+/)
+              pkgs = on(host, "pkginfo | egrep '(^pe-|puppet)' | cut -f2 -d ' '",
+                        acceptable_exit_codes: [0, 1]).stdout.chomp.split(/\n+/)
             when /solaris-11/
-              pkgs = on(host, "pkg list | egrep '(^pe-|puppet)' | awk '{print $1}'", acceptable_exit_codes: [0,1]).stdout.chomp.split(/\n+/)
+              pkgs = on(host, "pkg list | egrep '(^pe-|puppet)' | awk '{print $1}'",
+                        acceptable_exit_codes: [0, 1]).stdout.chomp.split(/\n+/)
             else
               raise 'remove_puppet_on() called for unsupported ' +
                     "platform '#{host['platform']}' on '#{host.name}'"
@@ -1482,17 +1506,19 @@ module Beaker
               publishers = ['puppetlabs.com', 'com.puppetlabs']
               publishers.each do |publisher|
                 # First, try to remove the publisher altogether
-next unless on(host, "pkg publisher #{publisher}", acceptable_exit_codes: [0,1]).exit_code == 0 && (on(host, "pkg unset-publisher #{publisher}", acceptable_exit_codes: [0,1]).exit_code == 1)
-# If that doesn't work, we're in a non-global zone and the
-# publisher is from a global zone. As such, just remove any
-# references to the non-global zone uri.
-on(host, "pkg set-publisher -G '*' #{publisher}", acceptable_exit_codes: [0,1])
+                next unless on(host, "pkg publisher #{publisher}",
+                               acceptable_exit_codes: [0, 1]).exit_code == 0 && (on(host, "pkg unset-publisher #{publisher}",
+                                                                                    acceptable_exit_codes: [0, 1]).exit_code == 1)
+
+                # If that doesn't work, we're in a non-global zone and the
+                # publisher is from a global zone. As such, just remove any
+                # references to the non-global zone uri.
+                on(host, "pkg set-publisher -G '*' #{publisher}", acceptable_exit_codes: [0, 1])
               end
             end
 
             # delete any residual files
             on(host, 'find / -name "*puppet*" -print | xargs rm -rf')
-
           end
         end
 
@@ -1522,23 +1548,24 @@ on(host, "pkg set-publisher -G '*' #{publisher}", acceptable_exit_codes: [0,1])
 
           check_if_exists = options[:check_if_exists]
           Array(hosts).each do |host|
-            package_hash.each do |platform_key,package_list|
-              raise("Unknown platform '#{platform_key}' in package_hash") unless pattern = platform_patterns[platform_key]
-                next unless pattern.match(host['platform'])
-                package_list.each do |cmd_pkg|
-                  if cmd_pkg.is_a?(Array)
-                    command, package = cmd_pkg
-                  else
-                    command = package = cmd_pkg
-                  end
-                  next unless !check_if_exists || !host.check_for_package(command)
-                  host.logger.notify("Installing #{package}")
-                  additional_switches = '--allow-unauthenticated' if platform_key == :debian
-                  host.install_package(package, additional_switches)
+            package_hash.each do |platform_key, package_list|
+              unless pattern = platform_patterns[platform_key]
+                raise("Unknown platform '#{platform_key}' in package_hash")
+              end
+              next unless pattern.match(host['platform'])
+
+              package_list.each do |cmd_pkg|
+                if cmd_pkg.is_a?(Array)
+                  command, package = cmd_pkg
+                else
+                  command = package = cmd_pkg
                 end
-              
-                
-              
+                next unless !check_if_exists || !host.check_for_package(command)
+
+                host.logger.notify("Installing #{package}")
+                additional_switches = '--allow-unauthenticated' if platform_key == :debian
+                host.install_package(package, additional_switches)
+              end
             end
           end
           true
@@ -1578,12 +1605,12 @@ on(host, "pkg set-publisher -G '*' #{publisher}", acceptable_exit_codes: [0,1])
           # too similar to rubygems.org to prevent typo squatting:
           # https://github.com/rubygems/rubygems/commit/aa967b85dd96bbfb350f104125f23d617e82a00a
           return unless gem_source && gem_source !~ /rubygems\.org/
-            Array(hosts).each do |host|
-              gem = gem_command(host)
-              on host, "#{gem} source --clear-all"
-              on(host, "#{gem} source --add #{gem_source}")
-            end
-          
+
+          Array(hosts).each do |host|
+            gem = gem_command(host)
+            on host, "#{gem} source --clear-all"
+            on(host, "#{gem} source --add #{gem_source}")
+          end
         end
       end
     end

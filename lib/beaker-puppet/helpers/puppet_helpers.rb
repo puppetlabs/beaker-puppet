@@ -8,7 +8,6 @@ module Beaker
       # Methods that help you interact with your puppet installation, puppet must be installed
       # for these methods to execute correctly
       module PuppetHelpers
-
         # Return the regular expression pattern for an IPv4 address
         def ipv4_regex
           /(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/
@@ -151,13 +150,19 @@ module Beaker
         #     end
         #
         def with_puppet_running_on(host, conf_opts, testdir = host.tmpdir(File.basename(@path)), &block)
-          raise(ArgumentError, "with_puppet_running_on's conf_opts must be a Hash. You provided a #{conf_opts.class}: '#{conf_opts}'") unless conf_opts.is_a?(Hash)
+          unless conf_opts.is_a?(Hash)
+            raise(ArgumentError,
+                  "with_puppet_running_on's conf_opts must be a Hash. You provided a #{conf_opts.class}: '#{conf_opts}'")
+          end
+
           cmdline_args = conf_opts[:__commandline_args__]
           service_args = conf_opts[:__service_args__] || {}
           restart_when_done = true
           restart_when_done = host[:restart_when_done] if host.has_key?(:restart_when_done)
           restart_when_done = conf_opts.fetch(:restart_when_done, restart_when_done)
-          conf_opts = conf_opts.reject { |k,v| %i[__commandline_args__ __service_args__ restart_when_done].include?(k) }
+          conf_opts = conf_opts.reject do |k, v|
+            %i[__commandline_args__ __service_args__ restart_when_done].include?(k)
+          end
 
           curl_retries = host['master-start-curl-retries'] || options['master-start-curl-retries']
           logger.debug "Setting curl retries to #{curl_retries}"
@@ -200,14 +205,14 @@ module Beaker
             lay_down_new_puppet_conf host, conf_opts, testdir
 
             if host.use_service_scripts? && !service_args[:bypass_service_script]
-              bounce_service( host, host['puppetservice'], curl_retries )
+              bounce_service(host, host['puppetservice'], curl_retries)
             else
-              puppet_master_started = start_puppet_from_source_on!( host, cmdline_args )
+              puppet_master_started = start_puppet_from_source_on!(host, cmdline_args)
             end
 
             yield self if block_given?
 
-          # FIXME: these test-flow-control exceptions should be using throw
+            # FIXME: these test-flow-control exceptions should be using throw
             # they can be caught in test_case.  current layout dows not allow it
           rescue Beaker::DSL::Outcomes::PassTest => early_assertion
             pass_test(early_assertion)
@@ -222,26 +227,23 @@ module Beaker
           rescue Exception => early_exception
             original_exception = RuntimeError.new("PuppetAcceptance::DSL::Helpers.with_puppet_running_on failed (check backtrace for location) because: #{early_exception}\n#{early_exception.backtrace.join("\n")}\n")
             raise(original_exception)
-
           ensure
             begin
-
               if host.use_service_scripts? && !service_args[:bypass_service_script]
-                restore_puppet_conf_from_backup( host, backup_file )
+                restore_puppet_conf_from_backup(host, backup_file)
                 if restart_when_done
-                  bounce_service( host, host['puppetservice'], curl_retries )
+                  bounce_service(host, host['puppetservice'], curl_retries)
                 else
                   host.exec puppet_resource('service', host['puppetservice'], 'ensure=stopped')
                 end
               else
                 if puppet_master_started
-                  stop_puppet_from_source_on( host )
+                  stop_puppet_from_source_on(host)
                 else
                   dump_puppet_log(host)
                 end
-                restore_puppet_conf_from_backup( host, backup_file )
+                restore_puppet_conf_from_backup(host, backup_file)
               end
-
             rescue Exception => teardown_exception
               begin
                 dump_puppet_log(host) unless host.is_pe?
@@ -250,11 +252,9 @@ module Beaker
               end
 
               raise teardown_exception unless original_exception
-                logger.error("Raised during attempt to teardown with_puppet_running_on: #{teardown_exception}\n---\n")
-                raise original_exception
-              
-                
-              
+
+              logger.error("Raised during attempt to teardown with_puppet_running_on: #{teardown_exception}\n---\n")
+              raise original_exception
             end
           end
         end
@@ -267,37 +267,39 @@ module Beaker
         end
 
         # @!visibility private
-        def restore_puppet_conf_from_backup( host, backup_file )
+        def restore_puppet_conf_from_backup(host, backup_file)
           puppet_conf = puppet_config(host, 'config', section: 'master')
 
           if backup_file
-            host.exec( Command.new( "if [ -f '#{backup_file}' ]; then " +
+            host.exec(Command.new("if [ -f '#{backup_file}' ]; then " +
                                         "cat '#{backup_file}' > " +
                                         "'#{puppet_conf}'; " +
                                         "rm -f '#{backup_file}'; " +
-                                    'fi' ) )
+                                    'fi'))
           else
-            host.exec( Command.new( "rm -f '#{puppet_conf}'" ))
+            host.exec(Command.new("rm -f '#{puppet_conf}'"))
           end
-
         end
 
         # @!visibility private
         def start_puppet_from_source_on!(host, args = '')
-          host.exec( puppet( 'master', args ) )
+          host.exec(puppet('master', args))
 
           logger.debug 'Waiting for the puppet master to start'
-          raise Beaker::DSL::FailTest, 'Puppet master did not start in a timely fashion' unless port_open_within?( host, 8140, 10 )
+          raise Beaker::DSL::FailTest, 'Puppet master did not start in a timely fashion' unless port_open_within?(
+            host, 8140, 10
+          )
+
           logger.debug 'The puppet master has started'
           true
         end
 
         # @!visibility private
-        def stop_puppet_from_source_on( host )
-          pid = host.exec( Command.new('cat `puppet config print --section master pidfile`') ).stdout.chomp
-          host.exec( Command.new( "kill #{pid}" ) )
+        def stop_puppet_from_source_on(host)
+          pid = host.exec(Command.new('cat `puppet config print --section master pidfile`')).stdout.chomp
+          host.exec(Command.new("kill #{pid}"))
           Timeout.timeout(10) do
-            while host.exec( Command.new( "kill -0 #{pid}"), acceptable_exit_codes: [0,1] ).exit_code == 0
+            while host.exec(Command.new("kill -0 #{pid}"), acceptable_exit_codes: [0, 1]).exit_code == 0
               # until kill -0 finds no process and we know that puppet has finished cleaning up
               sleep 1
             end
@@ -307,40 +309,38 @@ module Beaker
         # @!visibility private
         def dump_puppet_log(host)
           syslogfile = case host['platform']
-            when /fedora|centos|el|redhat|scientific/ then '/var/log/messages'
-            when /ubuntu|debian/ then '/var/log/syslog'
-            else return
-          end
+                       when /fedora|centos|el|redhat|scientific/ then '/var/log/messages'
+                       when /ubuntu|debian/ then '/var/log/syslog'
+                       else return
+                       end
 
           logger.notify "\n*************************"
           logger.notify '* Dumping master log    *'
           logger.notify '*************************'
-          host.exec( Command.new( "tail -n 100 #{syslogfile}" ), acceptable_exit_codes: [0,1])
+          host.exec(Command.new("tail -n 100 #{syslogfile}"), acceptable_exit_codes: [0, 1])
           logger.notify "*************************\n"
         end
 
         # @!visibility private
-        def lay_down_new_puppet_conf( host, configuration_options, testdir )
+        def lay_down_new_puppet_conf(host, configuration_options, testdir)
           puppetconf_main = puppet_config(host, 'config', section: 'master')
           puppetconf_filename = File.basename(puppetconf_main)
           puppetconf_test = File.join(testdir, puppetconf_filename)
 
-          new_conf = puppet_conf_for( host, configuration_options )
+          new_conf = puppet_conf_for(host, configuration_options)
           create_remote_file host, puppetconf_test, new_conf.to_s
 
           host.exec(
-            Command.new( "cat #{puppetconf_test} > #{puppetconf_main}" ),
+            Command.new("cat #{puppetconf_test} > #{puppetconf_main}"),
             silent: true,
           )
-          host.exec( Command.new( "cat #{puppetconf_main}" ) )
+          host.exec(Command.new("cat #{puppetconf_main}"))
         end
 
         # @!visibility private
         def puppet_conf_for(host, conf_opts)
-          puppetconf = host.exec( Command.new( "cat #{puppet_config(host, 'config', section: 'master')}" ) ).stdout
-          IniFile.new(default: 'main', content: puppetconf).merge( conf_opts )
-
-          
+          puppetconf = host.exec(Command.new("cat #{puppet_config(host, 'config', section: 'master')}")).stdout
+          IniFile.new(default: 'main', content: puppetconf).merge(conf_opts)
         end
 
         # Restarts the named puppet service
@@ -361,13 +361,12 @@ module Beaker
             host.exec(Command.new("#{apachectl_path} graceful"))
           else
             result = host.exec(Command.new("service #{service} reload"),
-                               acceptable_exit_codes: [0,1,3])
+                               acceptable_exit_codes: [0, 1, 3])
             return result if result.exit_code == 0
-              
-            
-              host.exec puppet_resource('service', service, 'ensure=stopped')
-              host.exec puppet_resource('service', service, 'ensure=running')
-            
+
+            host.exec puppet_resource('service', service, 'ensure=stopped')
+            host.exec puppet_resource('service', service, 'ensure=running')
+
           end
           curl_with_retries(" #{service} ", host, "https://localhost:#{port}", [35, 60], curl_retries)
         end
@@ -449,7 +448,7 @@ module Beaker
         #   object, or nil. Check {Beaker::Shared::HostManager#run_block_on} for
         #   more details on this.
         def apply_manifest_on(host, manifest, opts = {}, &block)
-          block_on host, opts do | host |
+          block_on host, opts do |host|
             on_options = {}
             on_options[:acceptable_exit_codes] = Array(opts[:acceptable_exit_codes])
 
@@ -470,7 +469,8 @@ module Beaker
             # "... an exit code of '2' means there were changes, an exit code of
             # '4' means there were failures during the transaction, and an exit
             # code of '6' means there were both changes and failures."
-            if [opts[:catch_changes],opts[:catch_failures],opts[:expect_failures],opts[:expect_changes]].compact.length > 1
+            if [opts[:catch_changes], opts[:catch_failures], opts[:expect_failures],
+                opts[:expect_changes],].compact.length > 1
               raise(ArgumentError,
                     'Cannot specify more than one of `catch_failures`, ' +
                     '`catch_changes`, `expect_failures`, or `expect_changes` ' +
@@ -515,7 +515,9 @@ module Beaker
             file_path = host.tmpfile(%(apply_manifest_#{Time.now.strftime('%H%M%S%L')}.pp))
             create_remote_file(host, file_path, manifest + "\n")
 
-            puppet_apply_opts = host[:default_apply_opts].merge( puppet_apply_opts ) if host[:default_apply_opts].respond_to? :merge
+            if host[:default_apply_opts].respond_to? :merge
+              puppet_apply_opts = host[:default_apply_opts].merge(puppet_apply_opts)
+            end
 
             on host, puppet('apply', file_path, puppet_apply_opts), on_options, &block
           end
@@ -528,9 +530,9 @@ module Beaker
         end
 
         # @deprecated
-        def run_agent_on(host, arg='--no-daemonize --verbose --onetime --test',
-                         options={}, &block)
-          block_on host do | host |
+        def run_agent_on(host, arg = '--no-daemonize --verbose --onetime --test',
+                         options = {}, &block)
+          block_on host do |host|
             on host, puppet_agent(arg), options, &block
           end
         end
@@ -548,11 +550,11 @@ module Beaker
         # @param alias_spec [Hash{String=>Array[String]] an hash containing the host to alias(es) mappings to apply
         # @example Stub puppetlabs.com on the master to 127.0.0.1 with an alias example.com
         #   stub_hosts_on(master, {'puppetlabs.com' => '127.0.0.1'}, {'puppetlabs.com' => ['example.com']})
-        def stub_hosts_on(machine, ip_spec, alias_spec={})
-          block_on machine do | host |
+        def stub_hosts_on(machine, ip_spec, alias_spec = {})
+          block_on machine do |host|
             ip_spec.each do |address, ip|
               aliases = alias_spec[address] || []
-              manifest =<<-EOS.gsub /^\s+/, ''
+              manifest = <<-EOS.gsub /^\s+/, ''
                 host { '#{address}':
                   \tensure       => present,
                   \tip           => '#{ip}',
@@ -560,13 +562,13 @@ module Beaker
                 }
               EOS
               logger.notify("Stubbing address #{address} to IP #{ip} on machine #{host}")
-              apply_manifest_on( host, manifest )
+              apply_manifest_on(host, manifest)
             end
 
             teardown do
               ip_spec.each do |address, ip|
                 logger.notify("Unstubbing address #{address} to IP #{ip} on machine #{host}")
-                on( host, puppet('resource', 'host', address, 'ensure=absent') )
+                on(host, puppet('resource', 'host', address, 'ensure=absent'))
               end
             end
           end
@@ -584,36 +586,33 @@ module Beaker
         #   with_host_stubbed_on(master, {'forgeapi.puppetlabs.com' => '127.0.0.1'}, {'forgeapi.puppetlabs.com' => ['forgeapi.example.com']}) do
         #     puppet( "module install puppetlabs-stdlib" )
         #   end
-        def with_host_stubbed_on(host, ip_spec, alias_spec={}, &block)
-          
-            block_on host do |host|
-              # this code is duplicated from the `stub_hosts_on` method. The
-              # `stub_hosts_on` method itself is not used here because this
-              # method is used by modules tests using `beaker-rspec`. Since
-              # the `stub_hosts_on` method contains a `teardown` step, it is
-              # incompatible with `beaker_rspec`.
-              ip_spec.each do |address, ip|
-                aliases = alias_spec[address] || []
-                manifest =<<-EOS.gsub /^\s+/, ''
+        def with_host_stubbed_on(host, ip_spec, alias_spec = {}, &block)
+          block_on host do |host|
+            # this code is duplicated from the `stub_hosts_on` method. The
+            # `stub_hosts_on` method itself is not used here because this
+            # method is used by modules tests using `beaker-rspec`. Since
+            # the `stub_hosts_on` method contains a `teardown` step, it is
+            # incompatible with `beaker_rspec`.
+            ip_spec.each do |address, ip|
+              aliases = alias_spec[address] || []
+              manifest = <<-EOS.gsub /^\s+/, ''
                   host { '#{address}':
                     \tensure       => present,
                     \tip           => '#{ip}',
                     \thost_aliases => #{aliases},
                   }
-                EOS
-                logger.notify("Stubbing address #{address} to IP #{ip} on machine #{host}")
-                apply_manifest_on( host, manifest )
-              end
+              EOS
+              logger.notify("Stubbing address #{address} to IP #{ip} on machine #{host}")
+              apply_manifest_on(host, manifest)
             end
+          end
 
-            block.call
-
-          ensure
-            ip_spec.each do |address, ip|
-              logger.notify("Unstubbing address #{address} to IP #{ip} on machine #{host}")
-              on( host, puppet('resource', 'host', address, 'ensure=absent') )
-            end
-          
+          block.call
+        ensure
+          ip_spec.each do |address, ip|
+            logger.notify("Unstubbing address #{address} to IP #{ip} on machine #{host}")
+            on(host, puppet('resource', 'host', address, 'ensure=absent'))
+          end
         end
 
         # This method accepts a block and using the puppet resource 'host' will
@@ -639,14 +638,16 @@ module Beaker
         # @param forge_host [String] The URL to use as the forge alias, will default to using :forge_host in the
         #                             global options hash
         def stub_forge_on(machine, forge_host = nil)
-          #use global options hash
+          # use global options hash
           primary_forge_name = 'forge.puppetlabs.com'
           forge_host ||= options[:forge_host]
           forge_ip = resolve_hostname_on(machine, forge_host)
           raise "Failed to resolve forge host '#{forge_host}'" unless forge_ip
+
           @forge_ip ||= forge_ip
-          block_on machine do | host |
-            stub_hosts_on(host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forgeapi.puppet.com']})
+          block_on machine do |host|
+            stub_hosts_on(host, { primary_forge_name => @forge_ip },
+                          { primary_forge_name => ['forge.puppet.com', 'forgeapi.puppetlabs.com', 'forgeapi.puppet.com'] })
           end
         end
 
@@ -662,14 +663,16 @@ module Beaker
         # @param host [String] the host to perform the stub on
         # @param forge_host [String] The URL to use as the forge alias, will default to using :forge_host in the
         #                             global options hash
-        def with_forge_stubbed_on( host, forge_host = nil, &block )
-          #use global options hash
+        def with_forge_stubbed_on(host, forge_host = nil, &block)
+          # use global options hash
           primary_forge_name = 'forge.puppetlabs.com'
           forge_host ||= options[:forge_host]
           forge_ip = resolve_hostname_on(host, forge_host)
           raise "Failed to resolve forge host '#{forge_host}'" unless forge_ip
+
           @forge_ip ||= forge_ip
-          with_host_stubbed_on( host, {primary_forge_name => @forge_ip}, {primary_forge_name => ['forge.puppet.com','forgeapi.puppetlabs.com','forgeapi.puppet.com']}, &block )
+          with_host_stubbed_on(host, { primary_forge_name => @forge_ip },
+                               { primary_forge_name => ['forge.puppet.com', 'forgeapi.puppetlabs.com', 'forgeapi.puppet.com'] }, &block)
         end
 
         # This wraps `with_forge_stubbed_on` and provides it the default host
@@ -677,8 +680,8 @@ module Beaker
         #
         # @deprecated this method should not be used because stubbing the host
         # breaks TLS validation.
-        def with_forge_stubbed( forge_host = nil, &block )
-          with_forge_stubbed_on( default, forge_host, &block )
+        def with_forge_stubbed(forge_host = nil, &block)
+          with_forge_stubbed_on(default, forge_host, &block)
         end
 
         # This wraps the method `stub_hosts` and makes the stub specific to
@@ -689,7 +692,7 @@ module Beaker
         #
         # @see #stub_forge_on
         def stub_forge(forge_host = nil)
-          #use global options hash
+          # use global options hash
           forge_host ||= options[:forge_host]
           stub_forge_on(default, forge_host)
         end
@@ -716,7 +719,7 @@ module Beaker
           end
           retry_on(host,
                    "curl -m 1 http://localhost:#{nonssl_port}/#{endpoint} | grep '#{expected_regex}'",
-                   {max_retries: 120})
+                   { max_retries: 120 })
           curl_with_retries('start puppetdb (ssl)',
                             host, "https://#{host.node_name}:#{ssl_port}", [35, 60])
         end
@@ -745,13 +748,13 @@ module Beaker
                             host, "https://#{host.node_name}:#{port}", [35, 60])
         end
 
-        #stops the puppet agent running on the host
+        # stops the puppet agent running on the host
         # @param [Host, Array<Host>, String, Symbol] agent    One or more hosts to act upon,
         #                            or a role (String or Symbol) that identifies one or more hosts.
         # @param [Hash{Symbol=>String}] opts Options to alter execution.
         # @option opts [Boolean] :run_in_parallel Whether to run on each host in parallel.
         def stop_agent_on(agent, opts = {})
-          block_on agent, opts do | host |
+          block_on agent, opts do |host|
             vardir = host.puppet_configprint['vardir']
 
             # In 4.0 this was changed to just be `puppet`
@@ -769,7 +772,8 @@ module Beaker
             # the init script or system on that particular configuration.
             avoid_puppet_at_all_costs = false
             avoid_puppet_at_all_costs ||= host['platform'] =~ /el-4/
-            avoid_puppet_at_all_costs ||= host['pe_ver'] && version_is_less(host['pe_ver'], '3.2') && host['platform'] =~ /sles/
+            avoid_puppet_at_all_costs ||= host['pe_ver'] && version_is_less(host['pe_ver'],
+                                                                            '3.2') && host['platform'] =~ /sles/
 
             if avoid_puppet_at_all_costs
               # When upgrading, puppet is already stopped. On EL4, this causes an exit code of '1'
@@ -778,26 +782,24 @@ module Beaker
               on host, puppet_resource('service', agent_service, 'ensure=stopped')
             end
 
-            #Ensure that a puppet run that was started before the last lock check is completed
+            # Ensure that a puppet run that was started before the last lock check is completed
             agent_running = true
             while agent_running
               agent_running = host.file_exist?("#{vardir}/state/agent_catalog_run.lock")
               sleep 2 if agent_running
             end
-
           end
         end
 
-        #stops the puppet agent running on the default host
+        # stops the puppet agent running on the default host
         # @see #stop_agent_on
         def stop_agent
           stop_agent_on(default)
         end
 
-        #wait for a given host to appear in the dashboard
+        # wait for a given host to appear in the dashboard
         # @deprecated this method should be removed in the next release since we don't believe the check is necessary.
         def wait_for_host_in_dashboard(host)
-
           hostname = host.node_name
           hostcert = dashboard.puppet['hostcert']
           key = dashboard.puppet['hostprivkey']
@@ -820,22 +822,22 @@ module Beaker
           puppet_version = on(master, puppet('--version')).stdout.chomp
           hosts.each do |current_host|
             if [master, dashboard, database].include? current_host
-              on current_host, puppet( 'agent -t' ), acceptable_exit_codes: [0,1,2]
+              on current_host, puppet('agent -t'), acceptable_exit_codes: [0, 1, 2]
 
               if version_is_less(puppet_version, '5.99')
-                on master, puppet("cert --allow-dns-alt-names sign #{current_host}" ), acceptable_exit_codes: [0,24]
+                on master, puppet("cert --allow-dns-alt-names sign #{current_host}"), acceptable_exit_codes: [0, 24]
               else
                 on master, "puppetserver ca sign --certname #{current_host}"
               end
             else
-              hostnames << Regexp.escape( current_host.node_name )
+              hostnames << Regexp.escape(current_host.node_name)
             end
           end
 
           if hostnames.size < 1
             if version_is_less(puppet_version, '5.99')
               on master, puppet('cert --sign --all --allow-dns-alt-names'),
-               acceptable_exit_codes: [0,24]
+                 acceptable_exit_codes: [0, 24]
             else
               on master, 'puppetserver ca sign --all', acceptable_exit_codes: [0, 24]
             end
@@ -852,7 +854,7 @@ module Beaker
               end
 
               if version_is_less(puppet_version, '5.99')
-                on master, puppet('cert --sign --all --allow-dns-alt-names'), acceptable_exit_codes: [0,24]
+                on master, puppet('cert --sign --all --allow-dns-alt-names'), acceptable_exit_codes: [0, 24]
                 out = on(master, puppet('cert --list --all')).stdout
                 if hostnames.all? { |hostname| out =~ /\+ "?#{hostname}"?/ }
                   hostnames.clear
@@ -868,14 +870,14 @@ module Beaker
               end
 
               sleep next_sleep
-              (last_sleep, next_sleep) = next_sleep, last_sleep+next_sleep
+              (last_sleep, next_sleep) = next_sleep, last_sleep + next_sleep
             end
           end
           host
         end
 
-        #prompt the master to sign certs then check to confirm the cert for the default host is signed
-        #@see #sign_certificate_for
+        # prompt the master to sign certs then check to confirm the cert for the default host is signed
+        # @see #sign_certificate_for
         def sign_certificate
           sign_certificate_for(default)
         end
@@ -896,7 +898,7 @@ module Beaker
         # @note While tempting, this method should not be "optimized" to coalesce calls to
         # chown user:group when both options are passed, as doing so will muddy the spec.
         def create_tmpdir_on(hosts, path_prefix = '', user = nil, group = nil)
-          block_on hosts do | host |
+          block_on hosts do |host|
             # create the directory
             dir = host.tmpdir(path_prefix)
             # only chown if explicitly passed; don't make assumptions about perms
@@ -942,7 +944,7 @@ module Beaker
         # if this puppet command returns a non-zero exit code.
         #
         # @return [String] Returns the name of the newly-created dir.
-        def create_tmpdir_for_user(host, name='/tmp/beaker', user=nil)
+        def create_tmpdir_for_user(host, name = '/tmp/beaker', user = nil)
           user ||= puppet_config(host, 'user', section: 'master')
           create_tmpdir_on(host, name, user)
         end

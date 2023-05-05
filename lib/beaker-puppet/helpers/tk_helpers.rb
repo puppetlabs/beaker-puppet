@@ -7,7 +7,6 @@ module Beaker
     module Helpers
       # Convenience methods for modifying and reading TrapperKeeper configs
       module TKHelpers
-
         # Modify the given TrapperKeeper config file.
         #
         # @param [Host] host  A host object
@@ -24,7 +23,7 @@ module Beaker
         # particularly care which of these the file named by `config_file_path` on
         # the SUT actually is, just that the contents can be parsed into a map.
         #
-        def modify_tk_config(host, config_file_path, options_hash, replace=false)
+        def modify_tk_config(host, config_file_path, options_hash, replace = false)
           return nil if options_hash.empty?
 
           new_hash = Beaker::Options::OptionsHash.new
@@ -32,8 +31,9 @@ module Beaker
           if replace
             new_hash.merge!(options_hash)
           else
-            raise "Error: #{config_file_path} does not exist on #{host}" unless host.file_exist?( config_file_path )
-            file_string = host.exec( Command.new( "cat #{config_file_path}" )).stdout
+            raise "Error: #{config_file_path} does not exist on #{host}" unless host.file_exist?(config_file_path)
+
+            file_string = host.exec(Command.new("cat #{config_file_path}")).stdout
 
             begin
               tk_conf_hash = read_tk_config_string(file_string)
@@ -56,29 +56,28 @@ module Beaker
         # a RuntimeException if none of the parsers succeed.
         #
         # @!visibility private
-        def read_tk_config_string( string )
-            begin
-              return Hocon.parse(string)
-            rescue Hocon::ConfigError
-              nil
-            end
+        def read_tk_config_string(string)
+          begin
+            return Hocon.parse(string)
+          rescue Hocon::ConfigError
+            nil
+          end
 
-            begin
-              return JSON.parse(string)
-            rescue JSON::JSONError
-              nil
-            end
+          begin
+            return JSON.parse(string)
+          rescue JSON::JSONError
+            nil
+          end
 
-            begin
-              return IniFile.new(content: string)
-            rescue IniFile::Error
-              nil
-            end
+          begin
+            return IniFile.new(content: string)
+          rescue IniFile::Error
+            nil
+          end
 
-            raise 'Failed to read TrapperKeeper config!'
+          raise 'Failed to read TrapperKeeper config!'
         end
       end
-
     end
   end
 end

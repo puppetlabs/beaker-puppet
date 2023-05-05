@@ -5,12 +5,13 @@ require 'pathname'
 class PuppetModules
   attr_reader :modules
 
-  def initialize(modules=[])
+  def initialize(modules = [])
     @modules = modules
   end
 
   def list
     return [] unless modules
+
     modules.collect do |uri|
       git_url, git_ref = uri.split '#'
       folder = Pathname.new(git_url).basename('.git')
@@ -45,8 +46,7 @@ def install_git_module(mod, hosts)
               'fetch origin',
               "checkout -f #{mod[:ref]}",
               "reset --hard refs/remotes/origin/#{mod[:ref]}",
-              'clean -fdx',
-  ]
+              'clean -fdx',]
 
   on hosts, commands.join(' && git ')
 end

@@ -1,5 +1,4 @@
 test_name 'Install Puppet Agent Packages' do
-
   opts = {
     nightly_builds_url: ENV.fetch('NIGHTLY_BUILDS_URL', nil),
     dev_builds_url: ENV.fetch('DEV_BUILDS_URL', nil),

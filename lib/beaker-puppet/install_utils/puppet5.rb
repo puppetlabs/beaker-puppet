@@ -16,14 +16,14 @@ module Beaker
         #
         # @return [Hash{String=>String}] build json parsed into a ruby hash
         def fetch_build_details(sha_yaml_url)
-          dst_folder          = Dir.mktmpdir
+          dst_folder = Dir.mktmpdir
 
           at_exit do
             if ($!.nil? || ($!.is_a?(SystemExit) && $!.success?)) && File.directory?(dst_folder)
-                require 'fileutils'
+              require 'fileutils'
 
-                FileUtils.rm_rf(dst_folder)
-              end
+              FileUtils.rm_rf(dst_folder)
+            end
           end
 
           sha_yaml_filename   = File.basename(sha_yaml_url)
@@ -89,23 +89,23 @@ module Beaker
             message = <<-EOF
               :packaging_platform not provided for host '#{host}', platform '#{host[:platform]}'
               :packaging_platform should be the platform-specific key from this list:
-                #{ build_details.keys }
+                #{build_details.keys}
             EOF
-            fail_test( message )
+            fail_test(message)
           end
 
           logger.debug('Platforms available for this build:')
-          logger.debug("#{ build_details.keys }")
+          logger.debug("#{build_details.keys}")
           logger.debug("PLATFORM SPECIFIC INFO for #{host} (packaging name '#{packaging_platform}'):")
           packaging_data = build_details[packaging_platform]
-          logger.debug("- #{ packaging_data }, isnil? #{ packaging_data.nil? }")
+          logger.debug("- #{packaging_data}, isnil? #{packaging_data.nil?}")
           if packaging_data.nil?
             message = <<-EOF
               :packaging_platform '#{packaging_platform}' for host '#{host}' not in build details
               :packaging_platform should be the platform-specific key from this list:
-                #{ build_details.keys }
+                #{build_details.keys}
             EOF
-            fail_test( message )
+            fail_test(message)
           end
 
           artifact_buildserver_path   = packaging_data[:artifact]
@@ -114,7 +114,7 @@ module Beaker
 
           artifact_url    = "#{build_url}/#{artifact_buildserver_path}"
           repoconfig_url  = "#{build_url}/#{repoconfig_buildserver_path}" unless repoconfig_buildserver_path.nil?
-          artifact_url_correct = link_exists?( artifact_url )
+          artifact_url_correct = link_exists?(artifact_url)
           logger.debug("- artifact url: '#{artifact_url}'. Exists? #{artifact_url_correct}")
           fail_test('artifact url built incorrectly') unless artifact_url_correct
 
@@ -188,7 +188,7 @@ module Beaker
             return
           end
 
-          install_repo_configs_from_url( host, repoconfig_url )
+          install_repo_configs_from_url(host, repoconfig_url)
         end
 
         # Installs a specified puppet project on all hosts. Gets build information
@@ -204,26 +204,26 @@ module Beaker
         #
         # @return nil
         def install_from_build_data_url(project_name, sha_yaml_url, local_hosts = nil)
-          unless link_exists?( sha_yaml_url )
+          unless link_exists?(sha_yaml_url)
             message = <<-EOF
               Unable to locate a downloadable build of #{project_name} (tried #{sha_yaml_url})
             EOF
-            fail_test( message )
+            fail_test(message)
           end
 
-          base_url, build_details = fetch_build_details( sha_yaml_url )
+          base_url, build_details = fetch_build_details(sha_yaml_url)
 
           install_targets = local_hosts.nil? ? hosts : Array(local_hosts)
 
           install_targets.each do |host|
-            artifact_url, repoconfig_url = host_urls( host, build_details, base_url )
+            artifact_url, repoconfig_url = host_urls(host, build_details, base_url)
             if repoconfig_url.nil?
-              install_artifact_on( host, artifact_url, project_name )
+              install_artifact_on(host, artifact_url, project_name)
             else
-              install_repo_configs_on( host, repoconfig_url )
-              host.install_package( project_name )
+              install_repo_configs_on(host, repoconfig_url)
+              host.install_package(project_name)
             end
-            configure_type_defaults_on( host )
+            configure_type_defaults_on(host)
           end
         end
 
@@ -233,7 +233,9 @@ module Beaker
         # @param [String] ref to install (this can be a tag or a long SHA)
         def install_puppet_agent_from_dev_builds_on(one_or_more_hosts, ref)
           block_on(one_or_more_hosts, run_in_parallel: true) do |host|
-            fail_test("Can't install puppet-agent #{ref}: unable to access Puppet's internal builds") unless dev_builds_accessible_on?(host)
+            unless dev_builds_accessible_on?(host)
+              fail_test("Can't install puppet-agent #{ref}: unable to access Puppet's internal builds")
+            end
           end
           sha_yaml_url = File.join(DEFAULT_DEV_BUILDS_URL, 'puppet-agent', ref, 'artifacts', "#{ref}.yaml")
           install_from_build_data_url('puppet-agent', sha_yaml_url, one_or_more_hosts)
@@ -242,4 +244,3 @@ module Beaker
     end
   end
 end
-

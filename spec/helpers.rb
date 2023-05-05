@@ -8,20 +8,19 @@ module TestFileHelpers
 
   def fog_file_contents
     { default: { aws_access_key_id: 'IMANACCESSKEY',
-                    aws_secret_access_key: 'supersekritkey',
-                    aix_hypervisor_server: 'aix_hypervisor.labs.net',
-                    aix_hypervisor_username: 'aixer',
-                    aix_hypervisor_keyfile: '/Users/user/.ssh/id_rsa-acceptance',
-                    solaris_hypervisor_server: 'solaris_hypervisor.labs.net',
-                    solaris_hypervisor_username: 'harness',
-                    solaris_hypervisor_keyfile: '/Users/user/.ssh/id_rsa-old.private',
-                    solaris_hypervisor_vmpath: 'rpoooool/zs',
-                    solaris_hypervisor_snappaths: ['rpoooool/USER/z0'],
-                    vsphere_server: 'vsphere.labs.net',
-                    vsphere_username: 'vsphere@labs.com',
-                    vsphere_password: 'supersekritpassword',} }
+                 aws_secret_access_key: 'supersekritkey',
+                 aix_hypervisor_server: 'aix_hypervisor.labs.net',
+                 aix_hypervisor_username: 'aixer',
+                 aix_hypervisor_keyfile: '/Users/user/.ssh/id_rsa-acceptance',
+                 solaris_hypervisor_server: 'solaris_hypervisor.labs.net',
+                 solaris_hypervisor_username: 'harness',
+                 solaris_hypervisor_keyfile: '/Users/user/.ssh/id_rsa-old.private',
+                 solaris_hypervisor_vmpath: 'rpoooool/zs',
+                 solaris_hypervisor_snappaths: ['rpoooool/USER/z0'],
+                 vsphere_server: 'vsphere.labs.net',
+                 vsphere_username: 'vsphere@labs.com',
+                 vsphere_password: 'supersekritpassword', } }
   end
-
 end
 
 module HostHelpers
@@ -35,8 +34,7 @@ module HostHelpers
                     box_url: 'http://default.box.url',
                     image: 'default_image',
                     flavor: 'm1.large',
-                    user_data: '#cloud-config\nmanage_etc_hosts: true\nfinal_message: "The host is finally up!"',
-  }
+                    user_data: '#cloud-config\nmanage_etc_hosts: true\nfinal_message: "The host is finally up!"', }
 
   HOST_NAME     = 'vm%d'
   HOST_SNAPSHOT = 'snapshot%d'
@@ -48,55 +46,55 @@ module HostHelpers
   HOST_PRIVATE_IP = 'private.ip.for.%s'
 
   def logger
-    double( 'logger' ).as_null_object
+    double('logger').as_null_object
   end
 
   def make_opts
     opts = Beaker::Options::Presets.new
-    opts.presets.merge( opts.env_vars ).merge( { logger: logger,
-                                               host_config: 'sample.config',
-                                               type: nil,
-                                               pooling_api: 'http://vcloud.delivery.puppetlabs.net/',
-                                               datastore: 'instance0',
-                                               folder: 'Delivery/Quality Assurance/Staging/Dynamic',
-                                               resourcepool: 'delivery/Quality Assurance/Staging/Dynamic',
-                                               gce_project: 'beaker-compute',
-                                               gce_keyfile: '/path/to/keyfile.p12',
-                                               gce_password: 'notasecret',
-                                               gce_email: '12345678910@developer.gserviceaccount.com',
-                                               openstack_api_key: 'P1as$w0rd',
-                                               openstack_username: 'user',
-                                               openstack_auth_url: 'http://openstack_hypervisor.labs.net:5000/v2.0/tokens',
-                                               openstack_tenant: 'testing',
-                                               openstack_network: 'testing',
-                                               openstack_keyname: 'nopass', 
-                                               floating_ip_pool: 'my_pool',
-                                               security_group: %w[my_sg default], } )
+    opts.presets.merge(opts.env_vars).merge({ logger: logger,
+                                              host_config: 'sample.config',
+                                              type: nil,
+                                              pooling_api: 'http://vcloud.delivery.puppetlabs.net/',
+                                              datastore: 'instance0',
+                                              folder: 'Delivery/Quality Assurance/Staging/Dynamic',
+                                              resourcepool: 'delivery/Quality Assurance/Staging/Dynamic',
+                                              gce_project: 'beaker-compute',
+                                              gce_keyfile: '/path/to/keyfile.p12',
+                                              gce_password: 'notasecret',
+                                              gce_email: '12345678910@developer.gserviceaccount.com',
+                                              openstack_api_key: 'P1as$w0rd',
+                                              openstack_username: 'user',
+                                              openstack_auth_url: 'http://openstack_hypervisor.labs.net:5000/v2.0/tokens',
+                                              openstack_tenant: 'testing',
+                                              openstack_network: 'testing',
+                                              openstack_keyname: 'nopass',
+                                              floating_ip_pool: 'my_pool',
+                                              security_group: %w[my_sg default], })
   end
 
-  def generate_result (name, opts )
-    result = double( 'result' )
+  def generate_result(name, opts)
+    result = double('result')
     stdout = opts.has_key?(:stdout) ? opts[:stdout] : name
     stderr = opts.has_key?(:stderr) ? opts[:stderr] : name
-    exit_code = opts.has_key?(:exit_code) ? opts[:exit_code] :  0
+    exit_code = opts.has_key?(:exit_code) ? opts[:exit_code] : 0
     exit_code = [exit_code].flatten
-    allow( result ).to receive( :stdout ).and_return( stdout )
-    allow( result ).to receive( :stderr ).and_return( stderr )
-    allow( result ).to receive( :exit_code ).and_return( *exit_code )
+    allow(result).to receive(:stdout).and_return(stdout)
+    allow(result).to receive(:stderr).and_return(stderr)
+    allow(result).to receive(:exit_code).and_return(*exit_code)
     result
   end
 
   def make_host_opts(name, opts)
-    make_opts.merge( { 'HOSTS' => { name => opts } } ).merge( opts )
+    make_opts.merge({ 'HOSTS' => { name => opts } }).merge(opts)
   end
 
   def make_host(name, host_hash)
     host_hash = Beaker::Options::OptionsHash.new.merge(HOST_DEFAULTS.merge(host_hash))
 
-    host = Beaker::Host.create( name, host_hash, make_opts)
+    host = Beaker::Host.create(name, host_hash, make_opts)
 
-    allow(host).to receive( :exec ).and_return( generate_result( name, host_hash ) )
-    allow(host).to receive( :close )
+    allow(host).to receive(:exec).and_return(generate_result(name, host_hash))
+    allow(host).to receive(:close)
     host
   end
 
@@ -110,7 +108,7 @@ module HostHelpers
                dns_name: HOST_DNS_NAME % name,
                template: HOST_TEMPLATE % name,
                box: HOST_BOX % name,
-               box_url: HOST_BOX_URL % name, }.merge( preset_opts )
+               box_url: HOST_BOX_URL % name, }.merge(preset_opts)
       hosts << make_host(name, opts)
     end
     hosts
@@ -119,24 +117,21 @@ module HostHelpers
   def make_instance(instance_data = {})
     OpenStruct.new instance_data
   end
-
 end
 
 module PlatformHelpers
-
   DEBIANPLATFORMS = %w[debian
-                     ubuntu
-                     huaweios]
-
+                       ubuntu
+                       huaweios]
 
   FEDORASYSTEMD    = (14..29).to_a.collect! { |i| "fedora-#{i}" }
 
   SYSTEMDPLATFORMS = %w[el-7
-                      centos-7
-                      redhat-7
-                      oracle-7
-                      scientific-7
-                      eos-7].concat(FEDORASYSTEMD)
+                        centos-7
+                        redhat-7
+                        oracle-7
+                        scientific-7
+                        eos-7].concat(FEDORASYSTEMD)
 
   FEDORASYSTEMV    = (1..13).to_a.collect! { |i| "fedora-#{i}" }
 

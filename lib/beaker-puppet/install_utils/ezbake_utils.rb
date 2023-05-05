@@ -7,7 +7,6 @@ module Beaker
       # that use ezbake for packaging.
       #
       module EZBakeUtils
-
         # @!group Public DSL Methods
 
         # Installs leiningen project with given name and version on remote host.
@@ -50,7 +49,7 @@ module Beaker
 
           Dir.chdir(ezbake_dir) do
             ezbake_local_cmd "#{lp} install",
-                              throw_on_failure: true
+                             throw_on_failure: true
           end
         end
 
@@ -70,8 +69,8 @@ module Beaker
         def ezbake_validate_support(host)
           variant, version, = host['platform'].to_array
           return if variant =~ /^(fedora|el|redhat|centos|debian|ubuntu)$/
-            raise "No support for #{variant} within ezbake_utils ..."
-          
+
+          raise "No support for #{variant} within ezbake_utils ..."
         end
 
         # Build, copy & unpack tarball on remote host
@@ -104,7 +103,7 @@ module Beaker
         LOCAL_COMMANDS_REQUIRED = [
           ['leiningen', 'lein --version', nil],
           ['lein-pprint', 'lein with-profile ci pprint :version',
-            'Must have lein-pprint installed under the :ci profile.',],
+           'Must have lein-pprint installed under the :ci profile.',],
           ['java', 'java -version', nil],
           ['git', 'git --version', nil],
           ['rake', 'rake --version', nil],
@@ -118,6 +117,7 @@ module Beaker
         def ezbake_tools_available?
           LOCAL_COMMANDS_REQUIRED.each do |software_name, command, additional_error_message|
             next if system command
+
             error_message = "Must have #{software_name} installed on development system.\n"
             error_message += additional_error_message if additional_error_message
             raise error_message
@@ -157,7 +157,7 @@ module Beaker
                            throw_on_failure: true
 
           # Boostrap packaging, and grab configuration info from project
-          staging_dir = File.join('target','staging')
+          staging_dir = File.join('target', 'staging')
           Dir.chdir(staging_dir) do
             ezbake_local_cmd 'rake package:bootstrap'
 
@@ -178,7 +178,7 @@ module Beaker
         # @raise [RuntimeError] if :throw_on_failure is true and
         #   command fails
         # @api private
-        def ezbake_local_cmd(cmd, opts={})
+        def ezbake_local_cmd(cmd, opts = {})
           opts = {
             throw_on_failure: false,
           }.merge(opts)
@@ -186,6 +186,7 @@ module Beaker
           logger.notify "localhost $ #{cmd}"
           result = system cmd
           raise "Command failure #{cmd}" if opts[:throw_on_failure] && result == false
+
           result
         end
 
@@ -219,7 +220,7 @@ module Beaker
         # @param [Host] host Host to run install.sh on
         # @param [String] task Task to execute with install.sh
         # @api private
-        def ezbake_installsh(host, task='')
+        def ezbake_installsh(host, task = '')
           on host, "cd #{ezbake_install_dir}; bash install.sh #{task}"
         end
 
@@ -230,7 +231,7 @@ module Beaker
         # @param [String] local_path path to conditionally install to
         # @param [String] branch to checkout
         # @api private
-        def conditionally_clone(upstream_uri, local_path, branch='origin/HEAD')
+        def conditionally_clone(upstream_uri, local_path, branch = 'origin/HEAD')
           if ezbake_local_cmd "git --work-tree=#{local_path} --git-dir=#{local_path}/.git status"
             ezbake_local_cmd "git --work-tree=#{local_path} --git-dir=#{local_path}/.git fetch origin"
             ezbake_local_cmd "git --work-tree=#{local_path} --git-dir=#{local_path}/.git checkout #{branch}"
@@ -241,7 +242,6 @@ module Beaker
             ezbake_local_cmd "git --work-tree=#{local_path} --git-dir=#{local_path}/.git checkout #{branch}"
           end
         end
-
       end
     end
   end
