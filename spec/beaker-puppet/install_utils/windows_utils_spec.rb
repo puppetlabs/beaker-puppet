@@ -14,16 +14,16 @@ describe ClassMixedWithDSLInstallUtils do
   let(:windows_temp)        { 'C:\\Windows\\Temp' }
   let(:batch_path )         { '/fake/batch/path' }
   let(:msi_path)            { 'c:\\foo\\puppet.msi' }
-  let(:winhost)             { make_host( 'winhost',
-                            { :platform => Beaker::Platform.new('windows-2008r2-64'),
-                                :pe_ver => '3.0',
-                                :working_dir => '/tmp',
-                                :is_cygwin => true} ) }
-  let(:winhost_non_cygwin)  { make_host( 'winhost_non_cygwin',
-                              { :platform => 'windows',
-                                :pe_ver => '3.0',
-                                :working_dir => '/tmp',
-                                :is_cygwin => 'false' } ) }
+  let(:winhost)             do make_host( 'winhost',
+                            { platform: Beaker::Platform.new('windows-2008r2-64'),
+                                pe_ver: '3.0',
+                                working_dir: '/tmp',
+                                is_cygwin: true,} ) end
+  let(:winhost_non_cygwin)  do make_host( 'winhost_non_cygwin',
+                              { platform: 'windows',
+                                pe_ver: '3.0',
+                                working_dir: '/tmp',
+                                is_cygwin: 'false', } ) end
   let(:hosts)              { [ winhost, winhost_non_cygwin ] }
 
   def expect_install_called
@@ -44,15 +44,15 @@ describe ClassMixedWithDSLInstallUtils do
     result.exit_code = 0
     result.stdout = case start_type
                     when 'DISABLED'
-                      "        START_TYPE         : 4   DISABLED"
+                      '        START_TYPE         : 4   DISABLED'
                     when 'AUTOMATIC'
-                      "        START_TYPE         : 2   AUTO_START"
+                      '        START_TYPE         : 2   AUTO_START'
                     else # 'DEMAND_START'
-                      "        START_TYPE         : 3   DEMAND_START"
+                      '        START_TYPE         : 3   DEMAND_START'
                     end
 
     hosts.each do |host|
-      expect(subject).to receive(:on).with(host, having_attributes(command: "sc qc puppet || sc qc pe-puppet")).and_yield(result)
+      expect(subject).to receive(:on).with(host, having_attributes(command: 'sc qc puppet || sc qc pe-puppet')).and_yield(result)
     end
   end
 
@@ -84,7 +84,7 @@ describe ClassMixedWithDSLInstallUtils do
 
     hosts.each do |host|
       expect(subject).to receive(:on)
-        .with(host, having_attributes(command: %r{reg query "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller}))
+        .with(host, having_attributes(command: /reg query "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller/))
     end
   end
 
@@ -101,7 +101,7 @@ describe ClassMixedWithDSLInstallUtils do
     end
   end
 
-  describe "#install_msi_on" do
+  describe '#install_msi_on' do
     let( :log_file )    { '/fake/log/file.log' }
 
     before :each do
@@ -118,7 +118,7 @@ describe ClassMixedWithDSLInstallUtils do
       allow( subject ).to receive( :create_install_msi_batch_on ).and_return( [batch_path, log_file] )
     end
 
-    it "will specify a PUPPET_AGENT_STARTUP_MODE of Manual by default" do
+    it 'will specify a PUPPET_AGENT_STARTUP_MODE of Manual by default' do
       expect_install_called
       expect_puppet_path_called
       expect_status_called
@@ -130,7 +130,7 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_msi_on(hosts, msi_path, {})
     end
 
-    it "allows configuration of PUPPET_AGENT_STARTUP_MODE to Automatic" do
+    it 'allows configuration of PUPPET_AGENT_STARTUP_MODE to Automatic' do
       expect_install_called
       expect_puppet_path_called
       expect_status_called('AUTOMATIC')
@@ -143,7 +143,7 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => value})
     end
 
-    it "allows configuration of PUPPET_AGENT_STARTUP_MODE to Disabled" do
+    it 'allows configuration of PUPPET_AGENT_STARTUP_MODE to Disabled' do
       expect_install_called
       expect_puppet_path_called
       expect_status_called('DISABLED')
@@ -156,7 +156,7 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => value})
     end
 
-    it "will not generate a command to emit a log file without the :debug option set" do
+    it 'will not generate a command to emit a log file without the :debug option set' do
       expect_install_called
       expect_puppet_path_called
       expect_status_called
@@ -168,20 +168,20 @@ describe ClassMixedWithDSLInstallUtils do
       subject.install_msi_on(hosts, msi_path)
     end
 
-    it "will generate a command to emit a log file when the install script fails" do
-      # note a single failure aborts executing against remaining hosts
+    it 'will generate a command to emit a log file when the install script fails' do
+      # NOTE: a single failure aborts executing against remaining hosts
       expect_install_called do |e|
         e.and_raise
         true # break
       end
 
       expect( subject ).to receive( :file_contents_on ).with(anything, log_file)
-      expect {
+      expect do
         subject.install_msi_on(hosts, msi_path)
-      }.to raise_error(RuntimeError)
+      end.to raise_error(RuntimeError)
     end
 
-    it "will generate a command to emit a log file with the :debug option set" do
+    it 'will generate a command to emit a log file with the :debug option set' do
       expect_install_called
       expect_reg_query_called
       expect_puppet_path_called
@@ -190,7 +190,7 @@ describe ClassMixedWithDSLInstallUtils do
 
       expect( subject ).to receive( :file_contents_on ).with(anything, log_file).exactly(hosts.length).times
 
-      subject.install_msi_on(hosts, msi_path, {}, { :debug => true })
+      subject.install_msi_on(hosts, msi_path, {}, { debug: true })
     end
 
     it 'will pass msi_path to #create_install_msi_batch_on as-is' do
@@ -218,7 +218,7 @@ describe ClassMixedWithDSLInstallUtils do
         .with(host, having_attributes(command: 'reg query "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller" /v "RememberedPuppetAgentStartupMode" | findstr Manual'))
       end
 
-      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => "Manual"})
+      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => 'Manual'})
     end
 
     it 'will omit Wow6432Node in the registry search for remembered startup setting on 32-bit hosts' do
@@ -234,7 +234,7 @@ describe ClassMixedWithDSLInstallUtils do
           .with(host, having_attributes(command: 'reg query "HKLM\\SOFTWARE\\Puppet Labs\\PuppetInstaller" /v "RememberedPuppetAgentStartupMode" | findstr Manual'))
       end
 
-      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => "Manual"})
+      subject.install_msi_on(hosts, msi_path, {'PUPPET_AGENT_STARTUP_MODE' => 'Manual'})
     end
   end
 
@@ -243,7 +243,7 @@ describe ClassMixedWithDSLInstallUtils do
     let( :tmp_slashes ) { tmp.gsub('/', '\\') }
 
     before :each do
-      FakeFS::FileSystem.add(File.expand_path tmp)
+      FakeFS::FileSystem.add(File.expand_path(tmp))
       hosts.each do |host|
         allow( host ).to receive( :system_temp_path ).and_return( tmp )
       end
@@ -265,7 +265,7 @@ describe ClassMixedWithDSLInstallUtils do
 
       correct_path = "#{tmp_slashes}\\install-puppet-msi-#{timestamp}.bat"
       expect( winhost ).to receive( :do_scp_to ).with( anything, correct_path, {} )
-      test_path, _ = subject.create_install_msi_batch_on( winhost, msi_path, {} )
+      test_path, = subject.create_install_msi_batch_on( winhost, msi_path, {} )
       expect( test_path ).to be === correct_path
     end
 
@@ -288,39 +288,39 @@ describe ClassMixedWithDSLInstallUtils do
 
     context 'msi_params parameter' do
       it 'can take an empty hash' do
-        expected_cmd = /^start \/w msiexec\.exe \/i ".*" \/qn \/L\*V #{log_path}\ .exit/m
+        expected_cmd = %r{^start /w msiexec\.exe /i ".*" /qn /L\*V #{log_path}\ .exit}m
         expect( subject.msi_install_script(msi_path, {}, log_path) ).to match(expected_cmd)
       end
 
       it 'uses a key-value pair correctly' do
         params = { 'tk1' => 'tv1' }
-        expected_cmd = /^start \/w msiexec\.exe \/i ".*" \/qn \/L\*V #{log_path}\ tk1\=tv1/
+        expected_cmd = %r{^start /w msiexec\.exe /i ".*" /qn /L\*V #{log_path}\ tk1=tv1}
         expect( subject.msi_install_script(msi_path, params, log_path) ).to match(expected_cmd)
       end
 
       it 'uses multiple key-value pairs correctly' do
         params = { 'tk1' => 'tv1', 'tk2' => 'tv2' }
-        expected_cmd = /^start \/w msiexec\.exe \/i ".*" \/qn \/L\*V #{log_path}\ tk1\=tv1\ tk2\=tv2/
+        expected_cmd = %r{^start /w msiexec\.exe /i ".*" /qn /L\*V #{log_path}\ tk1=tv1\ tk2=tv2}
         expect( subject.msi_install_script(msi_path, params, log_path) ).to match(expected_cmd)
       end
     end
 
     context 'msi_path parameter' do
-      it "will generate an appropriate command with a MSI file path using non-Windows slashes" do
+      it 'will generate an appropriate command with a MSI file path using non-Windows slashes' do
         msi_path = 'c:/foo/puppet.msi'
-        expected_cmd = /^start \/w msiexec\.exe \/i "c:\\foo\\puppet.msi" \/qn \/L\*V #{log_path}/
+        expected_cmd = %r{^start /w msiexec\.exe /i "c:\\foo\\puppet.msi" /qn /L\*V #{log_path}}
         expect( subject.msi_install_script(msi_path, {}, log_path) ).to match(expected_cmd)
       end
 
-      it "will generate an appropriate command with a MSI http(s) url" do
-        msi_url = "https://downloads.puppetlabs.com/puppet.msi"
-        expected_cmd = /^start \/w msiexec\.exe \/i "https\:\/\/downloads\.puppetlabs\.com\/puppet\.msi" \/qn \/L\*V #{log_path}/
+      it 'will generate an appropriate command with a MSI http(s) url' do
+        msi_url = 'https://downloads.puppetlabs.com/puppet.msi'
+        expected_cmd = %r{^start /w msiexec\.exe /i "https://downloads\.puppetlabs\.com/puppet\.msi" /qn /L\*V #{log_path}}
         expect( subject.msi_install_script(msi_url, {}, log_path) ).to match(expected_cmd)
       end
 
-      it "will generate an appropriate command with a MSI file url" do
-        msi_url = "file://c:\\foo\\puppet.msi"
-        expected_cmd = /^start \/w msiexec\.exe \/i "file\:\/\/c:\\foo\\puppet\.msi" \/qn \/L\*V #{log_path}/
+      it 'will generate an appropriate command with a MSI file url' do
+        msi_url = 'file://c:\\foo\\puppet.msi'
+        expected_cmd = %r{^start /w msiexec\.exe /i "file://c:\\foo\\puppet\.msi" /qn /L\*V #{log_path}}
         expect( subject.msi_install_script(msi_url, {}, log_path) ).to match(expected_cmd)
       end
     end

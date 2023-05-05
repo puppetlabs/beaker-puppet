@@ -7,13 +7,13 @@ namespace :test do
 
   namespace :spec do
 
-    desc "Run spec tests"
+    desc 'Run spec tests'
     RSpec::Core::RakeTask.new(:run) do |t|
       t.rspec_opts = ['--color']
       t.pattern = 'spec/'
     end
 
-    desc "Run spec tests with coverage"
+    desc 'Run spec tests with coverage'
     RSpec::Core::RakeTask.new(:coverage) do |t|
       ENV['BEAKER_PUPPET_COVERAGE'] = 'y'
       t.rspec_opts = ['--color']
@@ -37,7 +37,7 @@ Commandline options set through the above environment variables will override se
 Run the puppet beaker acceptance tests on a puppet gem install.
 #{USAGE}
     EOS
-    task :gem  => 'gen_hosts' do
+    task gem: 'gen_hosts' do
       beaker_test(:gem)
     end
 
@@ -45,7 +45,7 @@ Run the puppet beaker acceptance tests on a puppet gem install.
 Run the puppet beaker acceptance tests on a puppet git install.
 #{USAGE}
     EOS
-    task :git  => 'gen_hosts' do
+    task git: 'gen_hosts' do
       beaker_test(:git)
     end
 
@@ -53,7 +53,7 @@ Run the puppet beaker acceptance tests on a puppet git install.
 Run the puppet beaker acceptance tests on a puppet package install.
 #{USAGE}
     EOS
-    task :pkg => 'gen_hosts' do
+    task pkg: 'gen_hosts' do
       beaker_test(:pkg)
     end
 
@@ -61,15 +61,13 @@ Run the puppet beaker acceptance tests on a puppet package install.
 Run the puppet beaker acceptance tests on a base system (no install).
 #{USAGE}
     EOS
-    task :base => 'gen_hosts' do
-      beaker_test()
+    task base: 'gen_hosts' do
+      beaker_test
     end
 
     desc 'Generate Beaker Host Config File'
     task :gen_hosts do
-      if hosts_file_env
-        next
-      end
+      next if hosts_file_env
       cli = BeakerHostGenerator::CLI.new([test_targets])
       FileUtils.mkdir_p('tmp') # -p ignores when dir already exists
       File.open("tmp/#{HOSTS_FILE}", 'w') do |fh|
@@ -80,17 +78,15 @@ Run the puppet beaker acceptance tests on a base system (no install).
     def hosts_opt(use_preserved_hosts=false)
       if use_preserved_hosts
         "--hosts=#{HOSTS_PRESERVED}"
-      else
-        if hosts_file_env
-          "--hosts=#{hosts_file_env}"
+      elsif hosts_file_env
+        "--hosts=#{hosts_file_env}"
         else
           "--hosts=tmp/#{HOSTS_FILE}"
-        end
       end
     end
 
     def hosts_file_env
-      ENV['BEAKER_HOSTS']
+      ENV.fetch('BEAKER_HOSTS', nil)
     end
 
     def agent_target
@@ -113,11 +109,11 @@ Run the puppet beaker acceptance tests on a base system (no install).
       preserved_hosts_mode = options[:hosts] == HOSTS_PRESERVED
       final_options = HarnessOptions.final_options(mode, options)
 
-      options_opt  = ""
+      options_opt  = ''
       # preserved hosts can not be used with an options file (BKR-670)
       #   one can still use OPTIONS
 
-      if !preserved_hosts_mode
+      unless preserved_hosts_mode
         options_file = 'merged_options.rb'
         options_opt  = "--options-file=#{options_file}"
         File.open(options_file, 'w') do |merged|
@@ -129,23 +125,23 @@ Run the puppet beaker acceptance tests on a base system (no install).
         end
       end
 
-      tests = ENV['TESTS'] || ENV['TEST']
-      tests_opt = ""
+      tests = ENV['TESTS'] || ENV.fetch('TEST', nil)
+      tests_opt = ''
       tests_opt = "--tests=#{tests}" if tests
 
       overriding_options = ENV['OPTIONS'].to_s
 
       args = [options_opt, hosts_opt(preserved_hosts_mode), tests_opt,
-              *overriding_options.split(' ')].compact
+              *overriding_options.split(' '),].compact
 
-      sh("beaker", *args)
+      sh('beaker', *args)
     end
 
     module HarnessOptions
       defaults = {
-        :tests  => ['tests'],
-        :log_level => 'debug',
-        :preserve_hosts => 'onfail',
+        tests: ['tests'],
+        log_level: 'debug',
+        preserve_hosts: 'onfail',
       }
 
       DEFAULTS = defaults
@@ -189,8 +185,8 @@ task 'test:spec' => 'test:spec:run'
 task 'test:acceptance' => 'test:acceptance:quick'
 
 # global defaults
-task :test => 'test:spec'
-task :default => :test
+task test: 'test:spec'
+task default: :test
 
 begin
   require 'github_changelog_generator/task'
@@ -199,7 +195,7 @@ rescue LoadError
 else
   GitHubChangelogGenerator::RakeTask.new :changelog do |config|
     config.header = "# Changelog\n\nAll notable changes to this project will be documented in this file."
-    config.exclude_labels = %w{duplicate question invalid wontfix wont-fix skip-changelog}
+    config.exclude_labels = %w[duplicate question invalid wontfix wont-fix skip-changelog]
     config.user = 'voxpupuli'
     config.project = 'beaker-puppet'
     config.future_release = "#{Gem::Specification.load("#{config.project}.gemspec").version}"

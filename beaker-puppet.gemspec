@@ -1,15 +1,14 @@
-# -*- encoding: utf-8 -*-
-$LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
+$LOAD_PATH.unshift File.expand_path('lib', __dir__)
 require 'beaker-puppet/version'
 
 Gem::Specification.new do |s|
-  s.name        = "beaker-puppet"
+  s.name        = 'beaker-puppet'
   s.version     = BeakerPuppet::VERSION
-  s.authors     = ["Vox Pupuli"]
-  s.email       = ["voxpupuli@groups.io"]
-  s.homepage    = "https://github.com/voxpupuli/beaker-puppet"
-  s.summary     = %q{Beaker's Puppet DSL Extension Helpers!}
-  s.description = %q{For use for the Beaker acceptance testing tool}
+  s.authors     = ['Vox Pupuli']
+  s.email       = ['voxpupuli@groups.io']
+  s.homepage    = 'https://github.com/voxpupuli/beaker-puppet'
+  s.summary     = "Beaker's Puppet DSL Extension Helpers!"
+  s.description = 'For use for the Beaker acceptance testing tool'
   s.license     = 'Apache-2.0'
 
   s.required_ruby_version = '>= 2.7'
@@ -17,7 +16,7 @@ Gem::Specification.new do |s|
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  s.require_paths = ["lib"]
+  s.require_paths = ['lib']
 
   # Testing dependencies
   s.add_development_dependency 'fakefs', '>= 0.6', '< 2.0'

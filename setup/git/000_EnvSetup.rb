@@ -1,4 +1,4 @@
-test_name "Setup environment"
+test_name 'Setup environment'
 
 require 'json'
 require 'open-uri'
@@ -8,19 +8,19 @@ step 'Configure paths' do
   add_puppet_paths_on(hosts)
 end
 
-step "Install git and tar"
+step 'Install git and tar'
 PACKAGES = {
-  :redhat => ['git'],
-  :debian => [
-    ['git', 'git-core'],
+  redhat: ['git'],
+  debian: [
+    %w[git git-core],
   ],
-  :solaris_10 => [
-    'coreutils',
-    'git',
-    'gtar',
+  solaris_10: %w[
+    coreutils
+    git
+    gtar
   ],
-  :windows => ['git'],
-  :sles => ['git'],
+  windows: ['git'],
+  sles: ['git'],
 }
 
 # We need to be able override which tar we use on solaris, which we call later
@@ -38,7 +38,7 @@ agents.each do |host|
       # solaris 11 using pkg by default, we can't use that method for sol11.
       # We have to override it so that we can get git from opencws, as it has
       # the updated ssl certs we need to access github repos.
-      create_remote_file host, "/root/shutupsolaris", <<-END
+      create_remote_file host, '/root/shutupsolaris', <<-END
 mail=
 # Overwrite already installed instances
 instance=overwrite
@@ -69,9 +69,9 @@ basedir=default
   end
 end
 
-install_packages_on(agents, PACKAGES, :check_if_exists => true)
+install_packages_on(agents, PACKAGES, check_if_exists: true)
 
-step "Unpack puppet-runtime" do
+step 'Unpack puppet-runtime' do
   need_to_run = false
   agents.each do |host|
     # we only need to unpack the runtime if the host doesn't already have runtime
@@ -92,7 +92,7 @@ step "Unpack puppet-runtime" do
     runtime_url = "#{dev_builds_url}/puppet-runtime/#{runtime_tag}/artifacts/"
 
     runtime_prefix = "agent-runtime-#{branch}-#{runtime_tag}."
-    runtime_suffix = ".tar.gz"
+    runtime_suffix = '.tar.gz'
 
     agents.each do |host|
       next if host['has_runtime'] || host['use_existing_container']
@@ -113,16 +113,16 @@ step "Unpack puppet-runtime" do
       when /windows/
         on host, "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -"
 
-        if arch == 'x64'
-          program_files = 'ProgramFiles64Folder'
+        program_files = if arch == 'x64'
+          'ProgramFiles64Folder'
         else
-          program_files = 'ProgramFilesFolder'
-        end
-        if branch == '5.5.x'
-          bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
+          'ProgramFilesFolder'
+                        end
+        bindir = if branch == '5.5.x'
+          "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
         else
-          bindir = "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
-        end
+          "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
+                 end
         on host, "chmod 755 #{bindir}/*"
 
         # Because the runtime archive for windows gets installed in a non-standard
@@ -132,7 +132,7 @@ step "Unpack puppet-runtime" do
         host.add_env_var('PATH', bindir)
       when /osx/
         on host, "tar -xzf #{tarball_name}"
-        on host, "for d in opt var private; do rsync -ka \"${d}/\" \"/${d}/\"; done"
+        on host, 'for d in opt var private; do rsync -ka "${d}/" "/${d}/"; done'
       else
         on host, "gunzip -c #{tarball_name} | #{tar} -k -C / -xf -"
       end
@@ -140,7 +140,7 @@ step "Unpack puppet-runtime" do
   end
 end
 
-step "Install bundler" do
+step 'Install bundler' do
   # Only configure gem mirror after Ruby has been installed, but before any gems are installed.
   configure_gem_mirror(agents)
 

@@ -24,7 +24,7 @@ describe ClassMixedWithDSLWrappers do
   end
 
   describe 'deprecated puppet wrappers' do
-    %w( resource doc kick cert apply master agent filebucket ).each do |sub|
+    %w[ resource doc kick cert apply master agent filebucket ].each do |sub|
       it "#{sub} delegates the proper info to #puppet" do
         expect( subject ).to receive( :puppet ).with( sub, 'blah' )
         subject.send( "puppet_#{sub}", 'blah')

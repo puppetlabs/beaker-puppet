@@ -19,7 +19,7 @@ module Beaker
         #@example
         #  normalize_type('foss-internal')
         #    'foss'
-        def normalize_type type
+        def normalize_type(type)
           case type
           when /(\A|-)foss(\Z|-)/
             'foss'
@@ -27,15 +27,13 @@ module Beaker
             'pe'
           when /(\A|-)aio(\Z|-)/
             'aio'
-          else
-            nil
           end
         end
 
         #Given a host construct a PATH that includes puppetbindir, facterbindir and hierabindir
         # @param [Host] host    A single host to construct pathing for
         def construct_puppet_path(host)
-          path = (%w(puppetbindir facterbindir hierabindir privatebindir)).compact.reject(&:empty?)
+          path = %w[puppetbindir facterbindir hierabindir privatebindir].compact.reject(&:empty?)
           #get the PATH defaults
           path.map! { |val| host[val] }
           path = path.compact.reject(&:empty?)
@@ -43,9 +41,7 @@ module Beaker
           path.map! { |val| echo_on(host, val) }
 
           separator = host['pathseparator']
-          if not host.is_powershell?
-            separator = ':'
-          end
+          separator = ':' unless host.is_powershell?
           path.join(separator)
         end
 
@@ -76,12 +72,12 @@ module Beaker
         # @deprecated This method returns 'PC1' as the latest puppet collection;
         #     this is incorrect. Use {#puppet_collection_for} instead.
         def get_puppet_collection(agent_version = 'latest')
-          collection = "PC1"
+          collection = 'PC1'
           if agent_version != 'latest'
-            if ! version_is_less( agent_version, "5.5.4") and version_is_less(agent_version, "5.99")
-              collection = "puppet5"
-            elsif ! version_is_less( agent_version, "5.99")
-              collection = "puppet6"
+            if ! version_is_less( agent_version, '5.5.4') and version_is_less(agent_version, '5.99')
+              collection = 'puppet5'
+            elsif ! version_is_less( agent_version, '5.99')
+              collection = 'puppet6'
             end
           end
           collection
@@ -98,15 +94,13 @@ module Beaker
         # @param version [String] a version number or the string 'latest'
         # @returns [String|nil] the name of the corresponding puppet collection, if any
         def puppet_collection_for(package, version)
-          valid_packages = [
-            :puppet_agent,
-            :puppet,
-            :puppetserver
+          valid_packages = %i[
+            puppet_agent
+            puppet
+            puppetserver
           ]
 
-          unless valid_packages.include?(package)
-            raise "package must be one of #{valid_packages.join(', ')}"
-          end
+          raise "package must be one of #{valid_packages.join(', ')}" unless valid_packages.include?(package)
 
           case package
           when :puppet_agent, :puppet, :puppetserver
@@ -119,7 +113,7 @@ module Beaker
             pc1_x = {
               puppet: 4,
               puppet_agent: 1,
-              puppetserver: 2
+              puppetserver: 2,
             }
 
             return 'pc1' if x == pc1_x[package]
@@ -136,9 +130,7 @@ module Beaker
         # @returns [String|nil] The version of puppet-agent, or nil if puppet-agent is not installed
         def puppet_agent_version_on(host)
           result = on(host, facter('aio_agent_version'), accept_all_exit_codes: true)
-          if result.exit_code.zero?
-            return result.stdout.strip
-          end
+          return result.stdout.strip if result.exit_code.zero?
           nil
         end
 
@@ -149,7 +141,7 @@ module Beaker
         def puppetserver_version_on(host)
           result = on(host, 'puppetserver --version', accept_all_exit_codes: true)
           if result.exit_code.zero?
-            matched = result.stdout.strip.scan(%r{\d+\.\d+\.\d+})
+            matched = result.stdout.strip.scan(/\d+\.\d+\.\d+/)
             return matched.first
           end
           nil
@@ -167,11 +159,11 @@ module Beaker
             remove_defaults_on(host)
 
             add_method = "add_#{type}_defaults_on"
-            if self.respond_to?(add_method, host)
-              self.send(add_method, host)
-            else
-              raise "cannot add defaults of type #{type} for host #{host.name} (#{add_method} not present)"
-            end
+            raise "cannot add defaults of type #{type} for host #{host.name} (#{add_method} not present)" unless respond_to?(add_method, host)
+              send(add_method, host)
+            
+              
+            
             # add pathing env
             add_puppet_paths_on(host)
           end
@@ -189,11 +181,11 @@ module Beaker
               host_type = normalize_type(host_type)
               if host_type and host_type !~ /aio/
                 add_method = "add_#{host_type}_defaults_on"
-                if self.respond_to?(add_method, host)
-                  self.send(add_method, host)
-                else
-                  raise "cannot add defaults of type #{host_type} for host #{host.name} (#{add_method} not present)"
-                end
+                raise "cannot add defaults of type #{host_type} for host #{host.name} (#{add_method} not present)" unless respond_to?(add_method, host)
+                  send(add_method, host)
+                
+                  
+                
                 has_defaults = true
               end
             end
@@ -202,13 +194,11 @@ module Beaker
               has_defaults = true
             end
             # add pathing env
-            if has_defaults
-              add_puppet_paths_on(host)
-            end
+            add_puppet_paths_on(host) if has_defaults
           end
         end
-        alias_method :configure_foss_defaults_on, :configure_type_defaults_on
-        alias_method :configure_pe_defaults_on, :configure_type_defaults_on
+        alias configure_foss_defaults_on configure_type_defaults_on
+        alias configure_pe_defaults_on configure_type_defaults_on
 
         #If the host is associated with a type remove all defaults and environment associated with that type.
         # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
@@ -222,14 +212,12 @@ module Beaker
               host_type = normalize_type(host['type'])
               remove_puppet_paths_on(hosts)
               remove_method = "remove_#{host_type}_defaults_on"
-              if self.respond_to?(remove_method, host)
-                self.send(remove_method, host)
-              else
-                raise "cannot remove defaults of type #{host_type} associated with host #{host.name} (#{remove_method} not present)"
-              end
-              if aio_version?(host)
-                remove_aio_defaults_on(host)
-              end
+              raise "cannot remove defaults of type #{host_type} associated with host #{host.name} (#{remove_method} not present)" unless respond_to?(remove_method, host)
+                send(remove_method, host)
+              
+                
+              
+              remove_aio_defaults_on(host) if aio_version?(host)
             end
           end
         end

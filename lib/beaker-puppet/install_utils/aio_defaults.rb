@@ -36,7 +36,7 @@ module Beaker
             'puppetbindir'      => '"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\bin"',
             'privatebindir'     => '"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\puppet\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\puppet\\bin";"C:\\Program Files (x86)\\Puppet Labs\\Puppet\\sys\\ruby\\bin";"C:\\Program Files\\Puppet Labs\\Puppet\\sys\\ruby\\bin"',
             'distmoduledir'     => 'C:\\ProgramData\\PuppetLabs\\code\\modules',
-          }
+          },
         }
 
         # Add the appropriate aio defaults to the host object so that they can be accessed using host[option], set host[:type] = aio
@@ -47,11 +47,11 @@ module Beaker
             host[key] = val
           end
           # add group and type here for backwards compatability
-          if host['platform'] =~ /windows/
-            host['group'] = 'Administrators'
+          host['group'] = if host['platform'] =~ /windows/
+            'Administrators'
           else
-            host['group'] = 'puppet'
-          end
+            'puppet'
+                          end
         end
 
         # Add the appropriate aio defaults to an array of hosts
@@ -62,16 +62,16 @@ module Beaker
             if host.is_powershell?
               platform = 'pswindows'
             elsif host['platform'] =~ /windows/
-              if host[:ruby_arch] == 'x64'
-                ruby_arch = /-64/
+              ruby_arch = if host[:ruby_arch] == 'x64'
+                /-64/
               else
-                ruby_arch = /-32/
-              end
-              if host['platform'] =~ ruby_arch
-                platform = 'windows-64'
+                /-32/
+                          end
+              platform = if host['platform'] =~ ruby_arch
+                'windows-64'
               else
-                platform = 'windows'
-              end
+                'windows'
+                         end
             else
               platform = 'unix'
             end
@@ -94,13 +94,13 @@ module Beaker
         #                            or a role (String or Symbol) that identifies one or more hosts.
         def remove_aio_defaults_on(hosts)
           block_on hosts do | host |
-            if host.is_powershell?
-              platform = 'pswindows'
+            platform = if host.is_powershell?
+              'pswindows'
             elsif host['platform'] =~ /windows/
-              platform = 'windows'
+              'windows'
             else
-              platform = 'unix'
-            end
+              'unix'
+                       end
             remove_platform_aio_defaults(host, platform)
           end
         end

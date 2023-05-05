@@ -6,13 +6,13 @@ require 'beaker-puppet/wrappers'
 
 require 'beaker-puppet/helpers/rake_helpers'
 
-[ 'aio', 'foss' ].each do |lib|
+%w[aio foss].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_defaults"
 end
-[ 'windows', 'foss', 'puppet', 'ezbake', 'module' ].each do |lib|
+%w[windows foss puppet ezbake module].each do |lib|
   require "beaker-puppet/install_utils/#{lib}_utils"
 end
-[ 'tk', 'facter', 'puppet', 'host' ].each do |lib|
+%w[tk facter puppet host].each do |lib|
   require "beaker-puppet/helpers/#{lib}_helpers"
 end
 

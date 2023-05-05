@@ -7,7 +7,7 @@ module Beaker
           def load_tasks(beaker_root = File.expand_path("#{__dir__}/../../.."))
             task_dir = File.join(beaker_root, 'tasks')
             tasks = [
-              'ci.rake'
+              'ci.rake',
             ]
 
             tasks.each do |task|

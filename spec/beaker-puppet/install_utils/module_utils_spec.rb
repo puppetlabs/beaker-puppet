@@ -18,14 +18,14 @@ end
 describe ClassMixedWithDSLInstallUtils do
   let(:presets)       { Beaker::Options::Presets.new }
   let(:opts)          { presets.presets.merge(presets.env_vars) }
-  let(:basic_hosts)   { make_hosts( { :pe_ver => '3.0',
-                                       :platform => 'linux',
-                                       :roles => [ 'agent' ] }, 4 ) }
-  let(:hosts)         { basic_hosts[0][:roles] = ['master', 'database', 'dashboard']
+  let(:basic_hosts)   do make_hosts( { pe_ver: '3.0',
+                                       platform: 'linux',
+                                       roles: [ 'agent' ], }, 4 ) end
+  let(:hosts)         do basic_hosts[0][:roles] = %w[master database dashboard]
                         basic_hosts[1][:platform] = 'windows'
                         basic_hosts[2][:platform] = 'osx-10.9-x86_64'
                         basic_hosts[3][:platform] = 'eos'
-                        basic_hosts  }
+                        basic_hosts  end
   let(:hosts_sorted)  { [ hosts[1], hosts[0], hosts[2], hosts[3] ] }
 
 
@@ -34,18 +34,18 @@ describe ClassMixedWithDSLInstallUtils do
     context 'having set allow( a ).to receive forge' do
       it 'stubs the forge on the host' do
         master = hosts.first
-        allow( subject ).to receive( :options ).and_return( {:forge_host => 'ahost.com'} )
+        allow( subject ).to receive( :options ).and_return( {forge_host: 'ahost.com'} )
 
-        subject.install_dev_puppet_module_on( master, {:source => '/module', :module_name => 'test'} )
+        subject.install_dev_puppet_module_on( master, {source: '/module', module_name: 'test'} )
       end
 
       it 'installs via #install_puppet_module_via_pmt' do
         master = hosts.first
-        allow( subject ).to receive( :options ).and_return( {:forge_host => 'ahost.com'} )
+        allow( subject ).to receive( :options ).and_return( {forge_host: 'ahost.com'} )
 
         expect( subject ).to receive( :install_puppet_module_via_pmt_on )
 
-        subject.install_dev_puppet_module_on( master, {:source => '/module', :module_name => 'test'} )
+        subject.install_dev_puppet_module_on( master, {source: '/module', module_name: 'test'} )
       end
     end
     context 'without allow( a ).to receive forge (default)' do
@@ -55,7 +55,7 @@ describe ClassMixedWithDSLInstallUtils do
 
         expect( subject ).to receive( :copy_module_to )
 
-        subject.install_dev_puppet_module_on( master, {:source => '/module', :module_name => 'test'} )
+        subject.install_dev_puppet_module_on( master, {source: '/module', module_name: 'test'} )
       end
     end
   end
@@ -67,10 +67,10 @@ describe ClassMixedWithDSLInstallUtils do
 
       hosts.each do |host|
         expect( subject ).to receive( :install_dev_puppet_module_on ).
-          with( host, {:source => '/module', :module_name => 'test'})
+          with( host, {source: '/module', module_name: 'test'})
       end
 
-      subject.install_dev_puppet_module( {:source => '/module', :module_name => 'test'} )
+      subject.install_dev_puppet_module( {source: '/module', module_name: 'test'} )
     end
   end
 
@@ -83,44 +83,44 @@ describe ClassMixedWithDSLInstallUtils do
       allow( subject ).to receive( :on ).once
       expect( subject ).to receive( :puppet ).with('module install test ', {}).once
 
-      subject.install_puppet_module_via_pmt_on( master, {:module_name => 'test'} )
+      subject.install_puppet_module_via_pmt_on( master, {module_name: 'test'} )
     end
 
     it 'takes the trace option and passes it down correctly' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
       allow( subject ).to receive( :options ).and_return( {} )
       master = hosts.first
-      trace_opts = { :trace => nil }
+      trace_opts = { trace: nil }
       master['default_module_install_opts'] = trace_opts
 
       allow( subject ).to receive( :on ).once
       expect( subject ).to receive( :puppet ).with('module install test ', trace_opts).once
 
-      subject.install_puppet_module_via_pmt_on( master, {:module_name => 'test'} )
+      subject.install_puppet_module_via_pmt_on( master, {module_name: 'test'} )
     end
 
     it 'takes the forge_host option as a hostname and passes it down correctly' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
-      allow( subject ).to receive( :options ).and_return( {:forge_host => 'forge.example.com'} )
+      allow( subject ).to receive( :options ).and_return( {forge_host: 'forge.example.com'} )
       master = hosts.first
-      forge_opts = { :module_repository => 'https://forge.example.com' }
+      forge_opts = { module_repository: 'https://forge.example.com' }
 
       allow( subject ).to receive( :on ).once
       expect( subject ).to receive( :puppet ).with('module install test ', forge_opts).once
 
-      subject.install_puppet_module_via_pmt_on( master, {:module_name => 'test'} )
+      subject.install_puppet_module_via_pmt_on( master, {module_name: 'test'} )
     end
 
     it 'takes the forge_host option as a url and passes it down correctly' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
-      allow( subject ).to receive( :options ).and_return( {:forge_host => 'http://forge.example.com'} )
+      allow( subject ).to receive( :options ).and_return( {forge_host: 'http://forge.example.com'} )
       master = hosts.first
-      forge_opts = { :module_repository => 'http://forge.example.com' }
+      forge_opts = { module_repository: 'http://forge.example.com' }
 
       allow( subject ).to receive( :on ).once
       expect( subject ).to receive( :puppet ).with('module install test ', forge_opts).once
 
-      subject.install_puppet_module_via_pmt_on( master, {:module_name => 'test'} )
+      subject.install_puppet_module_via_pmt_on( master, {module_name: 'test'} )
     end
   end
 
@@ -128,9 +128,9 @@ describe ClassMixedWithDSLInstallUtils do
     it 'delegates to #install_puppet_module_via_pmt with the hosts list' do
       allow( subject ).to receive( :hosts ).and_return( hosts )
 
-      expect( subject ).to receive( :install_puppet_module_via_pmt_on ).with( hosts, {:source => '/module', :module_name => 'test'}).once
+      expect( subject ).to receive( :install_puppet_module_via_pmt_on ).with( hosts, {source: '/module', module_name: 'test'}).once
 
-      subject.install_puppet_module_via_pmt( {:source => '/module', :module_name => 'test'} )
+      subject.install_puppet_module_via_pmt( {source: '/module', module_name: 'test'} )
     end
   end
 
@@ -142,7 +142,7 @@ describe ClassMixedWithDSLInstallUtils do
 
     shared_examples 'copy_module_to' do  |opts|
       it{
-        host = double("host")
+        host = double('host')
         allow( host ).to receive(:[]).with('distmoduledir').and_return('/etc/puppetlabs/puppet/modules')
         allow( host ).to receive(:is_powershell?).and_return(false)
         result = double
@@ -153,15 +153,15 @@ describe ClassMixedWithDSLInstallUtils do
 
         allow( subject ).to receive(:parse_for_moduleroot).and_return(source)
         if module_parse_name
-          allow( subject ).to receive(:parse_for_modulename).with(any_args()).and_return(module_parse_name)
+          allow( subject ).to receive(:parse_for_modulename).with(any_args).and_return(module_parse_name)
         else
           expect( subject).to_not receive(:parse_for_modulename)
         end
 
-        allow( File ).to receive(:exist?).with(any_args()).and_return(false)
-        allow( File ).to receive(:directory?).with(any_args()).and_return(false)
+        allow( File ).to receive(:exist?).with(any_args).and_return(false)
+        allow( File ).to receive(:directory?).with(any_args).and_return(false)
 
-        expect( subject ).to receive(:scp_to).with(host,source, File.dirname(target), {:ignore => ignore_list})
+        expect( subject ).to receive(:scp_to).with(host,source, File.dirname(target), {ignore: ignore_list})
         expect( host ).to receive(:mv).with(File.join(File.dirname(target), File.basename(source)), target)
         if opts.nil?
           subject.copy_module_to(host)
@@ -174,19 +174,19 @@ describe ClassMixedWithDSLInstallUtils do
     describe 'should call scp with the correct info, with only providing host' do
       let(:target){'/etc/puppetlabs/puppet/modules/testmodule'}
 
-      it_should_behave_like 'copy_module_to', :module_name => 'testmodule'
+      it_should_behave_like 'copy_module_to', module_name: 'testmodule'
     end
 
     describe 'should call scp with the correct info, when specifying the modulename' do
       let(:target){'/etc/puppetlabs/puppet/modules/bogusmodule'}
       let(:module_parse_name){false}
-      it_should_behave_like 'copy_module_to', {:module_name =>'bogusmodule'}
+      it_should_behave_like 'copy_module_to', {module_name: 'bogusmodule'}
     end
 
     describe 'should call scp with the correct info, when specifying the target to a different path' do
       target = '/opt/shared/puppet/modules'
       let(:target){"#{target}/testmodule"}
-      it_should_behave_like 'copy_module_to', {:target_module_path => target, :module_name => 'testmodule'}
+      it_should_behave_like 'copy_module_to', {target_module_path: target, module_name: 'testmodule'}
     end
 
     describe 'should accept multiple hosts when' do
@@ -202,7 +202,7 @@ describe ClassMixedWithDSLInstallUtils do
 
     describe 'non-cygwin windows' do
       it 'should have different commands than cygwin' do
-        host = double("host")
+        host = double('host')
         allow( host ).to receive(:[]).with('platform').and_return('windows')
         allow( host ).to receive(:[]).with('distmoduledir').and_return('C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules')
         allow( host ).to receive(:is_powershell?).and_return(true)
@@ -210,12 +210,12 @@ describe ClassMixedWithDSLInstallUtils do
         result = double
         allow( result ).to receive(:stdout).and_return( 'C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules' )
 
-        expect( subject ).to receive(:on).with(host, "echo C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules" ).and_return( result )
+        expect( subject ).to receive(:on).with(host, 'echo C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules' ).and_return( result )
 
-        expect( subject ).to receive(:scp_to).with(host, "/opt/testmodule2", "C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules", {:ignore => ignore_list})
+        expect( subject ).to receive(:scp_to).with(host, '/opt/testmodule2', 'C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules', {ignore: ignore_list})
         expect( host ).to receive(:mv).with('C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules\\testmodule2', 'C:\\ProgramData\\PuppetLabs\\puppet\\etc\\modules\\testmodule')
 
-        subject.copy_module_to(host, {:module_name => 'testmodule', :source => '/opt/testmodule2'})
+        subject.copy_module_to(host, {module_name: 'testmodule', source: '/opt/testmodule2'})
       end
     end
   end
@@ -230,7 +230,7 @@ describe ClassMixedWithDSLInstallUtils do
 
   describe 'get_module_name' do
     it 'should return an array of author and modulename' do
-      expect(subject.get_module_name('myname-test_43_module')).to eq(['myname', 'test_43_module'])
+      expect(subject.get_module_name('myname-test_43_module')).to eq(%w[myname test_43_module])
     end
     it 'should return nil for invalid names' do
       expect(subject.get_module_name('myname-')).to eq(nil)
@@ -296,18 +296,18 @@ describe ClassMixedWithDSLInstallUtils do
     directory = '/testfilepath/myname-testmodule'
     it 'should return name from metadata.json' do
       allow( File ).to receive(:exist?).with("#{directory}/metadata.json").and_return(true)
-      allow( File ).to receive(:read).with("#{directory}/metadata.json").and_return(" {\"name\":\"myname-testmodule\"} ")
-      expect( subject.logger ).to receive(:debug).with("Attempting to parse Modulename from metadata.json")
+      allow( File ).to receive(:read).with("#{directory}/metadata.json").and_return(' {"name":"myname-testmodule"} ')
+      expect( subject.logger ).to receive(:debug).with('Attempting to parse Modulename from metadata.json')
       expect(subject.logger).to_not receive(:debug).with('Unable to determine name, returning null')
-      expect(subject.parse_for_modulename(directory)).to eq(['myname', 'testmodule'])
+      expect(subject.parse_for_modulename(directory)).to eq(%w[myname testmodule])
     end
     it 'should return name from Modulefile' do
       allow( File ).to receive(:exist?).with("#{directory}/metadata.json").and_return(false)
       allow( File ).to receive(:exist?).with("#{directory}/Modulefile").and_return(true)
       allow( File ).to receive(:read).with("#{directory}/Modulefile").and_return("name    'myname-testmodule'  \nauthor   'myname'")
-      expect( subject.logger ).to receive(:debug).with("Attempting to parse Modulename from Modulefile")
-      expect(subject.logger).to_not receive(:debug).with("Unable to determine name, returning null")
-      expect(subject.parse_for_modulename(directory)).to eq(['myname', 'testmodule'])
+      expect( subject.logger ).to receive(:debug).with('Attempting to parse Modulename from Modulefile')
+      expect(subject.logger).to_not receive(:debug).with('Unable to determine name, returning null')
+      expect(subject.parse_for_modulename(directory)).to eq(%w[myname testmodule])
     end
   end
 

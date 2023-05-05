@@ -10,10 +10,10 @@ class ClassMixedWithDSLInstallUtils
 end
 
 describe ClassMixedWithDSLInstallUtils do
-  let(:hosts)   { make_hosts( { :pe_ver => '3.0',
-                                      :platform => 'linux',
-                                      :roles => [ 'agent' ],
-                                      :type  => 'foss' }, 4 ) }
+  let(:hosts)   do make_hosts( { pe_ver: '3.0',
+                                      platform: 'linux',
+                                      roles: [ 'agent' ],
+                                      type: 'foss', }, 4 ) end
 
   before :each do
     allow( subject ).to receive( :hosts ) { hosts }
@@ -22,7 +22,7 @@ describe ClassMixedWithDSLInstallUtils do
 
   describe '#fetch_build_details' do
     let( :platform_data ) { @platform_data || '' }
-    let( :deets ) { { :platform_data => platform_data } }
+    let( :deets ) { { platform_data: platform_data } }
 
     it 'sets & returns the relative folder' do
       sha_yaml_folder = '/jams/of/the/rain'
@@ -30,7 +30,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect( subject ).to receive( :fetch_http_file  )
       expect( YAML    ).to receive( :load_file        ) { deets }
 
-      url, _ = subject.fetch_build_details( sha_yaml_url )
+      url, = subject.fetch_build_details( sha_yaml_url )
       expect( url ).to be === sha_yaml_folder
     end
 
@@ -61,22 +61,22 @@ describe ClassMixedWithDSLInstallUtils do
     let( :artifact_path       ) { @artifact_path      || ''             }
     let( :repo_config         ) { @repo_config        || nil            }
     let( :packaging_platform  ) { @packaging_platform || 'el-7-x86_64'  }
-    let( :host                ) {
+    let( :host                ) do
       host = hosts[0]
       allow( host ).to receive( :[] ).with( :packaging_platform ) {
         packaging_platform
       }
       host
-    }
-    let( :build_details   ) {
+    end
+    let( :build_details   ) do
       details = {
         packaging_platform => {
-          :artifact     => artifact_path,
-          :repo_config  => repo_config
-        }
+          artifact: artifact_path,
+          repo_config: repo_config,
+        },
       }
       details
-    }
+    end
 
     before :each do
       allow( subject ).to receive( :host_packaging_platform ) { packaging_platform }
@@ -84,32 +84,32 @@ describe ClassMixedWithDSLInstallUtils do
 
     it 'fails if there\'s no artifact value for the given platform' do
       allow( artifact_path ).to receive( :nil? ) { true }
-      expect {
+      expect do
         subject.host_urls( host, build_details, '' )
-      }.to raise_error(
+      end.to raise_error(
         Beaker::DSL::Outcomes::FailTest,
-        /^no artifact.*path found$/
+        /^no artifact.*path found$/,
       )
     end
 
     it 'fails if the artifact_url doesn\'t exist' do
       allow( subject ).to receive( :link_exists? ) { false }
-      expect {
+      expect do
         subject.host_urls( host, build_details, '' )
-      }.to raise_error(
+      end.to raise_error(
         Beaker::DSL::Outcomes::FailTest,
-        /^artifact url.*incorrectly$/
+        /^artifact url.*incorrectly$/,
       )
     end
 
     it 'fails if the host doesn\'t have a packaging_platform' do
       allow( packaging_platform ).to receive( :nil? ) { true }
       allow( host ).to receive( :[] ).with( :platform ) { 'fake-platform' }
-      expect {
+      expect do
         subject.host_urls( host, build_details, '' )
-      }.to raise_error(
+      end.to raise_error(
         Beaker::DSL::Outcomes::FailTest,
-        /packaging_platform not provided for host/
+        /packaging_platform not provided for host/,
       )
     end
 
@@ -118,7 +118,7 @@ describe ClassMixedWithDSLInstallUtils do
       @artifact_path = 'pants.install.pkg'
 
       allow( subject ).to receive( :link_exists? ) { true }
-      artifact_url, _ = subject.host_urls( host, build_details, base_url )
+      artifact_url, = subject.host_urls( host, build_details, base_url )
       expect( artifact_url ).to be === "#{base_url}/#{@artifact_path}"
     end
 
@@ -139,37 +139,37 @@ describe ClassMixedWithDSLInstallUtils do
 
   end
 
-  describe "#host_packaging_platform" do
+  describe '#host_packaging_platform' do
     let( :default_platform ) { 'default-platform' }
     let( :overridden_platform ) { 'overridden-platform' }
     let( :overrides ) { 'default-platform=overridden-platform' || @overrides }
-    let( :host ) {
+    let( :host ) do
       host = hosts[0]
       allow( host ).to receive( :[] ).with( :packaging_platform ) { default_platform }
       allow( host ).to receive( :[] ).with( :platform ) { default_platform }
       host
-    }
+    end
 
     before :each do
-      @original_platforms = ENV['BEAKER_PACKAGING_PLATFORMS']
+      @original_platforms = ENV.fetch('BEAKER_PACKAGING_PLATFORMS', nil)
     end
 
     after :each do
       ENV['BEAKER_PACKAGING_PLATFORMS'] = @original_platforms
     end
 
-    it "applies an override to a platform" do
+    it 'applies an override to a platform' do
       ENV['BEAKER_PACKAGING_PLATFORMS'] = overrides
       expect(subject.host_packaging_platform(host)).to eq(overridden_platform)
     end
 
-    it "applies a list of overrides to a platform" do
+    it 'applies a list of overrides to a platform' do
       ENV['BEAKER_PACKAGING_PLATFORMS'] = "aix-7.1-power=aix-6.1-power,#{overrides}"
       expect(subject.host_packaging_platform(host)).to eq(overridden_platform)
     end
 
     it "doesn't apply overrides if the current host's platform isn't overridden" do
-      ENV['BEAKER_PACKAGING_PLATFORMS'] = "aix-7.1-power=aix-6.1-power"
+      ENV['BEAKER_PACKAGING_PLATFORMS'] = 'aix-7.1-power=aix-6.1-power'
       expect(subject.host_packaging_platform(host)).to eq(default_platform)
     end
   end
@@ -179,16 +179,16 @@ describe ClassMixedWithDSLInstallUtils do
     let( :artifact_url ) { 'url://in/the/jungle/lies/the/prize.pnc' }
     let( :platform ) { @platform || 'linux' }
     let( :version ) { @version || '' }
-    let( :mock_platform ) {
+    let( :mock_platform ) do
       mock_platform = Object.new
       allow( mock_platform ).to receive( :to_array ) { [platform, version, '', ''] }
       mock_platform
-    }
-    let( :host ) {
+    end
+    let( :host ) do
       host = hosts[0]
       allow( host ).to receive( :[] ).with( :platform ) { mock_platform }
       host
-    }
+    end
 
     it 'calls host.install_package in the common case' do
       expect( subject ).to receive( :fetch_http_file ).never
@@ -237,14 +237,14 @@ describe ClassMixedWithDSLInstallUtils do
 
         expect( subject ).to receive( :fetch_http_file ).once
         expect( subject ).to receive( :scp_to ).once
-        run_shared_test_steps()
+        run_shared_test_steps
       end
 
       it 'OSX: curls the file & runs local install' do
         @platform = 'osx'
 
         expect( subject ).to receive( :on ).with( host, /^curl.*#{artifact_url}$/ )
-        run_shared_test_steps()
+        run_shared_test_steps
       end
 
       it 'AIX: fetches the file & runs local install' do
@@ -285,7 +285,7 @@ describe ClassMixedWithDSLInstallUtils do
       repoconfig_url = 'string/test/repo_config/stuff.stuff'
       expect( subject ).to receive( :install_repo_configs_from_url ).with(
         host,
-        repoconfig_url
+        repoconfig_url,
       )
       expect( subject.logger ).to receive( :warn ).never
       subject.install_repo_configs_on( host, repoconfig_url )
@@ -294,7 +294,7 @@ describe ClassMixedWithDSLInstallUtils do
     it 'returns without calling #install_repo_configs_from_url if repoconfig_url is nil' do
       expect( subject ).to receive( :install_repo_configs_from_url ).never
       expect( subject.logger ).to receive( :warn ).with(
-        /^No repo_config.*Skipping repo_config install$/
+        /^No repo_config.*Skipping repo_config install$/,
       )
       subject.install_repo_configs_on( host, nil )
     end
@@ -366,9 +366,9 @@ describe ClassMixedWithDSLInstallUtils do
       allow( subject ).to receive( :link_exists? ) { false }
       sha_yaml_url = 'pants/to/the/man/jeans.txt'
 
-      expect {
+      expect do
         subject.install_from_build_data_url( 'project_name', sha_yaml_url )
-      }.to raise_error(Beaker::DSL::Outcomes::FailTest, /project_name.*#{sha_yaml_url}/)
+      end.to raise_error(Beaker::DSL::Outcomes::FailTest, /project_name.*#{sha_yaml_url}/)
     end
 
     it 'runs host.install_package instead of #install_artifact_on if theres a repo_config' do
@@ -382,7 +382,7 @@ describe ClassMixedWithDSLInstallUtils do
       hosts.each do |host|
         expect( subject ).to receive( :install_repo_configs_on ).with(
           host,
-          repoconfig_url
+          repoconfig_url,
         )
         expect( host ).to receive( :install_package ).with( project_name )
       end
@@ -392,11 +392,11 @@ describe ClassMixedWithDSLInstallUtils do
 
   describe '#install_puppet_agent_from_dev_builds_on' do
     let(:host) { make_host('test_host', { platform: 'el-7-x86_64' }) }
-    let(:ref) { "sha" }
+    let(:ref) { 'sha' }
     let(:sha_yaml_url) { "#{Beaker::DSL::Puppet5::DEFAULT_DEV_BUILDS_URL}/puppet-agent/#{ref}/artifacts/#{ref}.yaml" }
 
     it 'installs puppet-agent from internal builds when they are accessible' do
-      expect( subject ).to receive(:block_on).with(anything, :run_in_parallel => true)
+      expect( subject ).to receive(:block_on).with(anything, run_in_parallel: true)
       allow(subject).to receive(:dev_builds_accessible_on?).and_return(true)
       allow(subject).to receive(:install_from_build_data_url).with('puppet-agent', sha_yaml_url, host)
       subject.install_puppet_agent_from_dev_builds_on(host, ref)
@@ -404,7 +404,7 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'fails the test when internal builds are inaccessible' do
-      expect( subject ).to receive(:block_on).with(anything, :run_in_parallel => true)
+      expect( subject ).to receive(:block_on).with(anything, run_in_parallel: true)
       allow(subject).to receive(:dev_builds_accessible?).and_return(false)
       expect { subject.install_puppet_agent_from_dev_builds_on(host, 'sha') }.to raise_error(Beaker::DSL::Outcomes::FailTest)
     end

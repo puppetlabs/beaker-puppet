@@ -38,14 +38,14 @@ module Beaker
         # @raise  [FailTest] Raises an exception if call to facter fails
         def fact_on(host, name, opts = {})
           raise(ArgumentError, "fact_on's `name` option must be a String. You provided a #{name.class}: '#{name}'") unless name.is_a?(String)
-          if opts.kind_of?(Hash)
+          if opts.is_a?(Hash)
             opts.merge!({json: nil})
           else
             opts << ' --json'
           end
 
           result = on host, facter("\"#{name}\"", opts)
-          if result.kind_of?(Array)
+          if result.is_a?(Array)
             result.map { |res| JSON.parse(res.stdout)[name] }
           else
             JSON.parse(result.stdout)[name]

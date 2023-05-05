@@ -13,7 +13,7 @@ module Beaker
         def get_system_temp_path(host)
           host.system_temp_path
         end
-        alias_method :get_temp_path, :get_system_temp_path
+        alias get_temp_path get_system_temp_path
 
         # Generates commands to be inserted into a Windows batch file to launch an MSI install
         # @param [String] msi_path The path of the MSI - can be a local Windows style file path like
@@ -25,15 +25,15 @@ module Beaker
         # @api private
         def msi_install_script(msi_path, msi_opts, log_path)
           # msiexec requires backslashes in file paths launched under cmd.exe start /w
-          url_pattern = /^(https?|file):\/\//
-          msi_path = msi_path.gsub(/\//, "\\") if msi_path !~ url_pattern
+          url_pattern = %r{^(https?|file)://}
+          msi_path = msi_path.gsub(%r{/}, '\\') if msi_path !~ url_pattern
 
           msi_params = msi_opts.map{|k, v| "#{k}=#{v}"}.join(' ')
 
           # msiexec requires quotes around paths with backslashes - c:\ or file://c:\
           # not strictly needed for http:// but it simplifies this code
           batch_contents = <<~BATCH
-            start /w msiexec.exe /i \"#{msi_path}\" /qn /L*V #{log_path} #{msi_params}
+            start /w msiexec.exe /i "#{msi_path}" /qn /L*V #{log_path} #{msi_params}
             exit /B %errorlevel%
           BATCH
         end
@@ -67,7 +67,7 @@ module Beaker
             host.do_scp_to(tmp_file.path, batch_path, {})
           end
 
-          return batch_path, log_path
+          [batch_path, log_path]
         end
 
         # Given hosts construct a PATH that includes puppetbindir, facterbindir and hierabindir
@@ -122,24 +122,20 @@ module Beaker
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
-              on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
-            rescue
+              on host, Command.new("\"#{batch_path}\"", [], { cmdexe: true }), acceptable_exit_codes: [0, 1641, 3010]
+            rescue StandardError
               logger.info(file_contents_on(host, log_file_escaped))
               raise
             end
 
-            if opts[:debug]
-              logger.info(file_contents_on(host, log_file_escaped))
-            end
+            logger.info(file_contents_on(host, log_file_escaped)) if opts[:debug]
 
             unless host.is_cygwin?
               # Enable the PATH updates
               host.close
 
               # Some systems require a full reboot to trigger the enabled path
-              unless on(host, Command.new('puppet -h', [], { :cmdexe => true}), :accept_all_exit_codes => true).exit_code == 0
-                host.reboot
-              end
+              host.reboot unless on(host, Command.new('puppet -h', [], { cmdexe: true}), accept_all_exit_codes: true).exit_code == 0
             end
 
             # verify service status post install
@@ -149,30 +145,31 @@ module Beaker
             #
             # We also take advantage of this output to verify the startup
             # settings are honored as supplied to the MSI
-            on host, Command.new("sc qc puppet || sc qc pe-puppet", [], { :cmdexe => true }) do |result|
+            on host, Command.new('sc qc puppet || sc qc pe-puppet', [], { cmdexe: true }) do |result|
               output = result.stdout
               startup_mode = msi_opts['PUPPET_AGENT_STARTUP_MODE'].upcase
 
               search = case startup_mode
                 when 'AUTOMATIC'
-                  { :code => 2, :name => 'AUTO_START' }
+                  { code: 2, name: 'AUTO_START' }
                 when 'MANUAL'
-                  { :code => 3, :name => 'DEMAND_START' }
+                  { code: 3, name: 'DEMAND_START' }
                 when 'DISABLED'
-                  { :code => 4, :name => 'DISABLED' }
+                  { code: 4, name: 'DISABLED' }
                 end
 
-              if output !~ /^\s+START_TYPE\s+:\s+#{search[:code]}\s+#{search[:name]}/
-                raise "puppet service startup mode did not match supplied MSI option '#{startup_mode}'"
-              end
+              raise "puppet service startup mode did not match supplied MSI option '#{startup_mode}'" if output !~ /^\s+START_TYPE\s+:\s+#{search[:code]}\s+#{search[:name]}/
             end
 
             # (PA-514) value for PUPPET_AGENT_STARTUP_MODE should be present in
             # registry and honored after install/upgrade.
-            reg_key = host.is_x86_64? ? "HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller" :
-                                        "HKLM\\SOFTWARE\\Puppet Labs\\PuppetInstaller"
-            reg_query_command = %Q(reg query "#{reg_key}" /v "RememberedPuppetAgentStartupMode" | findstr #{msi_opts['PUPPET_AGENT_STARTUP_MODE']})
-            on host, Command.new(reg_query_command, [], { :cmdexe => true })
+            reg_key = if host.is_x86_64?
+  'HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller'
+else
+  'HKLM\\SOFTWARE\\Puppet Labs\\PuppetInstaller'
+end
+            reg_query_command = %(reg query "#{reg_key}" /v "RememberedPuppetAgentStartupMode" | findstr #{msi_opts['PUPPET_AGENT_STARTUP_MODE']})
+            on host, Command.new(reg_query_command, [], { cmdexe: true })
 
             # emit the misc/versions.txt file which contains component versions for
             # puppet, facter, hiera, pxp-agent, packaging and vendored Ruby
@@ -180,7 +177,7 @@ module Beaker
               "'%PROGRAMFILES%\\Puppet Labs\\puppet\\misc\\versions.txt'",
               "'%PROGRAMFILES(X86)%\\Puppet Labs\\puppet\\misc\\versions.txt'",
             ].each do |path|
-              result = on(host, "cmd /c type #{path}", :accept_all_exit_codes => true)
+              result = on(host, "cmd /c type #{path}", accept_all_exit_codes: true)
               if result.exit_code == 0
                 logger.info(result.stdout)
                 break
@@ -212,16 +209,14 @@ module Beaker
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED
               # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED
-              on host, Command.new("\"#{batch_path}\"", [], { :cmdexe => true }), :acceptable_exit_codes => [0, 1641, 3010]
-            rescue
+              on host, Command.new("\"#{batch_path}\"", [], { cmdexe: true }), acceptable_exit_codes: [0, 1641, 3010]
+            rescue StandardError
               logger.info(file_contents_on(host, log_file_escaped))
 
               raise
             end
 
-            if opts[:debug]
-              logger.info(file_contents_on(host, log_file_escaped))
-            end
+            logger.info(file_contents_on(host, log_file_escaped)) if opts[:debug]
 
             host.close unless host.is_cygwin?
           end
