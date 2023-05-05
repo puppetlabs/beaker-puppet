@@ -42,7 +42,7 @@ test_name 'Validate Sign Cert' do
     on master, 'puppetserver ca setup' if !version_is_less(puppet_version, '5.99') && !master['use_existing_container']
     with_puppet_running_on(master, master_opts) do
       step 'Agents: Run agent --test with autosigning enabled to get cert'
-      on agents, puppet('agent --test'), acceptable_exit_codes: [0,2]
+      on agents, puppet('agent --test'), acceptable_exit_codes: [0, 2]
     end
   end
 end

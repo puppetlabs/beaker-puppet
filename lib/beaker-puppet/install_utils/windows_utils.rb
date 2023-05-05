@@ -28,7 +28,7 @@ module Beaker
           url_pattern = %r{^(https?|file)://}
           msi_path = msi_path.gsub(%r{/}, '\\') if msi_path !~ url_pattern
 
-          msi_params = msi_opts.map{|k, v| "#{k}=#{v}"}.join(' ')
+          msi_params = msi_opts.map { |k, v| "#{k}=#{v}" }.join(' ')
 
           # msiexec requires quotes around paths with backslashes - c:\ or file://c:\
           # not strictly needed for http:// but it simplifies this code
@@ -112,12 +112,12 @@ module Beaker
         #
         # @api private
         def install_msi_on(hosts, msi_path, msi_opts = {}, opts = {})
-          block_on hosts do | host |
+          block_on hosts do |host|
             msi_opts['PUPPET_AGENT_STARTUP_MODE'] ||= 'Manual'
             batch_path, log_file = create_install_msi_batch_on(host, msi_path, msi_opts)
             # Powershell command looses an escaped slash resulting in cygwin relative path
             # See https://github.com/puppetlabs/beaker/pull/1626#issuecomment-621341555
-            log_file_escaped = log_file.gsub('\\','\\\\\\')
+            log_file_escaped = log_file.gsub('\\', '\\\\\\')
             # begin / rescue here so that we can reuse existing error msg propagation
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED
@@ -135,7 +135,8 @@ module Beaker
               host.close
 
               # Some systems require a full reboot to trigger the enabled path
-              host.reboot unless on(host, Command.new('puppet -h', [], { cmdexe: true}), accept_all_exit_codes: true).exit_code == 0
+              host.reboot unless on(host, Command.new('puppet -h', [], { cmdexe: true }),
+                                    accept_all_exit_codes: true).exit_code == 0
             end
 
             # verify service status post install
@@ -150,24 +151,26 @@ module Beaker
               startup_mode = msi_opts['PUPPET_AGENT_STARTUP_MODE'].upcase
 
               search = case startup_mode
-                when 'AUTOMATIC'
-                  { code: 2, name: 'AUTO_START' }
-                when 'MANUAL'
-                  { code: 3, name: 'DEMAND_START' }
-                when 'DISABLED'
-                  { code: 4, name: 'DISABLED' }
-                end
+                       when 'AUTOMATIC'
+                         { code: 2, name: 'AUTO_START' }
+                       when 'MANUAL'
+                         { code: 3, name: 'DEMAND_START' }
+                       when 'DISABLED'
+                         { code: 4, name: 'DISABLED' }
+                       end
 
-              raise "puppet service startup mode did not match supplied MSI option '#{startup_mode}'" if output !~ /^\s+START_TYPE\s+:\s+#{search[:code]}\s+#{search[:name]}/
+              if output !~ /^\s+START_TYPE\s+:\s+#{search[:code]}\s+#{search[:name]}/
+                raise "puppet service startup mode did not match supplied MSI option '#{startup_mode}'"
+              end
             end
 
             # (PA-514) value for PUPPET_AGENT_STARTUP_MODE should be present in
             # registry and honored after install/upgrade.
             reg_key = if host.is_x86_64?
-  'HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller'
-else
-  'HKLM\\SOFTWARE\\Puppet Labs\\PuppetInstaller'
-end
+                        'HKLM\\SOFTWARE\\Wow6432Node\\Puppet Labs\\PuppetInstaller'
+                      else
+                        'HKLM\\SOFTWARE\\Puppet Labs\\PuppetInstaller'
+                      end
             reg_query_command = %(reg query "#{reg_key}" /v "RememberedPuppetAgentStartupMode" | findstr #{msi_opts['PUPPET_AGENT_STARTUP_MODE']})
             on host, Command.new(reg_query_command, [], { cmdexe: true })
 
@@ -200,11 +203,11 @@ end
         #
         # @api private
         def generic_install_msi_on(hosts, msi_path, msi_opts = {}, opts = {})
-          block_on hosts do | host |
+          block_on hosts do |host|
             batch_path, log_file = create_install_msi_batch_on(host, msi_path, msi_opts)
             # Powershell command looses an escaped slash resulting in cygwin relative path
             # See https://github.com/puppetlabs/beaker/pull/1626#issuecomment-621341555
-            log_file_escaped = log_file.gsub('\\','\\\\\\')
+            log_file_escaped = log_file.gsub('\\', '\\\\\\')
             # begin / rescue here so that we can reuse existing error msg propagation
             begin
               # 1641 = ERROR_SUCCESS_REBOOT_INITIATED

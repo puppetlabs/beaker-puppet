@@ -35,7 +35,7 @@ PACKAGES = {
   ],
   windows: [
     'git',
-  # there isn't a need for json on windows because it is bundled in ruby 1.9
+    # there isn't a need for json on windows because it is bundled in ruby 1.9
   ],
   sles: [
     'git-core',
@@ -86,7 +86,8 @@ hosts.each do |host|
     install_from_git(host, SourcePath, repo)
   end
   next if host['platform'] =~ /windows/
-  on(host, "touch #{File.join(host.puppet['confdir'],'puppet.conf')}")
+
+  on(host, "touch #{File.join(host.puppet['confdir'], 'puppet.conf')}")
   on(host, puppet('resource user puppet ensure=present'))
   on(host, puppet('resource group puppet ensure=present'))
 end

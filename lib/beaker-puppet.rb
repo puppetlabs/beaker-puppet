@@ -18,7 +18,6 @@ end
 
 require 'beaker-puppet/install_utils/puppet5'
 
-
 module BeakerPuppet
   include Beaker::DSL::InstallUtils::FOSSDefaults
   include Beaker::DSL::InstallUtils::AIODefaults
@@ -40,4 +39,4 @@ module BeakerPuppet
 end
 
 # Register the DSL extension
-Beaker::DSL.register( BeakerPuppet )
+Beaker::DSL.register(BeakerPuppet)

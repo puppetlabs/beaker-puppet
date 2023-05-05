@@ -7,8 +7,7 @@ def get_hosts_file(host)
     'C:\\\\Windows\\\\System32\\\\Drivers\\\\etc\\\\hosts'
   else
     '/etc/hosts'
-               end
-  
+  end
 end
 
 step 'verify stub_host_on' do
@@ -34,7 +33,9 @@ step 'verify with_stub_host_on' do
   step 'should add entry to hosts file' do
     hosts.each do |host|
       hosts_file = get_hosts_file(host)
-      result = with_host_stubbed_on(host, { 'sleepy' => '1.1.1.2' }, { 'sleepy' => %w[grumpy dopey] }) { on host, "cat #{hosts_file}" }
+      result = with_host_stubbed_on(host, { 'sleepy' => '1.1.1.2' }, { 'sleepy' => %w[grumpy dopey] }) do
+        on host, "cat #{hosts_file}"
+      end
       assert_match(/sleepy/, result.stdout)
     end
   end

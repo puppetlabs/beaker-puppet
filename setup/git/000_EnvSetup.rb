@@ -38,28 +38,28 @@ agents.each do |host|
       # solaris 11 using pkg by default, we can't use that method for sol11.
       # We have to override it so that we can get git from opencws, as it has
       # the updated ssl certs we need to access github repos.
-      create_remote_file host, '/root/shutupsolaris', <<-END
-mail=
-# Overwrite already installed instances
-instance=overwrite
-# Do not bother checking for partially installed packages
-partial=nocheck
-# Do not bother checking the runlevel
-runlevel=nocheck
-# Do not bother checking package dependencies (We take care of this)
-idepend=nocheck
-rdepend=nocheck
-# DO check for available free space and abort if there isn't enough
-space=quit
-# Do not check for setuid files.
-setuid=nocheck
-# Do not check if files conflict with other packages
-conflict=nocheck
-# We have no action scripts.  Do not check for them.
-action=nocheck
-# Install to the default base directory.
-basedir=default
-        END
+      create_remote_file host, '/root/shutupsolaris', <<~END
+        mail=
+        # Overwrite already installed instances
+        instance=overwrite
+        # Do not bother checking for partially installed packages
+        partial=nocheck
+        # Do not bother checking the runlevel
+        runlevel=nocheck
+        # Do not bother checking package dependencies (We take care of this)
+        idepend=nocheck
+        rdepend=nocheck
+        # DO check for available free space and abort if there isn't enough
+        space=quit
+        # Do not check for setuid files.
+        setuid=nocheck
+        # Do not check if files conflict with other packages
+        conflict=nocheck
+        # We have no action scripts.  Do not check for them.
+        action=nocheck
+        # Install to the default base directory.
+        basedir=default
+      END
       on host, 'pkgadd -d http://get.opencsw.org/now -a /root/shutupsolaris -n all'
       on host, '/opt/csw/bin/pkgutil -U all'
       on host, '/opt/csw/bin/pkgutil -y -i git'
@@ -114,14 +114,14 @@ step 'Unpack puppet-runtime' do
         on host, "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -"
 
         program_files = if arch == 'x64'
-          'ProgramFiles64Folder'
-        else
-          'ProgramFilesFolder'
+                          'ProgramFiles64Folder'
+                        else
+                          'ProgramFilesFolder'
                         end
         bindir = if branch == '5.5.x'
-          "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
-        else
-          "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
+                   "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/sys/ruby/bin"
+                 else
+                   "/cygdrive/c/#{program_files}/PuppetLabs/Puppet/puppet/bin"
                  end
         on host, "chmod 755 #{bindir}/*"
 

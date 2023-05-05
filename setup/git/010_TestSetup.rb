@@ -1,5 +1,4 @@
 test_name 'Install repositories on target machines...' do
-
   repositories = options[:install].map do |url|
     extract_repo_info_from(build_git_url(url))
   end
@@ -40,9 +39,9 @@ test_name 'Install repositories on target machines...' do
       else
         gem_path = repository[:path]
       end
-      create_remote_file(host, "#{repo_dir}/Gemfile", <<-END)
-source '#{gem_source}'
-gem '#{repository[:name]}', #{gem_path}
+      create_remote_file(host, "#{repo_dir}/Gemfile", <<~END)
+        source '#{gem_source}'
+        gem '#{repository[:name]}', #{gem_path}
       END
 
       case host['platform']
@@ -61,11 +60,13 @@ gem '#{repository[:name]}', #{gem_path}
         # so we have to manually copy the batch files over
         gemdir = on(host, "#{gem_command(host)} environment gemdir").stdout.chomp
         gembindir = File.join(gemdir, 'bin')
-        on host, "cd '#{host['puppetbindir']}' && test -f ./#{repository[:name]}.bat || cp '#{gembindir}/#{repository[:name]}.bat' '#{host['puppetbindir']}/#{repository[:name]}.bat'"
+        on host,
+           "cd '#{host['puppetbindir']}' && test -f ./#{repository[:name]}.bat || cp '#{gembindir}/#{repository[:name]}.bat' '#{host['puppetbindir']}/#{repository[:name]}.bat'"
       else
         on host, "cd #{repo_dir} && #{bundle_command(host)} install --system --binstubs #{host['puppetbindir']}"
       end
-      puppet_bundler_install_dir ||= on(host, "cd #{repo_dir} && #{bundle_command(host)} show #{repository[:name]}").stdout.chomp
+      puppet_bundler_install_dir ||= on(host,
+                                        "cd #{repo_dir} && #{bundle_command(host)} show #{repository[:name]}").stdout.chomp
       host.add_env_var('RUBYLIB', File.join(puppet_bundler_install_dir, 'lib'))
     end
   end

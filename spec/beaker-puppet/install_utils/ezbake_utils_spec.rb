@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-EZBAKE_CONFIG_EXAMPLE= {
+EZBAKE_CONFIG_EXAMPLE = {
   project: 'puppetserver',
   real_name: 'puppetserver',
   user: 'puppet',
@@ -34,9 +34,9 @@ module Beaker::DSL::EZBakeUtils::EZBake
 end
 
 describe ClassMixedWithEZBakeUtils do
-  let( :opts ) { Beaker::Options::Presets.env_vars }
-  let( :host ) { double.as_null_object }
-  let( :local_commands ) { Beaker::DSL::EZBakeUtils::LOCAL_COMMANDS_REQUIRED }
+  let(:opts) { Beaker::Options::Presets.env_vars }
+  let(:host) { double.as_null_object }
+  let(:local_commands) { Beaker::DSL::EZBakeUtils::LOCAL_COMMANDS_REQUIRED }
 
   describe '#install_from_ezbake' do
     let(:platform) { Beaker::Platform.new('el-7-i386') }
@@ -49,10 +49,10 @@ describe ClassMixedWithEZBakeUtils do
     end
 
     it 'when ran with an el-7 machine runs correct installsh command' do
-      expect(subject).to receive(:install_ezbake_tarball_on_host).
-                          ordered
-      expect(subject).
-        to receive(:ezbake_installsh).with(host, 'service')
+      expect(subject).to receive(:install_ezbake_tarball_on_host)
+        .ordered
+      expect(subject)
+        .to receive(:ezbake_installsh).with(host, 'service')
       subject.install_from_ezbake host
     end
   end
@@ -69,10 +69,10 @@ describe ClassMixedWithEZBakeUtils do
 
     it 'when ran with an el-7 machine runs correct installsh command' do
       expect(subject).to receive(:ezbake_validate_support).with(host).ordered
-      expect(subject).to receive(:install_ezbake_tarball_on_host).
-                          with(host).ordered
-      expect(subject).
-        to receive(:ezbake_installsh).with(host, 'termini')
+      expect(subject).to receive(:install_ezbake_tarball_on_host)
+        .with(host).ordered
+      expect(subject)
+        .to receive(:ezbake_installsh).with(host, 'termini')
       subject.install_termini_from_ezbake host
     end
   end
@@ -99,24 +99,24 @@ describe ClassMixedWithEZBakeUtils do
         expect do
           subject.ezbake_validate_support host
         end.to raise_error(RuntimeError,
-                         'No support for aix within ezbake_utils ...')
+                           'No support for aix within ezbake_utils ...')
       end
     end
   end
 
   def install_ezbake_tarball_on_host_common_expects
     result = object_double(Beaker::Result.new(host, 'foo'), exit_code: 1)
-    expect(subject).to receive(:on).
-                        with(kind_of(Beaker::Host), /test -d/,
-                             anything).ordered { result }
+    expect(subject).to receive(:on)
+      .with(kind_of(Beaker::Host), /test -d/,
+            anything).ordered { result }
     expect(Dir).to receive(:chdir).and_yield
     expect(subject).to receive(:ezbake_local_cmd).with(/rake package:tar/).ordered
-    expect(subject).to receive(:scp_to).
-                        with(kind_of(Beaker::Host), anything, anything).ordered
-    expect(subject).to receive(:on).
-                        with(kind_of(Beaker::Host), /tar -xzf/).ordered
-    expect(subject).to receive(:on).
-                        with(kind_of(Beaker::Host), /test -d/).ordered
+    expect(subject).to receive(:scp_to)
+      .with(kind_of(Beaker::Host), anything, anything).ordered
+    expect(subject).to receive(:on)
+      .with(kind_of(Beaker::Host), /tar -xzf/).ordered
+    expect(subject).to receive(:on)
+      .with(kind_of(Beaker::Host), /test -d/).ordered
   end
 
   describe '#install_ezbake_tarball_on_host' do
@@ -148,7 +148,6 @@ describe ClassMixedWithEZBakeUtils do
     end
 
     describe 'checks for local successful commands' do
-
       it 'and succeeds if all commands return successfully' do
         local_commands.each do |software_name, command, additional_error_messages|
           expect(subject).to receive(:system).with(/#{command}/)
@@ -166,9 +165,7 @@ describe ClassMixedWithEZBakeUtils do
           subject.ezbake_tools_available?
         end.to raise_error(RuntimeError, /Must have .* installed on development system./)
       end
-
     end
-
   end
 
   describe '#ezbake_config' do
@@ -188,12 +185,12 @@ describe ClassMixedWithEZBakeUtils do
     it 'initializes EZBakeUtils.config' do
       allow(Dir).to receive(:chdir).and_yield
 
-      expect(subject).to receive(:ezbake_local_cmd).
-                          with(/^lein.*install/, throw_on_failure:                                                  true).ordered
-      expect(subject).to receive(:ezbake_local_cmd).
-                          with(/^lein.*with-profile ezbake ezbake stage/, throw_on_failure:                                                  true).ordered
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/^lein.*install/, throw_on_failure: true).ordered
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/^lein.*with-profile ezbake ezbake stage/, throw_on_failure: true).ordered
       expect(subject).to receive(:ezbake_local_cmd).with('rake package:bootstrap').ordered
-      expect(subject).to receive(:load) { }.ordered
+      expect(subject).to receive(:load) {}.ordered
       expect(subject).to receive(:`).ordered
 
       config = subject.ezbake_config
@@ -227,10 +224,12 @@ describe ClassMixedWithEZBakeUtils do
 
   describe '#ezbake_install_name' do
     it 'should return the installation name from example configuration' do
-      expect(subject).to receive(:ezbake_config) {{
-        package_version: '1.1.1',
-        project: 'myproject',
-      }}
+      expect(subject).to receive(:ezbake_config) {
+                           {
+                             package_version: '1.1.1',
+                             project: 'myproject',
+                           }
+                         }
       expect(subject.ezbake_install_name).to eq 'myproject-1.1.1'
     end
   end
@@ -254,24 +253,23 @@ describe ClassMixedWithEZBakeUtils do
 
   describe '#conditionally_clone' do
     it 'when repo exists, just do fetch and checkout' do
-      expect(subject).to receive(:ezbake_local_cmd).
-        with(/git status/) { true }
-      expect(subject).to receive(:ezbake_local_cmd).
-        with(/git fetch origin/)
-      expect(subject).to receive(:ezbake_local_cmd).
-        with(/git checkout/)
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/git status/) { true }
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/git fetch origin/)
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/git checkout/)
       subject.conditionally_clone('my_url', 'my_local_path')
     end
 
     it 'when repo does not exist, do clone and checkout' do
-      expect(subject).to receive(:ezbake_local_cmd).
-                          with(/git status/) { false }
-      expect(subject).to receive(:ezbake_local_cmd).
-                          with(/git clone/)
-      expect(subject).to receive(:ezbake_local_cmd).
-                          with(/git checkout/)
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/git status/) { false }
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/git clone/)
+      expect(subject).to receive(:ezbake_local_cmd)
+        .with(/git checkout/)
       subject.conditionally_clone('my_url', 'my_local_path')
     end
   end
-
 end

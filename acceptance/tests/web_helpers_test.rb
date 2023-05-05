@@ -5,13 +5,13 @@ require 'webrick/https'
 
 test_name 'dsl::helpers::web_helpers #link_exists?' do
   cert_name = [
-      %w[CN localhost],
+    %w[CN localhost],
   ]
   http_cmd = "ruby -rwebrick -e'WEBrick::HTTPServer.new(:Port => 80, :DocumentRoot => \"/tmp\").start' > /tmp/mylogfile 2>&1 &"
   https_cmd = "ruby -rwebrick/https -e'WEBrick::HTTPServer.new(:SSLEnable => true, :SSLCertName => #{cert_name}, :Port => 555,:DocumentRoot => \"/tmp\").start' > /tmp/mylogfile 2>&1 &"
   on(default, http_cmd)
   on(default, https_cmd)
-  #allow web servers to start up
+  # allow web servers to start up
   sleep(3)
   dir = default.tmpdir('test_dir')
   file = default.tmpfile('test_file')
@@ -20,7 +20,7 @@ test_name 'dsl::helpers::web_helpers #link_exists?' do
   dst_dir = 'web_helpers'
 
   step '#port_open_within? can tell if a port is open' do
-    assert port_open_within?(default,80)
+    assert port_open_within?(default, 80)
   end
 
   step '#link_exists? can tell if a basic link exists' do
@@ -54,5 +54,4 @@ test_name 'dsl::helpers::web_helpers #link_exists?' do
 
     assert_match /Failed to fetch_remote_file.*/, exception.message, '#fetch_http_dir raised an unexpected RuntimeError'
   end
-
 end

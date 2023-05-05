@@ -17,37 +17,50 @@ describe ClassMixedWithDSLInstallUtils do
   let(:metadata)      { @metadata ||= {} }
   let(:presets)       { Beaker::Options::Presets.new }
   let(:opts)          { presets.presets.merge(presets.env_vars) }
-  let(:basic_hosts)   do make_hosts( { pe_ver: '3.0',
-                                       platform: 'linux',
-                                       roles: [ 'agent' ], }, 4 ) end
-  let(:hosts)         do basic_hosts[0][:roles] = %w[master database dashboard]
-                        basic_hosts[1][:platform] = 'windows'
-                        basic_hosts[2][:platform] = 'osx-10.9-x86_64'
-                        basic_hosts[3][:platform] = 'eos'
-                        basic_hosts  end
-  let(:hosts_sorted)  { [ hosts[1], hosts[0], hosts[2], hosts[3] ] }
-  let(:winhost)       do make_host( 'winhost', { platform: 'windows',
-                                                pe_ver: '3.0',
-                                                working_dir: '/tmp',
-                                                is_cygwin: true,} ) end
-  let(:winhost_non_cygwin) do make_host( 'winhost_non_cygwin', { platform: 'windows',
-                                                pe_ver: '3.0',
-                                                working_dir: '/tmp',
-                                                is_cygwin: 'false', } ) end
-  let(:machost)       do make_host( 'machost', { platform: 'osx-10.9-x86_64',
-                                                pe_ver: '3.0',
-                                                working_dir: '/tmp', } ) end
-  let(:unixhost)      do make_host( 'unixhost', { platform: 'linux',
-                                                 pe_ver: '3.0',
-                                                 working_dir: '/tmp',
-                                                 dist: 'puppet-enterprise-3.1.0-rc0-230-g36c9e5c-debian-7-i386', } ) end
-  let(:eoshost)       do make_host( 'eoshost', { platform: 'eos',
-                                                pe_ver: '3.0',
-                                                working_dir: '/tmp',
-                                                dist: 'puppet-enterprise-3.7.1-rc0-78-gffc958f-eos-4-i386', } ) end
+  let(:basic_hosts)   do
+    make_hosts({ pe_ver: '3.0',
+                 platform: 'linux',
+                 roles: ['agent'], }, 4)
+  end
+  let(:hosts) do
+    basic_hosts[0][:roles] = %w[master database dashboard]
+    basic_hosts[1][:platform] = 'windows'
+    basic_hosts[2][:platform] = 'osx-10.9-x86_64'
+    basic_hosts[3][:platform] = 'eos'
+    basic_hosts
+  end
+  let(:hosts_sorted)  { [hosts[1], hosts[0], hosts[2], hosts[3]] }
+  let(:winhost)       do
+    make_host('winhost', { platform: 'windows',
+                           pe_ver: '3.0',
+                           working_dir: '/tmp',
+                           is_cygwin: true, })
+  end
+  let(:winhost_non_cygwin) do
+    make_host('winhost_non_cygwin', { platform: 'windows',
+                                      pe_ver: '3.0',
+                                      working_dir: '/tmp',
+                                      is_cygwin: 'false', })
+  end
+  let(:machost) do
+    make_host('machost', { platform: 'osx-10.9-x86_64',
+                           pe_ver: '3.0',
+                           working_dir: '/tmp', })
+  end
+  let(:unixhost) do
+    make_host('unixhost', { platform: 'linux',
+                            pe_ver: '3.0',
+                            working_dir: '/tmp',
+                            dist: 'puppet-enterprise-3.1.0-rc0-230-g36c9e5c-debian-7-i386', })
+  end
+  let(:eoshost) do
+    make_host('eoshost', { platform: 'eos',
+                           pe_ver: '3.0',
+                           working_dir: '/tmp',
+                           dist: 'puppet-enterprise-3.7.1-rc0-78-gffc958f-eos-4-i386', })
+  end
 
   describe '#configure_defaults_on' do
-
     it 'can set foss defaults' do
       expect(subject).to receive(:add_foss_defaults_on).exactly(hosts.length).times
       subject.configure_defaults_on(hosts, 'foss')
@@ -75,7 +88,6 @@ describe ClassMixedWithDSLInstallUtils do
   end
 
   describe '#configure_type_defaults_on' do
-
     it 'can set foss defaults for foss type' do
       hosts.each do |host|
         host['type'] = 'foss'
@@ -134,19 +146,22 @@ describe ClassMixedWithDSLInstallUtils do
       expect(subject).to receive(:add_aio_defaults_on).exactly(hosts.length).times
       subject.configure_type_defaults_on(hosts)
     end
-
   end
 
   describe '#puppetserver_version_on' do
     it 'returns the tag on a released version' do
-      result = object_double(Beaker::Result.new({}, 'puppetserver --version'), stdout: 'puppetserver version: 6.13.0', exit_code: 0)
-      expect(subject).to receive(:on).with(hosts.first, 'puppetserver --version', accept_all_exit_codes: true).and_return(result)
+      result = object_double(Beaker::Result.new({}, 'puppetserver --version'), stdout: 'puppetserver version: 6.13.0',
+                                                                               exit_code: 0)
+      expect(subject).to receive(:on).with(hosts.first, 'puppetserver --version',
+                                           accept_all_exit_codes: true).and_return(result)
       expect(subject.puppetserver_version_on(hosts.first)).to eq('6.13.0')
     end
 
     it 'returns the tag on a nightly version' do
-      result = object_double(Beaker::Result.new({}, 'puppetserver --version'), stdout: 'puppetserver version: 7.0.0.SNAPSHOT.2020.10.14T0512', exit_code: 0)
-      expect(subject).to receive(:on).with(hosts.first, 'puppetserver --version', accept_all_exit_codes: true).and_return(result)
+      result = object_double(Beaker::Result.new({}, 'puppetserver --version'),
+                             stdout: 'puppetserver version: 7.0.0.SNAPSHOT.2020.10.14T0512', exit_code: 0)
+      expect(subject).to receive(:on).with(hosts.first, 'puppetserver --version',
+                                           accept_all_exit_codes: true).and_return(result)
       expect(subject.puppetserver_version_on(hosts.first)).to eq('7.0.0')
     end
   end
@@ -161,25 +176,25 @@ describe ClassMixedWithDSLInstallUtils do
     context 'when the :puppet_agent package is passed in' do
       context 'given a valid version' do
         {
-          '1.10.14'     => 'pc1',
-          '1.10.x'      => 'pc1',
-          '5.3.1'       => 'puppet5',
-          '5.3.x'       => 'puppet5',
-          '5.99.0'      => 'puppet6',
-          '6.1.99-foo'  => 'puppet6',
-          '6.99.99'     => 'puppet7',
-          '7.0.0'       => 'puppet7',
+          '1.10.14' => 'pc1',
+          '1.10.x' => 'pc1',
+          '5.3.1' => 'puppet5',
+          '5.3.x' => 'puppet5',
+          '5.99.0' => 'puppet6',
+          '6.1.99-foo' => 'puppet6',
+          '6.99.99' => 'puppet7',
+          '7.0.0' => 'puppet7',
         }.each do |version, collection|
           it "returns collection '#{collection}' for version '#{version}'" do
             expect(subject.puppet_collection_for(:puppet_agent, version)).to eq(collection)
           end
         end
       end
-  
+
       it "returns the default, latest puppet collection given the version 'latest'" do
         expect(subject.puppet_collection_for(:puppet_agent, 'latest')).to eq('puppet')
       end
-  
+
       context 'given an invalid version' do
         [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
           it "returns a nil collection value for version '#{version}'" do
@@ -192,14 +207,14 @@ describe ClassMixedWithDSLInstallUtils do
     context 'when the :puppet package is passed-in' do
       context 'given a valid version' do
         {
-          '4.9.0'       => 'pc1',
-          '4.10.x'      => 'pc1',
-          '5.3.1'       => 'puppet5',
-          '5.3.x'       => 'puppet5',
-          '5.99.0'      => 'puppet6',
-          '6.1.99-foo'  => 'puppet6',
-          '6.99.99'     => 'puppet7',
-          '7.0.0'       => 'puppet7',
+          '4.9.0' => 'pc1',
+          '4.10.x' => 'pc1',
+          '5.3.1' => 'puppet5',
+          '5.3.x' => 'puppet5',
+          '5.99.0' => 'puppet6',
+          '6.1.99-foo' => 'puppet6',
+          '6.99.99' => 'puppet7',
+          '7.0.0' => 'puppet7',
         }.each do |version, collection|
           it "returns collection '#{collection}' for version '#{version}'" do
             expect(subject.puppet_collection_for(:puppet, version)).to eq(collection)
@@ -223,25 +238,25 @@ describe ClassMixedWithDSLInstallUtils do
     context 'when the :puppetserver package is passed in' do
       context 'given a valid version' do
         {
-          '2.0.0'       => 'pc1',
-          '2.0.x'       => 'pc1',
-          '5.3.1'       => 'puppet5',
-          '5.3.x'       => 'puppet5',
-          '5.99.0'      => 'puppet6',
-          '6.1.99-foo'  => 'puppet6',
-          '6.99.99'     => 'puppet7',
-          '7.0.0'       => 'puppet7',
+          '2.0.0' => 'pc1',
+          '2.0.x' => 'pc1',
+          '5.3.1' => 'puppet5',
+          '5.3.x' => 'puppet5',
+          '5.99.0' => 'puppet6',
+          '6.1.99-foo' => 'puppet6',
+          '6.99.99' => 'puppet7',
+          '7.0.0' => 'puppet7',
         }.each do |version, collection|
           it "returns collection '#{collection}' for version '#{version}'" do
             expect(subject.puppet_collection_for(:puppetserver, version)).to eq(collection)
           end
         end
       end
-  
+
       it "returns the default, latest puppet collection given the version 'latest'" do
         expect(subject.puppet_collection_for(:puppetserver, 'latest')).to eq('puppet')
       end
-  
+
       context 'given an invalid version' do
         [nil, '', '0.1.0', '3.8.1', '', 'not-semver', 'not.semver.either'].each do |version|
           it "returns a nil collection value for version '#{version}'" do

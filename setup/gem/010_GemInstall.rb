@@ -10,7 +10,8 @@ agents.each do |agent|
   # retrieve the build data, since the gem version is based on the short git
   # describe, not the full git SHA
   on(agent, "curl -s -o build_data.yaml #{base_url}/#{sha}.yaml")
-  gem_version = on(agent, "#{ruby_command} -ryaml -e 'puts YAML.load_file(\"build_data.yaml\")[:gemversion]'").stdout.chomp
+  gem_version = on(agent,
+                   "#{ruby_command} -ryaml -e 'puts YAML.load_file(\"build_data.yaml\")[:gemversion]'").stdout.chomp
 
   if agent['platform'] =~ /windows/
     # wipe existing gems first
