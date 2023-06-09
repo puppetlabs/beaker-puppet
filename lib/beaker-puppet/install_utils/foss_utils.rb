@@ -1518,7 +1518,10 @@ module Beaker
             end
 
             # delete any residual files
-            on(host, 'find / -name "*puppet*" -print | xargs rm -rf')
+            result = on(host, 'find / -name "*puppet*" -print | xargs rm -rf', accept_all_exit_codes: true)
+            unless result.exit_code == 0
+              logger.notify("Attempt to clean residual puppet files errored, but can maybe be ignored.\n #{result.stderr}")
+            end
           end
         end
 
