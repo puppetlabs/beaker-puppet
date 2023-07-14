@@ -19,7 +19,7 @@ agents.each do |agent|
     on(agent, "rm -rf '#{default_dir}'")
 
     arch = agent[:ruby_arch] || 'x86'
-    gem_arch = arch == 'x64' ? 'x64-mingw32' : 'x86-mingw32'
+    gem_arch = (arch == 'x64') ? 'x64-mingw32' : 'x86-mingw32'
     url = "#{base_url}/puppet-#{gem_version}-#{gem_arch}.gem"
   else
     url = "#{base_url}/puppet-#{gem_version}.gem"
