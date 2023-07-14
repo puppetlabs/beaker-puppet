@@ -98,8 +98,8 @@ module Beaker
             git_protocol = 'https://'
           end
 
-          repo = git_server == 'github.com' ? "#{git_fork}/#{project_name}.git" : "#{git_fork}-#{project_name}.git"
-          git_protocol == 'git@' ? "#{git_protocol}#{git_server}:#{repo}" : "#{git_protocol}#{git_server}/#{repo}"
+          repo = (git_server == 'github.com') ? "#{git_fork}/#{project_name}.git" : "#{git_fork}-#{project_name}.git"
+          (git_protocol == 'git@') ? "#{git_protocol}#{git_server}:#{repo}" : "#{git_protocol}#{git_server}/#{repo}"
         end
         alias build_giturl build_git_url
 
