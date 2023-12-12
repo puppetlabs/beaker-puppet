@@ -406,7 +406,7 @@ module Beaker
               end
 
               case host['platform']
-              when /el-|redhat|fedora|sles|centos|cisco_/
+              when /amazon|el-|redhat|fedora|sles|centos|cisco_/
                 package_name = 'puppet-agent'
                 package_name << "-#{opts[:puppet_agent_version]}" if opts[:puppet_agent_version]
               when /debian|ubuntu|huaweios/
@@ -993,7 +993,7 @@ module Beaker
             opts = sanitize_opts(opts)
 
             case variant
-            when /^(fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
+            when /^(amazon|fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
               variant_url_value = (%w[redhat centos].include?(::Regexp.last_match(1)) ? 'el' : ::Regexp.last_match(1))
               if variant == 'cisco_nexus'
                 variant_url_value = 'cisco-wrlinux'
