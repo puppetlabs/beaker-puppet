@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake', '~> 13.0'
   s.add_development_dependency 'rspec', '~> 3.0'
   s.add_development_dependency 'rspec-its', '~> 1.3'
-  s.add_development_dependency 'voxpupuli-rubocop', '~> 2.0'
+  s.add_development_dependency 'voxpupuli-rubocop', '~> 2.1.0'
 
   # Acceptance Testing Dependencies
   s.add_development_dependency 'beaker-vmpooler', '~> 1.4'

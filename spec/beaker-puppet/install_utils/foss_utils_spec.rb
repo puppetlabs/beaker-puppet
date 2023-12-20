@@ -202,9 +202,9 @@ describe ClassMixedWithDSLInstallUtils do
   context 'lookup_in_env' do
     it 'returns a default properly' do
       env_var = subject.lookup_in_env('noway', 'nonesuch', 'returnme')
-      expect(env_var).to be == 'returnme'
+      expect(env_var).to eq 'returnme'
       env_var = subject.lookup_in_env('noway', nil, 'returnme')
-      expect(env_var).to be == 'returnme'
+      expect(env_var).to eq 'returnme'
     end
     it 'finds correct env variable' do
       allow(ENV).to receive(:[]).with(nil).and_return(nil)
@@ -212,13 +212,13 @@ describe ClassMixedWithDSLInstallUtils do
       allow(ENV).to receive(:[]).with('NONESUCH').and_return('present')
       allow(ENV).to receive(:[]).with('NOWAY_PROJ_NONESUCH').and_return('exists')
       env_var = subject.lookup_in_env('nonesuch', 'noway-proj', 'fail')
-      expect(env_var).to be == 'exists'
+      expect(env_var).to eq 'exists'
       env_var = subject.lookup_in_env('nonesuch')
-      expect(env_var).to be == 'present'
+      expect(env_var).to eq 'present'
       env_var = subject.lookup_in_env('reallynone')
-      expect(env_var).to be == nil # rubocop:disable Style/NilComparison
+      expect(env_var).to eq nil # rubocop:disable Style/NilComparison
       env_var = subject.lookup_in_env('reallynone', nil, 'default')
-      expect(env_var).to be == 'default'
+      expect(env_var).to eq 'default'
     end
   end
 
@@ -229,21 +229,21 @@ describe ClassMixedWithDSLInstallUtils do
       allow(ENV).to receive(:[]).with('PUPPET_FORK').and_return(nil)
       allow(ENV).to receive(:[]).with('PUPPET_SERVER').and_return(nil)
       url = subject.build_giturl('puppet')
-      expect(url).to be == 'https://github.com/puppetlabs/puppet.git'
+      expect(url).to eq 'https://github.com/puppetlabs/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck')
-      expect(url).to be == 'https://github.com/er0ck/puppet.git'
+      expect(url).to eq 'https://github.com/er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'bitbucket.com')
-      expect(url).to be == 'https://bitbucket.com/er0ck-puppet.git'
+      expect(url).to eq 'https://bitbucket.com/er0ck-puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'https://')
-      expect(url).to be == 'https://github.com/er0ck/puppet.git'
+      expect(url).to eq 'https://github.com/er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'https')
-      expect(url).to be == 'https://github.com/er0ck/puppet.git'
+      expect(url).to eq 'https://github.com/er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'git@')
-      expect(url).to be == 'git@github.com:er0ck/puppet.git'
+      expect(url).to eq 'git@github.com:er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'git')
-      expect(url).to be == 'git@github.com:er0ck/puppet.git'
+      expect(url).to eq 'git@github.com:er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'ssh')
-      expect(url).to be == 'git@github.com:er0ck/puppet.git'
+      expect(url).to eq 'git@github.com:er0ck/puppet.git'
     end
 
     it 'uses ENV to build urls properly' do
@@ -252,21 +252,21 @@ describe ClassMixedWithDSLInstallUtils do
       allow(ENV).to receive(:[]).with('PUPPET_FORK').and_return('er0ck/repo')
       allow(ENV).to receive(:[]).with('PUPPET_SERVER').and_return('gitlab.com')
       url = subject.build_giturl('puppet')
-      expect(url).to be == 'https://gitlab.com/er0ck/repo-puppet.git'
+      expect(url).to eq 'https://gitlab.com/er0ck/repo-puppet.git'
       url = subject.build_giturl('puppet', 'er0ck')
-      expect(url).to be == 'https://gitlab.com/er0ck-puppet.git'
+      expect(url).to eq 'https://gitlab.com/er0ck-puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'bitbucket.com')
-      expect(url).to be == 'https://bitbucket.com/er0ck-puppet.git'
+      expect(url).to eq 'https://bitbucket.com/er0ck-puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'https://')
-      expect(url).to be == 'https://github.com/er0ck/puppet.git'
+      expect(url).to eq 'https://github.com/er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'https')
-      expect(url).to be == 'https://github.com/er0ck/puppet.git'
+      expect(url).to eq 'https://github.com/er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'git@')
-      expect(url).to be == 'git@github.com:er0ck/puppet.git'
+      expect(url).to eq 'git@github.com:er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'git')
-      expect(url).to be == 'git@github.com:er0ck/puppet.git'
+      expect(url).to eq 'git@github.com:er0ck/puppet.git'
       url = subject.build_giturl('puppet', 'er0ck', 'github.com', 'ssh')
-      expect(url).to be == 'git@github.com:er0ck/puppet.git'
+      expect(url).to eq 'git@github.com:er0ck/puppet.git'
     end
   end
 
@@ -278,9 +278,9 @@ describe ClassMixedWithDSLInstallUtils do
       it "handles #{type[:protocol]} uris" do
         uri = "#{type[:path]}#master"
         repo_info = subject.extract_repo_info_from uri
-        expect(repo_info[:name]).to be == 'project'
-        expect(repo_info[:path]).to be == type[:path]
-        expect(repo_info[:rev]).to  be == 'master'
+        expect(repo_info[:name]).to eq 'project'
+        expect(repo_info[:path]).to eq type[:path]
+        expect(repo_info[:rev]).to  eq 'master'
       end
     end
   end
@@ -291,9 +291,9 @@ describe ClassMixedWithDSLInstallUtils do
         { name: 'puppet_plugin' }, { name: 'puppet' }, { name: 'facter' },
       ]
       ordered_repos = subject.order_packages named_repos
-      expect(ordered_repos[0][:name]).to be == 'facter'
-      expect(ordered_repos[1][:name]).to be == 'puppet'
-      expect(ordered_repos[2][:name]).to be == 'puppet_plugin'
+      expect(ordered_repos[0][:name]).to eq 'facter'
+      expect(ordered_repos[1][:name]).to eq 'puppet'
+      expect(ordered_repos[2][:name]).to eq 'puppet_plugin'
     end
   end
 
@@ -313,7 +313,7 @@ describe ClassMixedWithDSLInstallUtils do
       subject.instance_variable_set(:@metadata, {})
       version = subject.find_git_repo_versions(host, path, repository)
 
-      expect(version).to be == { 'name' => '2' }
+      expect(version).to be == { 'name' => '2' } # rubocop:ignore RSpec/Eq
     end
   end
 
@@ -1005,7 +1005,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect(subject).to receive(:install_a_puppet_msi_on).with(host, opts)
 
       subject.install_puppet_agent_from_msi_on(host, opts)
-      expect(host['dist']).to be == 'puppet-agent-VERSION-x86'
+      expect(host['dist']).to eq 'puppet-agent-VERSION-x86'
     end
 
     it 'uses x86 msi when host is_x86_64 and install_32 is set on the options' do
@@ -1015,7 +1015,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect(subject).to receive(:install_a_puppet_msi_on).with(host, opts)
 
       subject.install_puppet_agent_from_msi_on(host, opts)
-      expect(host['dist']).to be == 'puppet-agent-VERSION-x86'
+      expect(host['dist']).to eq 'puppet-agent-VERSION-x86'
     end
 
     it 'uses x86 msi when host is_x86_64 and ruby_arch is x86 on the host' do
@@ -1025,7 +1025,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect(subject).to receive(:install_a_puppet_msi_on).with(host, opts)
 
       subject.install_puppet_agent_from_msi_on(host, opts)
-      expect(host['dist']).to be == 'puppet-agent-VERSION-x86'
+      expect(host['dist']).to eq 'puppet-agent-VERSION-x86'
     end
 
     it 'uses x86 msi when host !is_x86_64' do
@@ -1033,7 +1033,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect(subject).to receive(:install_a_puppet_msi_on).with(host, opts)
 
       subject.install_puppet_agent_from_msi_on(host, opts)
-      expect(host['dist']).to be == 'puppet-agent-VERSION-x86'
+      expect(host['dist']).to eq 'puppet-agent-VERSION-x86'
     end
 
     it 'uses x64 msi when host is_x86_64, no install_32 and ruby_arch != x86' do
@@ -1041,7 +1041,7 @@ describe ClassMixedWithDSLInstallUtils do
       expect(subject).to receive(:install_a_puppet_msi_on).with(host, opts)
 
       subject.install_puppet_agent_from_msi_on(host, opts)
-      expect(host['dist']).to be == 'puppet-agent-VERSION-x64'
+      expect(host['dist']).to eq 'puppet-agent-VERSION-x64'
     end
   end
 
