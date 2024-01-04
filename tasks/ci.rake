@@ -299,7 +299,8 @@ end
 def beaker(command, *argv)
   argv.concat(ENV['OPTIONS'].split(' ')) if ENV['OPTIONS']
 
-  sh('beaker', command.to_s, *argv)
+  bundle_cmd = (ENV.fetch('BUNDLE_GEMFILE', false) && ENV.fetch('BUNDLE_BIN_PATH', false)) ? %w[bundle exec] : []
+  sh(*bundle_cmd, 'beaker', command.to_s, *argv)
 end
 
 def beaker_setup(type)
