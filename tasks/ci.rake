@@ -315,10 +315,14 @@ def beaker_suite(type)
   beaker(:provision)
 
   begin
-    beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
-    beaker(:exec, 'pre-suite', '--preserve-state')
-    beaker(:exec, ENV.fetch('TESTS', nil))
-    beaker(:exec, 'post-suite')
+    begin
+      beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
+      beaker(:exec, 'pre-suite', '--preserve-state')
+
+      beaker(:exec, ENV.fetch('TESTS', nil))
+    ensure
+      beaker(:exec, 'post-suite')
+    end
   ensure
     preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
     beaker(:destroy) unless preserve_hosts
