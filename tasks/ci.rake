@@ -315,10 +315,14 @@ def beaker_suite(type)
   beaker(:provision)
 
   begin
-    beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
-    beaker(:exec, 'pre-suite', '--preserve-state')
-    beaker(:exec, ENV.fetch('TESTS', nil))
-    beaker(:exec, 'post-suite')
+    begin
+      beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
+      beaker(:exec, 'pre-suite', '--preserve-state')
+
+      beaker(:exec, ENV.fetch('TESTS', nil))
+    ensure
+      beaker(:exec, 'post-suite')
+    end
   ensure
     preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
     beaker(:destroy) unless preserve_hosts
@@ -330,23 +334,26 @@ def beaker_suite_retry(type)
   beaker(:provision)
 
   begin
-    beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
-    beaker(:exec, 'pre-suite', '--preserve-state')
-
     begin
-      json_results_file = Tempfile.new
-      beaker(:exec, ENV.fetch('TESTS', nil), '--test-results-file', json_results_file.path)
-    rescue RuntimeError => e
-      puts "ERROR: #{e.message}"
-      tests_to_rerun = JSON.load(File.read(json_results_file.path))
-      raise e if tests_to_rerun.nil? || tests_to_rerun.empty?
+      beaker(:exec, 'pre-suite', '--preserve-state', '--pre-suite', pre_suites(type))
+      beaker(:exec, 'pre-suite', '--preserve-state')
 
-      puts '*** Retrying the following:'
-      puts tests_to_rerun.map { |spec| "  #{spec}" }
-      beaker(:exec, tests_to_rerun.map { |str| "#{str}" }.join(','))
+      begin
+        json_results_file = Tempfile.new
+        beaker(:exec, ENV.fetch('TESTS', nil), '--test-results-file', json_results_file.path)
+      rescue RuntimeError => e
+        puts "ERROR: #{e.message}"
+        tests_to_rerun = JSON.load(File.read(json_results_file.path))
+        raise e if tests_to_rerun.nil? || tests_to_rerun.empty?
+
+        puts '*** Retrying the following:'
+        puts tests_to_rerun.map { |spec| "  #{spec}" }
+        beaker(:exec, tests_to_rerun.map { |str| "#{str}" }.join(','))
+      end
+    ensure
+      beaker(:exec, 'post-suite')
     end
   ensure
-    beaker(:exec, 'post-suite')
     preserve_hosts = ENV['OPTIONS'].include?('--preserve-hosts=always') if ENV['OPTIONS']
     beaker(:destroy) unless preserve_hosts
   end
