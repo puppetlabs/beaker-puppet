@@ -9,13 +9,8 @@ test_name 'Validate Sign Cert' do
   fqdn = on(master, 'facter fqdn').stdout.strip
   puppet_version = on(master, puppet('--version')).stdout.chomp
 
-  if master.use_service_scripts?
-    step 'Ensure puppet is stopped'
-    # Passenger, in particular, must be shutdown for the cert setup steps to work,
-    # but any running puppet master will interfere with webrick starting up and
-    # potentially ignore the puppet.conf changes.
-    on(master, puppet('resource', 'service', master['puppetservice'], 'ensure=stopped'))
-  end
+  step 'Ensure puppet is stopped'
+  on(master, puppet('resource', 'service', master['puppetservice'], 'ensure=stopped'))
 
   step 'Clear SSL on all hosts'
   hosts.each do |host|

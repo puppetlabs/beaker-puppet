@@ -81,20 +81,12 @@ module Beaker
         # Test Puppet running in a certain run mode with specific options.
         # This ensures the following steps are performed:
         # 1. The pre-test Puppet configuration is backed up
-        # 2. A new Puppet configuraton file is layed down
+        # 2. Lay down a new Puppet configuraton file
         # 3. Puppet is started or restarted in the specified run mode
         # 4. Ensure Puppet has started correctly
         # 5. Further tests are yielded to
         # 6. Revert Puppet to the pre-test state
         # 7. Testing artifacts are saved in a folder named for the test
-        #
-        # @note Whether Puppet is started or restarted depends on what kind of
-        #   server you're running.  Passenger and puppetserver are restarted before.
-        #   Webrick is started before and stopped after yielding, unless you're using
-        #   service scripts, then it'll behave like passenger & puppetserver.
-        #   Passenger and puppetserver (or webrick using service scripts)
-        #   restart after yielding by default.  You can stop this from happening
-        #   by setting the :restart_when_done flag of the conf_opts argument.
         #
         # @param [Host] host        One object that act like Host
         #
@@ -112,22 +104,11 @@ module Beaker
         #
         #                            These will only be applied when starting a FOSS
         #                            master, as a pe master is just bounced.
-        # @option conf_opts [Hash]   :__service_args__  A special setting of options
-        #                            for controlling how the puppet master service is
-        #                            handled. The only setting currently is
-        #                            :bypass_service_script, which if set true will
-        #                            force stopping and starting a webrick master
-        #                            using the start_puppet_from_source_* methods,
-        #                            even if it seems the host has passenger.
-        #                            This is needed in FOSS tests to initialize
-        #                            SSL.
         # @option conf_opts [Boolean] :restart_when_done  determines whether a restart
         #                            should be run after the test has been yielded to.
         #                            Will stop puppet if false. Default behavior
         #                            is to restart, but you can override this on the
         #                            host or with this option.
-        #                            (Note: only works for passenger & puppetserver
-        #                            masters (or webrick using the service scripts))
         # @param [File] testdir      The temporary directory which will hold backup
         #                            configuration, and other test artifacts.
         #
@@ -156,12 +137,11 @@ module Beaker
           end
 
           cmdline_args = conf_opts[:__commandline_args__]
-          service_args = conf_opts[:__service_args__] || {}
           restart_when_done = true
           restart_when_done = host[:restart_when_done] if host.has_key?(:restart_when_done)
           restart_when_done = conf_opts.fetch(:restart_when_done, restart_when_done)
           conf_opts = conf_opts.reject do |k, v|
-            %i[__commandline_args__ __service_args__ restart_when_done].include?(k)
+            %i[__commandline_args__ restart_when_done].include?(k)
           end
 
           curl_retries = host['master-start-curl-retries'] || options['master-start-curl-retries']
@@ -202,13 +182,8 @@ module Beaker
                                           puppet_config(host, 'confdir', section: 'master'),
                                           testdir,
                                           'puppet.conf')
-            lay_down_new_puppet_conf host, conf_opts, testdir
-
-            if host.use_service_scripts? && !service_args[:bypass_service_script]
-              bounce_service(host, host['puppetservice'], curl_retries)
-            else
-              puppet_master_started = start_puppet_from_source_on!(host, cmdline_args)
-            end
+            lay_down_new_puppet_conf(host, conf_opts, testdir)
+            bounce_service(host, host['puppetservice'], curl_retries)
 
             yield self if block_given?
 
@@ -229,20 +204,11 @@ module Beaker
             raise(original_exception)
           ensure
             begin
-              if host.use_service_scripts? && !service_args[:bypass_service_script]
-                restore_puppet_conf_from_backup(host, backup_file)
-                if restart_when_done
-                  bounce_service(host, host['puppetservice'], curl_retries)
-                else
-                  host.exec puppet_resource('service', host['puppetservice'], 'ensure=stopped')
-                end
+              restore_puppet_conf_from_backup(host, backup_file)
+              if restart_when_done
+                bounce_service(host, host['puppetservice'], curl_retries)
               else
-                if puppet_master_started
-                  stop_puppet_from_source_on(host)
-                else
-                  dump_puppet_log(host)
-                end
-                restore_puppet_conf_from_backup(host, backup_file)
+                host.exec puppet_resource('service', host['puppetservice'], 'ensure=stopped')
               end
             rescue Exception => teardown_exception
               begin
@@ -279,19 +245,6 @@ module Beaker
           else
             host.exec(Command.new("rm -f '#{puppet_conf}'"))
           end
-        end
-
-        # @!visibility private
-        def start_puppet_from_source_on!(host, args = '')
-          host.exec(puppet('master', args))
-
-          logger.debug 'Waiting for the puppet master to start'
-          raise Beaker::DSL::FailTest, 'Puppet master did not start in a timely fashion' unless port_open_within?(
-            host, 8140, 10
-          )
-
-          logger.debug 'The puppet master has started'
-          true
         end
 
         # @!visibility private
@@ -355,19 +308,12 @@ module Beaker
         def bounce_service(host, service, curl_retries = nil, port = nil)
           curl_retries = 120 if curl_retries.nil?
           port = options[:puppetserver_port] if port.nil?
-          if host.graceful_restarts?
-            service = host.check_for_command('apache2ctl') ? 'apache2ctl' : 'apachectl'
-            apachectl_path = host.is_pe? ? "#{host['puppetsbindir']}/#{service}" : service
-            host.exec(Command.new("#{apachectl_path} graceful"))
-          else
-            result = host.exec(Command.new("service #{service} reload"),
-                               acceptable_exit_codes: [0, 1, 3])
-            return result if result.exit_code == 0
+          result = host.exec(Command.new("service #{service} reload"), acceptable_exit_codes: [0, 1, 3])
+          return result if result.exit_code == 0
 
-            host.exec puppet_resource('service', service, 'ensure=stopped')
-            host.exec puppet_resource('service', service, 'ensure=running')
+          host.exec puppet_resource('service', service, 'ensure=stopped')
+          host.exec puppet_resource('service', service, 'ensure=running')
 
-          end
           curl_with_retries(" #{service} ", host, "https://localhost:#{port}", [35, 60], curl_retries)
         end
 
