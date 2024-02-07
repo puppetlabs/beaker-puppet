@@ -79,14 +79,6 @@ file, or you can provide a beaker-hostgenerator value to the `TEST_TARGET`
 environment variable. You can also specify the tests that get executed with the
 `TESTS` environment variable.
 
-## Transfer Notice
-
-This plugin was originally authored by [Puppet Inc](http://puppet.com).
-The maintainer preferred that Puppet Community take ownership of the module for future improvement and maintenance.
-Existing pull requests and issues were transferred over, please fork and continue to contribute here.
-
-Previously: https://github.com/puppetlabs/beaker
-
 ## License
 
 This gem is licensed under the Apache-2 license.
