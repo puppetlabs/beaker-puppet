@@ -29,6 +29,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'beaker-vmpooler', '~> 1.4'
 
   # Run time dependencies
-  s.add_runtime_dependency 'beaker', '~> 4.1'
+  s.add_runtime_dependency 'beaker', '~> 5.0'
   s.add_runtime_dependency 'oga', '~> 3.4'
 end
