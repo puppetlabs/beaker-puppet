@@ -1,12 +1,11 @@
 # beaker-puppet: The Puppet-Specific Beaker Library
 
-[![License](https://img.shields.io/github/license/voxpupuli/beaker-puppet.svg)](https://github.com/voxpupuli/beaker-puppet/blob/master/LICENSE)
-[![Test](https://github.com/voxpupuli/beaker-puppet/actions/workflows/test.yml/badge.svg)](https://github.com/voxpupuli/beaker-puppet/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/voxpupuli/beaker-puppet/branch/master/graph/badge.svg?token=Mypkl78hvK)](https://codecov.io/gh/voxpupuli/beaker-puppet)
-[![Release](https://github.com/voxpupuli/beaker-puppet/actions/workflows/release.yml/badge.svg)](https://github.com/voxpupuli/beaker-puppet/actions/workflows/release.yml)
+[![License](https://img.shields.io/github/license/puppetlabs/beaker-puppet.svg)](https://github.com/puppetlabs/beaker-puppet/blob/master/LICENSE)
+[![Test](https://github.com/puppetlabs/beaker-puppet/actions/workflows/test.yml/badge.svg)](https://github.com/puppetlabs/beaker-puppet/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/puppetlabs/beaker-puppet/branch/master/graph/badge.svg?token=Mypkl78hvK)](https://codecov.io/gh/puppetlabs/beaker-puppet)
+[![Release](https://github.com/puppetlabs/beaker-puppet/actions/workflows/release.yml/badge.svg)](https://github.com/puppetlabs/beaker-puppet/actions/workflows/release.yml)
 [![RubyGem Version](https://img.shields.io/gem/v/beaker-puppet.svg)](https://rubygems.org/gems/beaker-puppet)
 [![RubyGem Downloads](https://img.shields.io/gem/dt/beaker-puppet.svg)](https://rubygems.org/gems/beaker-puppet)
-[![Donated by Puppet Inc](https://img.shields.io/badge/donated%20by-Puppet%20Inc-fb7047.svg)](#transfer-notice)
 
 The purpose of this library is to hold all puppet-specific info & DSL methods.
 This includes all helper & installer methods.
