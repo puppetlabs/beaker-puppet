@@ -638,7 +638,7 @@ describe ClassMixedWithDSLHelpers do
       end
     end
 
-    it 'signs certs with `puppetserver ca` in Puppet 6' do
+    it 'signs certs with `puppetserver ca`' do
       allow(subject).to receive(:sleep).and_return(true)
 
       result.stdout = "+ \"#{agent}\""
@@ -647,30 +647,8 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      version_result = double('version', stdout: '6.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
-      expect(subject).to receive(:version_is_less).and_return(false)
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --all', acceptable_exit_codes: [0, 24]).once
       expect(subject).to receive(:on).with(master, 'puppetserver ca list --all').once.and_return(result)
-
-      subject.sign_certificate_for(agent)
-    end
-
-    it 'signs certs with `puppet cert` in Puppet 5' do
-      allow(subject).to receive(:sleep).and_return(true)
-
-      result.stdout = "+ \"#{agent}\""
-
-      allow(subject).to receive(:puppet) do |arg|
-        arg
-      end
-
-      version_result = double('version', stdout: '5.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
-      expect(subject).to receive(:version_is_less).and_return(true)
-      expect(subject).to receive(:on).with(master, 'cert --sign --all --allow-dns-alt-names',
-                                           acceptable_exit_codes: [0, 24]).once
-      expect(subject).to receive(:on).with(master, 'cert --list --all').once.and_return(result)
 
       subject.sign_certificate_for(agent)
     end
@@ -685,8 +663,6 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      version_result = double('version', stdout: '6.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --all',
                                            acceptable_exit_codes: [0, 24]).exactly(11).times
       expect(subject).to receive(:on).with(master,
@@ -706,8 +682,6 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
       expect(subject).to receive(:on).with(master, 'agent -t', acceptable_exit_codes: [0, 1, 2]).once
-      version_result = double('version', stdout: '6.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --certname master').once
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --all',
                                            acceptable_exit_codes: [0, 24]).once
