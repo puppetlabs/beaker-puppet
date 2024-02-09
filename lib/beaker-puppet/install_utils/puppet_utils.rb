@@ -65,23 +65,6 @@ module Beaker
           end
         end
 
-        # Given an agent_version, return the puppet collection associated with that agent version
-        #
-        # @param [String] agent_version version string or 'latest'
-        # @deprecated This method returns 'PC1' as the latest puppet collection;
-        #     this is incorrect. Use {#puppet_collection_for} instead.
-        def get_puppet_collection(agent_version = 'latest')
-          collection = 'PC1'
-          if agent_version != 'latest'
-            if !version_is_less(agent_version, '5.5.4') and version_is_less(agent_version, '5.99')
-              collection = 'puppet5'
-            elsif !version_is_less(agent_version, '5.99')
-              collection = 'puppet6'
-            end
-          end
-          collection
-        end
-
         # Determine the puppet collection that matches a given package version. The package
         # must be one of
         #   * :puppet_agent (you can get this version from the `aio_agent_version_fact`)

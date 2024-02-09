@@ -638,7 +638,7 @@ describe ClassMixedWithDSLHelpers do
       end
     end
 
-    it 'signs certs with `puppetserver ca` in Puppet 6' do
+    it 'signs certs with `puppetserver ca`' do
       allow(subject).to receive(:sleep).and_return(true)
 
       result.stdout = "+ \"#{agent}\""
@@ -647,30 +647,8 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      version_result = double('version', stdout: '6.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
-      expect(subject).to receive(:version_is_less).and_return(false)
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --all', acceptable_exit_codes: [0, 24]).once
       expect(subject).to receive(:on).with(master, 'puppetserver ca list --all').once.and_return(result)
-
-      subject.sign_certificate_for(agent)
-    end
-
-    it 'signs certs with `puppet cert` in Puppet 5' do
-      allow(subject).to receive(:sleep).and_return(true)
-
-      result.stdout = "+ \"#{agent}\""
-
-      allow(subject).to receive(:puppet) do |arg|
-        arg
-      end
-
-      version_result = double('version', stdout: '5.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
-      expect(subject).to receive(:version_is_less).and_return(true)
-      expect(subject).to receive(:on).with(master, 'cert --sign --all --allow-dns-alt-names',
-                                           acceptable_exit_codes: [0, 24]).once
-      expect(subject).to receive(:on).with(master, 'cert --list --all').once.and_return(result)
 
       subject.sign_certificate_for(agent)
     end
@@ -685,8 +663,6 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
 
-      version_result = double('version', stdout: '6.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --all',
                                            acceptable_exit_codes: [0, 24]).exactly(11).times
       expect(subject).to receive(:on).with(master,
@@ -706,8 +682,6 @@ describe ClassMixedWithDSLHelpers do
         arg
       end
       expect(subject).to receive(:on).with(master, 'agent -t', acceptable_exit_codes: [0, 1, 2]).once
-      version_result = double('version', stdout: '6.0.0')
-      expect(subject).to receive(:on).with(master, '--version').and_return(version_result)
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --certname master').once
       expect(subject).to receive(:on).with(master, 'puppetserver ca sign --all',
                                            acceptable_exit_codes: [0, 24]).once
@@ -760,7 +734,6 @@ describe ClassMixedWithDSLHelpers do
     end
 
     it 'raises the early_exception if backup_the_file fails' do
-      allow(host).to receive(:use_service_scripts?)
       allow(subject).to receive(:restore_puppet_conf_from_backup)
       expect(subject).to receive(:backup_the_file).and_raise(RuntimeError.new('puppet conf backup failed'))
       expect do
@@ -772,7 +745,6 @@ describe ClassMixedWithDSLHelpers do
       allow(subject).to receive(:backup_the_file).and_raise(Minitest::Assertion.new('assertion failed!'))
       allow(host).to receive(:puppet).and_return({})
       allow(subject).to receive(:restore_puppet_conf_from_backup)
-      allow(host).to receive(:use_service_scripts?)
       expect(subject).to receive(:fail_test)
       subject.with_puppet_running_on(host, {})
     end
@@ -847,7 +819,6 @@ describe ClassMixedWithDSLHelpers do
         allow(subject).to receive(:dump_puppet_log)
         allow(subject).to receive(:restore_puppet_conf_from_backup)
         allow(subject).to receive(:puppet_master_started)
-        allow(subject).to receive(:start_puppet_from_source_on!)
         allow(subject).to receive(:lay_down_new_puppet_conf)
         allow(subject).to receive(:logger).and_return(logger)
         allow(logger).to receive(:error)
@@ -953,160 +924,6 @@ describe ClassMixedWithDSLHelpers do
         end
       end
 
-      context 'for foss packaged hosts using passenger' do
-        before(:each) do
-          host.uses_passenger!
-        end
-        it 'bounces puppet twice' do
-          allow(subject).to receive(:curl_with_retries)
-          subject.with_puppet_running_on(host, {})
-          expect(host).to execute_commands_matching(/apachectl graceful/).exactly(2).times
-        end
-
-        it 'gracefully restarts using apache2ctl' do
-          allow(host).to receive(:check_for_command).and_return(true)
-          allow(subject).to receive(:curl_with_retries)
-          subject.with_puppet_running_on(host, {})
-          expect(host).to execute_commands_matching(/apache2ctl graceful/).exactly(2).times
-        end
-
-        it 'gracefully restarts using apachectl' do
-          allow(host).to receive(:check_for_command).and_return(false)
-          allow(subject).to receive(:curl_with_retries)
-          subject.with_puppet_running_on(host, {})
-          expect(host).to execute_commands_matching(/apachectl graceful/).exactly(2).times
-        end
-
-        it 'yields to a block after bouncing service' do
-          execution = 0
-          allow(subject).to receive(:curl_with_retries)
-          expect do
-            subject.with_puppet_running_on(host, {}) do
-              expect(host).to execute_commands_matching(/apachectl graceful/).once
-              execution += 1
-            end
-          end.to change { execution }.by(1)
-          expect(host).to execute_commands_matching(/apachectl graceful/).exactly(2).times
-        end
-
-        context ':restart_when_done flag set false' do
-          it 'bounces puppet once' do
-            allow(subject).to receive(:curl_with_retries)
-            subject.with_puppet_running_on(host, { restart_when_done: false })
-            expect(host).to execute_commands_matching(/apachectl graceful/).once
-          end
-
-          it 'yields to a block after bouncing service' do
-            execution = 0
-            allow(subject).to receive(:curl_with_retries)
-            expect do
-              subject.with_puppet_running_on(host, { restart_when_done: false }) do
-                expect(host).to execute_commands_matching(/apachectl graceful/).once
-                execution += 1
-              end
-            end.to change { execution }.by(1)
-          end
-        end
-      end
-
-      context 'for foss packaged hosts using webrick' do
-        let(:use_service) { true }
-
-        it 'stops and starts master using service scripts twice' do
-          allow(subject).to receive(:curl_with_retries)
-          subject.with_puppet_running_on(host, {})
-          expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=running/).exactly(2).times
-          expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=stopped/).exactly(2).times
-        end
-
-        it 'yields to a block in between bounce calls for the service' do
-          execution = 0
-          expect do
-            subject.with_puppet_running_on(host, {}) do
-              expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=running/).once
-              expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=stopped/).once
-              execution += 1
-            end
-          end.to change { execution }.by(1)
-          expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=running/).exactly(2).times
-          expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=stopped/).exactly(2).times
-        end
-
-        context ':restart_when_done flag set false' do
-          it 'stops (twice) and starts (once) master using service scripts' do
-            allow(subject).to receive(:curl_with_retries)
-            subject.with_puppet_running_on(host, { restart_when_done: false })
-            expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=running/).once
-            expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=stopped/).exactly(2).times
-          end
-
-          it 'yields to a block after stopping and starting service' do
-            execution = 0
-            expect do
-              subject.with_puppet_running_on(host, { restart_when_done: false }) do
-                expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=running/).once
-                expect(host).to execute_commands_matching(/puppet resource service #{host['puppetservice']}.*ensure=stopped/).once
-                execution += 1
-              end
-            end.to change { execution }.by(1)
-          end
-        end
-      end
-
-      context 'running from source' do
-        it 'does not try to stop if not started' do
-          expect(subject).to receive(:start_puppet_from_source_on!).and_return false
-          expect(subject).to_not receive(:stop_puppet_from_source_on)
-
-          subject.with_puppet_running_on(host, {})
-        end
-
-        context 'successfully' do
-          before do
-            expect(host).to receive(:port_open?).with(8140).and_return(true)
-          end
-
-          it 'starts puppet from source' do
-            subject.with_puppet_running_on(host, {})
-          end
-
-          it 'stops puppet from source' do
-            subject.with_puppet_running_on(host, {})
-            expect(host).to execute_commands_matching(/^kill [^-]/).once
-            expect(host).to execute_commands_matching(/^kill -0/).once
-          end
-
-          it 'yields between starting and stopping' do
-            execution = 0
-            expect do
-              subject.with_puppet_running_on(host, {}) do
-                expect(host).to execute_commands_matching(/^puppet master/).once
-                execution += 1
-              end
-            end.to change { execution }.by(1)
-            expect(host).to execute_commands_matching(/^kill [^-]/).once
-            expect(host).to execute_commands_matching(/^kill -0/).once
-          end
-
-          it 'passes on commandline args' do
-            subject.with_puppet_running_on(host, { __commandline_args__: '--with arg' })
-            expect(host).to execute_commands_matching(/^puppet master --with arg/).once
-          end
-
-          it 'is not affected by the :restart_when_done flag' do
-            execution = 0
-            expect do
-              subject.with_puppet_running_on(host, { restart_when_done: true }) do
-                expect(host).to execute_commands_matching(/^puppet master/).once
-                execution += 1
-              end
-            end.to change { execution }.by(1)
-            expect(host).to execute_commands_matching(/^kill [^-]/).once
-            expect(host).to execute_commands_matching(/^kill -0/).once
-          end
-        end
-      end
-
       describe 'backup and restore of puppet.conf' do
         before :each do
           allow(subject).to receive(:puppet_config).with(host, 'confdir', anything).and_return('/root/mock')
@@ -1139,70 +956,6 @@ describe ClassMixedWithDSLHelpers do
                                                                /ensure=running/)
           end
         end
-
-        context 'when a puppetservice is not used' do
-          before do
-            expect(host).to receive(:port_open?).with(8140).and_return(true)
-          end
-
-          it 'backs up puppet.conf' do
-            subject.with_puppet_running_on(host, {})
-            expect(host).to execute_commands_matching(/cp #{original_location} #{backup_location}/).once
-            expect(host).to execute_commands_matching(/cat #{new_location} > #{original_location}/).once
-          end
-
-          it 'restores puppet.conf after restarting when a puppetservice is not used' do
-            subject.with_puppet_running_on(host, {})
-            expect(host).to execute_commands_matching_in_order(/kill [^-]/,
-                                                               /cat '#{backup_location}' > '#{original_location}'/m)
-          end
-
-          it "doesn't restore a non-existent file" do
-            allow(subject).to receive(:backup_the_file)
-            subject.with_puppet_running_on(host, {})
-            expect(host).to execute_commands_matching(/rm -f '#{original_location}'/)
-          end
-        end
-      end
-
-      let(:logger) { double.as_null_object }
-      describe 'handling failures' do
-        before do
-          allow(subject).to receive(:logger).and_return(logger)
-          expect(subject).to receive(:stop_puppet_from_source_on).and_raise(RuntimeError.new('Also failed in teardown.'))
-          expect(host).to receive(:port_open?).with(8140).and_return(true)
-        end
-
-        it 'does not swallow an exception raised from within test block if ensure block also fails' do
-          expect(subject.logger).to receive(:error).with(/Raised during attempt to teardown.*Also failed in teardown/)
-
-          expect do
-            subject.with_puppet_running_on(host, {}) { raise 'Failed while yielding.' }
-          end.to raise_error(RuntimeError, /failed.*because.*Failed while yielding./)
-        end
-
-        it 'dumps the puppet logs if there is an error in the teardown' do
-          expect(subject.logger).to receive(:notify).with(/Dumping master log/)
-
-          expect do
-            subject.with_puppet_running_on(host, {})
-          end.to raise_error(RuntimeError, /Also failed in teardown/)
-        end
-
-        it 'does not mask the teardown error with an error from dumping the logs' do
-          expect(subject.logger).to receive(:notify).with(/Dumping master log/).and_raise('Error from dumping logs')
-
-          expect do
-            subject.with_puppet_running_on(host, {})
-          end.to raise_error(RuntimeError, /Also failed in teardown/)
-        end
-
-        it 'does not swallow a teardown exception if no earlier exception was raised' do
-          expect(subject.logger).to_not receive(:error)
-          expect do
-            subject.with_puppet_running_on(host, {})
-          end.to raise_error(RuntimeError, 'Also failed in teardown.')
-        end
       end
     end
   end
@@ -1229,7 +982,6 @@ describe ClassMixedWithDSLHelpers do
       host = FakeHost.create
       allow(result).to receive(:exit_code).and_return(0)
       allow(host).to receive(:any_exec_result).and_return(result)
-      allow(host).to receive(:graceful_restarts?).and_return(false)
 
       expect(Beaker::Command).to receive(:new).with(
         /service not_real_service reload/,
@@ -1251,7 +1003,6 @@ describe ClassMixedWithDSLHelpers do
 
     it 'uses the default port argument if none given' do
       host = FakeHost.create
-      expect(host).to receive(:graceful_restarts?).and_return(false)
       allow(result).to receive(:exit_code).and_return(1)
       expect(subject).to receive(:curl_with_retries).with(
         anything, anything, /8140/, anything, anything
@@ -1261,7 +1012,6 @@ describe ClassMixedWithDSLHelpers do
 
     it 'takes the port argument' do
       host = FakeHost.create
-      expect(host).to receive(:graceful_restarts?).and_return(false)
       allow(result).to receive(:exit_code).and_return(1)
       expect(subject).to receive(:curl_with_retries).with(
         anything, anything, /8000/, anything, anything

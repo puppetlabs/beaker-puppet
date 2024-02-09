@@ -44,7 +44,7 @@ step 'verify with_stub_host_on' do
     hosts.each do |host|
       hosts_file = get_hosts_file(host)
       result = on host, "cat #{hosts_file}"
-      assert_no_match(/sleepy/, result.stdout)
+      refute_match(/sleepy/, result.stdout)
     end
   end
 end

@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.description = 'For use for the Beaker acceptance testing tool'
   s.license     = 'Apache-2.0'
 
-  s.required_ruby_version = '>= 2.7'
+  s.required_ruby_version = '>= 2.7', '< 3.2'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
@@ -29,6 +29,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'beaker-vmpooler', '~> 1.4'
 
   # Run time dependencies
-  s.add_runtime_dependency 'beaker', '~> 4.1'
+  s.add_runtime_dependency 'beaker', '~> 5.0'
   s.add_runtime_dependency 'oga', '~> 3.4'
 end
