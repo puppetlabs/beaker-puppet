@@ -1,32 +1,94 @@
-name: Release
+name: Release Gem
 
-on:
-  push:
-    tags:
-      - '*'
+on: workflow_dispatch
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'voxpupuli'
+    if: github.repository == 'puppetlabs/beaker-puppet'
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get Current Version
+        uses: actions/github-script@v7
+        id: cv
+        with:
+          script: |
+            const { data: response } = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            console.log(`The latest release is ${response.tag_name}`)
+            return response.tag_name
+          result-encoding: string
+
+      - name: Get Next Version
+        id: nv
+        run: |
+          version=$(awk '/VERSION/ {print $3}' lib/beaker-puppet/version.rb | tr --delete \')
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Found version $version from lib/beaker-puppet/version.rb"
+
+      - name: Generate Changelog
+        uses: docker://githubchangeloggenerator/github-changelog-generator:1.16.2
+        with:
+          args: >-
+            --future-release ${{ steps.nv.outputs.version }}
+        env:
+          CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate Changelog
+        run : |
+          set -e
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "Here is the current git status:"
+            git status
+            echo
+            echo "The following changes were detected:"
+            git --no-pager diff
+            echo "Uncommitted PRs found in the changelog. Please submit a release prep PR of changes after running `./update-changelog`"
+            exit 1
+          fi
+
+      - name: Generate Release Notes
+        uses: docker://githubchangeloggenerator/github-changelog-generator:1.16.2
+        with:
+          args: >-
+            --since-tag ${{ steps.cv.outputs.result }}
+            --future-release ${{ steps.nv.outputs.version }}
+            --output release-notes.md
+        env:
+          CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.nv.outputs.version }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          bodyfile: release-notes.md
+          draft: false
+          prerelease: false
+
       - name: Install Ruby 3.0
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.0'
-        env:
-          BUNDLE_WITHOUT: release
+          ruby-version: '3.0' 
+
       - name: Build gem
         run: gem build --strict --verbose *.gemspec
-      - name: Publish gem to rubygems.org
-        run: gem push *.gem
+
+      - name: Configure credentials
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+          printf -- ":github: Bearer ${{ secrets.GITHUB_TOKEN }}\n" > $HOME/.gem/credentials
         env:
           GEM_HOST_API_KEY: '${{ secrets.RUBYGEMS_AUTH_TOKEN }}'
-      - name: Setup GitHub packages access
-        run: |
-          mkdir -p ~/.gem
-          echo ":github: Bearer ${{ secrets.GITHUB_TOKEN }}" >> ~/.gem/credentials
-          chmod 0600 ~/.gem/credentials
+
+      - name: Publish gem to rubygems.org
+        run: gem push *.gem
+
       - name: Publish gem to GitHub packages
         run: gem push --key github --host https://rubygems.pkg.github.com/voxpupuli *.gem
