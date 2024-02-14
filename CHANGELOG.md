@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0](https://github.com/puppetlabs/beaker-puppet/tree/3.0.0) (2024-02-14)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/2.0.0...3.0.0)
+
+**Breaking changes:**
+
+- Beaker 5 compatibility [\#240](https://github.com/puppetlabs/beaker-puppet/pull/240) ([mhashizume](https://github.com/mhashizume))
+
+**Implemented enhancements:**
+
+- Add the ability to install puppet-agent from a local dev build [\#239](https://github.com/puppetlabs/beaker-puppet/pull/239) ([joshcooper](https://github.com/joshcooper))
+- Add Amazon linux 2023 platform support [\#228](https://github.com/puppetlabs/beaker-puppet/pull/228) ([span786](https://github.com/span786))
+
+**Fixed bugs:**
+
+- Ensure post-suite and destroy execute [\#238](https://github.com/puppetlabs/beaker-puppet/pull/238) ([joshcooper](https://github.com/joshcooper))
+- fix beaker exec when called from bundle exec [\#232](https://github.com/puppetlabs/beaker-puppet/pull/232) ([h0tw1r3](https://github.com/h0tw1r3))
+- Loosen expectations while attempting to delete puppet related files [\#225](https://github.com/puppetlabs/beaker-puppet/pull/225) ([tvpartytonight](https://github.com/tvpartytonight))
+
 ## [2.0.0](https://github.com/voxpupuli/beaker-puppet/tree/2.0.0) (2023-05-05)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.29.0...2.0.0)
