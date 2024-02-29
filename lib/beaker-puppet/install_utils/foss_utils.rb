@@ -1195,6 +1195,117 @@ module Beaker
           configure_type_defaults_on(host)
         end
 
+        # Install development repo of the puppet-agent on the given host(s).  Downloaded from
+        # location of the form DEV_BUILDS_URL/puppet-agent/AGENT_VERSION/repos
+        #
+        # @param [Host, Array<Host>, String, Symbol] hosts    One or more hosts to act upon,
+        #                            or a role (String or Symbol) that identifies one or more hosts.
+        # @param [Hash{Symbol=>String}] opts An options hash
+        # @option opts [String] :puppet_agent_version The version of puppet-agent to install. This
+        #                       parameter is used by puppet with the +SUITE_VERSION+ environment
+        #                       variable to provide a `git describe` value to beaker to create a
+        #                       build server URL. Note that +puppet_agent_sha+ will still be used
+        #                       instead of this if a value is provided for that option
+        # @option opts [String] :puppet_agent_sha The sha of puppet-agent to install, defaults to provided
+        #                       puppet_agent_version
+        # @option opts [String] :copy_base_local Directory where puppet-agent artifact
+        #                       will be stored locally
+        #                       (default: 'tmp/repo_configs')
+        # @option opts [String] :copy_dir_external Directory where puppet-agent
+        #                       artifact will be pushed to on the external machine
+        #                       (default: '/root')
+        # @option opts [String] :puppet_collection Defaults to 'PC1'
+        # @option opts [String] :dev_builds_url Base URL to pull artifacts from
+        # @option opts [String] :copy_base_local Directory where puppet-agent artifact
+        #                       will be stored locally
+        #                       (default: 'tmp/repo_configs')
+        # @option opts [String] :copy_dir_external Directory where puppet-agent
+        #                       artifact will be pushed to on the external machine
+        #                       (default: '/root')
+        #
+        # @note on windows, the +:ruby_arch+ host parameter can determine in addition
+        # to other settings whether the 32 or 64bit install is used
+        #
+        # @example
+        #   install_puppet_agent_dev_repo_on(host, { :puppet_agent_sha => 'd3377feaeac173aada3a2c2cedd141eb610960a7', :puppet_agent_version => '1.1.1.225.gd3377fe'  })
+        #
+        # @return nil
+        def install_puppet_agent_dev_repo_on(hosts, global_opts)
+          global_opts[:puppet_agent_version] ||= global_opts[:version] # backward compatability
+          unless global_opts[:puppet_agent_version]
+            raise 'must provide :puppet_agent_version (puppet-agent version) for install_puppet_agent_dev_repo_on'
+          end
+
+          block_on hosts do |host|
+            opts = global_opts.dup
+
+            # TODO: consolidate these values as they serve no purpose from beaker's side
+            # you could provide any values you could to one to the other
+            puppet_agent_version = opts[:puppet_agent_sha] || opts[:puppet_agent_version]
+
+            opts = sanitize_opts(opts)
+            opts[:download_url] = "#{opts[:dev_builds_url]}/puppet-agent/#{puppet_agent_version}/repos/"
+            opts[:copy_base_local]    ||= File.join('tmp', 'repo_configs')
+            opts[:puppet_collection]  ||= 'PC1'
+
+            release_path = opts[:download_url]
+
+            variant, version, arch, codename = host['platform'].to_array
+            add_role(host, 'aio') # we are installing agent, so we want aio role
+            copy_dir_local = File.join(opts[:copy_base_local], variant)
+            onhost_copy_base = opts[:copy_dir_external] || host.external_copy_base
+
+            case variant
+            when /^(fedora|el|redhat|centos|debian|ubuntu)$/
+              if host['hypervisor'] == 'ec2'
+                logger.trace("#install_puppet_agent_dev_repo_on: unsupported host #{host} for repo detected. using dev package")
+              else
+                install_puppetlabs_dev_repo(host, 'puppet-agent', puppet_agent_version, nil, opts)
+                host.install_package('puppet-agent')
+                logger.trace('#install_puppet_agent_dev_repo_on: install_puppetlabs_dev_repo finished')
+                next
+              end
+            when /^(osx|windows|solaris|sles|aix)$/
+              # Download installer package file & run install manually.
+              # Done below, so that el hosts on ec2 can use this
+              # workflow as well
+            else
+              raise "No repository installation step for #{variant} yet..."
+            end
+
+            release_path_end, release_file = host.puppet_agent_dev_package_info(
+              opts[:puppet_collection], opts[:puppet_agent_version], opts
+            )
+            release_path << release_path_end
+            logger.trace('#install_puppet_agent_dev_repo_on: dev_package_info, continuing...')
+
+            onhost_copied_file = File.join(onhost_copy_base, release_file)
+            fetch_http_file(release_path, release_file, copy_dir_local)
+            scp_to host, File.join(copy_dir_local, release_file), onhost_copy_base
+
+            case variant
+            when /^(sles|aix|fedora|el|redhat|centos)$/
+              # NOTE: AIX does not support repo management. This block assumes
+              # that the desired rpm has been mirrored to the 'repos' location.
+              # NOTE: the AIX 7.1 package will only install on 7.2 with
+              # --ignoreos. This is a bug in package building on AIX 7.1's RPM
+              aix_72_ignoreos_hack = '--ignoreos' if variant == 'aix' && version == '7.2'
+              on host, "rpm -ivh #{aix_72_ignoreos_hack} #{onhost_copied_file}"
+            when /^windows$/
+              result = on host, "echo #{onhost_copied_file}"
+              onhost_copied_file = result.raw_output.chomp
+              msi_opts = { debug: host[:pe_debug] || opts[:pe_debug] }
+              install_msi_on(host, onhost_copied_file, {}, msi_opts)
+            when /^osx$/
+              host.install_package("puppet-agent-#{opts[:puppet_agent_version]}*")
+            when /^solaris$/
+              host.solaris_install_local_package(release_file, onhost_copy_base)
+            end
+            configure_type_defaults_on(host)
+          end
+        end
+        alias install_puppetagent_dev_repo install_puppet_agent_dev_repo_on
+
         # This method will install a pem file certificate on a windows host
         #
         # @param [Host] host                 A host object
@@ -1427,6 +1538,45 @@ module Beaker
             on host, "#{gem} source --clear-all"
             on(host, "#{gem} source --add #{gem_source}")
           end
+        end
+
+        # Gets the path & file name for the puppet agent dev package on Unix
+        #
+        # @param [String] puppet_collection Name of the puppet collection to use
+        # @param [String] puppet_agent_version Version of puppet agent to get
+        # @param [Hash{Symbol=>String}] opts Options hash to provide extra values
+        #
+        # @note macOS, Solaris, and Windows require some options to be set. See
+        #   {#solaris_puppet_agent_dev_package_info},
+        #   {#mac_puppet_agent_dev_package_info}, and
+        #   {WindowsUtils#puppet_agent_dev_package_info} for more details
+        #
+        # @raise [ArgumentError] If one of the two required parameters (puppet_collection,
+        #   puppet_agent_version) is either not passed or set to nil
+        #
+        # @return [String, String] Path to the directory and filename of the package, respectively
+        def puppet_agent_dev_package_info( puppet_collection = nil, puppet_agent_version = nil, opts = {} )
+          error_message = "Must provide %s argument to get puppet agent dev package information"
+          raise ArgumentError, error_message % "puppet_collection" unless puppet_collection
+          raise ArgumentError, error_message % "puppet_agent_version" unless puppet_agent_version
+
+          variant, version, arch, _codename = self['platform'].to_array
+
+          if %w[opensuse sles aix el centos oracle redhat scientific].include?(variant)
+            variant = 'el' if %w[el centos oracle redhat scientific].include?(variant)
+            variant = 'sles' if variant == 'opensuse'
+
+            if variant == 'aix'
+              arch = 'ppc' if arch == 'power'
+              version = '7.1' if version == '7.2'
+            end
+            release_path_end = "#{variant}/#{version}/#{puppet_collection}/#{arch}"
+            release_file = "puppet-agent-#{puppet_agent_version}-1.#{variant}#{version}.#{arch}.rpm"
+          else
+            msg = "puppet_agent dev package info unknown for platform '#{self['platform']}'"
+            raise ArgumentError, msg
+          end
+          return release_path_end, release_file
         end
       end
     end

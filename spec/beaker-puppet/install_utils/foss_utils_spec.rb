@@ -1092,6 +1092,309 @@ describe ClassMixedWithDSLInstallUtils do
     end
   end
 
+  describe '#install_puppet_agent_dev_repo_on' do
+    let(:package_name) { 'puppet-agent' }
+    let(:platform) { @platform || 'other' }
+    let(:host) do
+      FakeHost.create('fakvm', platform, opts)
+    end
+
+    before :each do
+      allow(subject).to receive(:configure_foss_defaults_on).and_return(true)
+    end
+
+    it 'raises an exception when host platform is unsupported' do
+      host = basic_hosts.first
+      host['platform'] = Beaker::Platform.new('f5-5-x4')
+      opts = { version: '0.1.0' }
+      allow(subject).to receive(:options).and_return({})
+
+      expect do
+        subject.install_puppet_agent_dev_repo_on(host, opts)
+      end.to raise_error(RuntimeError, /No repository installation step for/)
+    end
+
+    it 'runs the correct install for el-based platforms' do
+      host = basic_hosts.first
+      host['platform'] = Beaker::Platform.new('el-5-x86_64')
+      sha_value = 'ereiuwoiur'
+      opts = { version: '0.1.0', puppet_agent_sha: sha_value }
+      allow(subject).to receive(:options).and_return({})
+
+      expect(subject).to receive(:install_puppetlabs_dev_repo).with(
+        host, 'puppet-agent', sha_value, nil, anything
+      )
+      expect(host).to receive(:install_package).with('puppet-agent')
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'runs the correct install for el-based platforms on s390x architectures' do
+      host = basic_hosts.first
+      host['platform'] = Beaker::Platform.new('el-5-s390x')
+      sha_value = 'ereiuwoiur'
+      opts = { version: '0.1.0', puppet_agent_sha: sha_value }
+      allow(subject).to receive(:options).and_return({})
+
+      release_path_end = 'fake_release_path_end'
+      release_file = 'fake_29835_release_file'
+      expect(host).to receive(:puppet_agent_dev_package_info).and_return(
+        [release_path_end, release_file],
+      )
+
+      expect(subject).not_to receive(:install_puppetlabs_dev_repo)
+      expect(host).not_to receive(:install_package)
+
+      expect(subject).to receive(:fetch_http_file).once.with(/#{release_path_end}$/, release_file, %r{/el$})
+      expect(subject).to receive(:scp_to).once.with(host, /#{release_file}$/, anything)
+      expect(subject).to receive(:on).ordered.with(host, /rpm -ivh.*#{release_file}$/)
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'runs the correct agent install for el-based platforms on ec2 hypervisor' do
+      host = basic_hosts.first
+      host['platform'] = Beaker::Platform.new('el-5-x86_64')
+      host['hypervisor'] = 'ec2'
+      sha_value = 'ereiuwoiur'
+      opts = { version: '0.1.0', puppet_agent_sha: sha_value }
+      allow(subject).to receive(:options).and_return({})
+
+      release_path_end = 'fake_release_path_end'
+      release_file = 'fake_29835_release_file'
+      expect(host).to receive(:puppet_agent_dev_package_info).and_return(
+        [release_path_end, release_file],
+      )
+
+      expect(subject).not_to receive(:install_puppetlabs_dev_repo)
+      expect(host).not_to receive(:install_package)
+
+      expect(subject).to receive(:fetch_http_file).once.with(/#{release_path_end}$/, release_file, %r{/el$})
+      expect(subject).to receive(:scp_to).once.with(host, /#{release_file}$/, anything)
+      expect(subject).to receive(:on).ordered.with(host, /rpm -ivh.*#{release_file}$/)
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'runs the correct install for debian-based platforms' do
+      platform = Beaker::Platform.new('debian-5-x86_64')
+      host = basic_hosts.first
+      host['platform'] = platform
+      sha_value = 'ereigregerge'
+      opts = { version: '0.1.0', puppet_agent_sha: sha_value }
+      allow(subject).to receive(:options).and_return({})
+
+      expect(subject).to receive(:install_puppetlabs_dev_repo).with(
+        host, 'puppet-agent', sha_value, nil, anything
+      )
+      expect(host).to receive(:install_package).with('puppet-agent')
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'runs the correct install for windows platforms' do
+      host = winhost
+      external_copy_base = 'tmp_install_windows_copy_base_1325'
+      allow(host).to receive(:external_copy_base).and_return(external_copy_base)
+      opts = { version: '0.1.0' }
+      allow(subject).to receive(:options).and_return({})
+      copied_path = "#{win_temp}\\puppet-agent-0.1.0-x64.msi"
+      mock_echo = Object.new
+      allow(mock_echo).to receive(:raw_output).and_return(copied_path)
+
+      expect(subject).to receive(:fetch_http_file).once.with(%r{/windows$}, 'puppet-agent-0.1.0-x64.msi', %r{/windows$})
+      expect(subject).to receive(:scp_to).once.with(host, %r{/puppet-agent-0.1.0-x64.msi$}, /#{external_copy_base}/)
+      expect(subject).to receive(:install_msi_on).with(host, copied_path, {}, { debug: nil }).once
+      expect(subject).to receive(:on).ordered.with(host, /echo/).and_return(mock_echo)
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'runs the correct install for osx platforms' do
+      host = machost
+      host['platform'] = Beaker::Platform.new('osx-109-x86_64')
+      sha_value = 'runs the correct install for osx platforms'
+      copy_dir_external = 'fake_15_copy_dir_external'
+      opts = {
+        version: '0.1.0',
+        puppet_agent_sha: sha_value,
+        copy_dir_external: copy_dir_external,
+      }
+
+      release_path_end = 'fake_release_path_end'
+      release_file = 'fake_29835_release_file'
+      expect(host).to receive(:puppet_agent_dev_package_info).and_return(
+        [release_path_end, release_file],
+      )
+
+      expect(subject).to receive(:fetch_http_file).once.with(/#{release_path_end}$/, release_file, %r{/osx$})
+      expect(subject).to receive(:scp_to).once.with(host, /#{release_file}$/, copy_dir_external)
+      # the star is necessary, as that's not the entire filename, & we rely on
+      # the globbing to get this right on OSX SUTs
+      expect(host).to receive(:install_package).with(/^puppet-agent-0.1.0\*$/)
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'runs the correct install for solaris platforms' do
+      @platform = 'solaris-10-x86_64'
+      opts = { version: '0.1.0' }
+      allow(subject).to receive(:options).and_return({})
+
+      release_path_end = 'fake_release_path_end'
+      release_file = 'fake_sol10_8495_release_file'
+      expect(host).to receive(:puppet_agent_dev_package_info).and_return(
+        [release_path_end, release_file],
+      )
+
+      expect(subject).to receive(:fetch_http_file).once.with(
+        /#{release_path_end}$/, release_file, anything
+      )
+      expect(subject).to receive(:scp_to).once.with(
+        host, /#{release_file}$/, anything
+      )
+
+      expect(host).to receive(:solaris_install_local_package)
+
+      allow(subject).to receive(:configure_type_defaults_on)
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'allows you to override the local copy directory' do
+      # only applies to hosts that don't go down the
+      # install_puppetlabs_dev_repo route
+      host = eoshost
+      host['platform'] = Beaker::Platform.new('eos-5-x86_64')
+      sha_value = 'dahdahdahdah'
+      copy_base_local_override = 'face'
+      opts = {
+        version: '0.1.0',
+        copy_base_local: copy_base_local_override,
+        puppet_agent_sha: sha_value,
+      }
+      allow(subject).to receive(:options).and_return({})
+
+      allow(host).to receive(:puppet_agent_dev_package_info).and_return(['', ''])
+
+      allow(host).to receive(:get_remote_file).once.with(anything)
+      allow(host).to receive(:install_from_file)
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'allows you to override the external copy directory' do
+      host = basic_hosts.first
+      host['platform'] = Beaker::Platform.new('osx-5-x86_64')
+      copy_dir_custom = 'muppetsBB8-1435'
+      opts = { version: '0.1.0', copy_dir_external: copy_dir_custom }
+      allow(subject).to receive(:options).and_return({})
+
+      allow(host).to receive(:puppet_agent_dev_package_info).and_return(['', ''])
+
+      allow(subject).to receive(:fetch_http_file).once
+      expect(subject).to receive(:scp_to).once.with(
+        host, anything, /#{copy_dir_custom}/
+      )
+      allow(host).to receive(:install_package)
+
+      subject.install_puppet_agent_dev_repo_on(host, opts)
+    end
+
+    it 'copies package to the cygwin root directory and installs it' do
+      @platform = 'windows-7-x86_64'
+      expect(subject).to receive(:install_msi_on).with(any_args)
+      copy_base = 'copy_base_cygwin'
+      allow(host).to receive(:external_copy_base).and_return(copy_base)
+      expect(subject).to receive(:scp_to).with(host, /puppet-agent-1\.0\.0-x64\.msi/, /#{copy_base}/)
+      expect(subject).to receive(:configure_type_defaults_on).with(host)
+      expect(subject).to receive(:fetch_http_file).with(%r{[^/]\z}, anything, anything)
+      subject.install_puppet_agent_dev_repo_on(host, opts.merge({ puppet_agent_version: '1.0.0' }))
+    end
+
+    it 'installs on different hosts without erroring' do
+      mhosts = hosts
+      mhosts[3] = eoshost
+
+      mhosts.each_with_index do |host, index|
+        if index == 0
+          host['platform'] = Beaker::Platform.new('solaris-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host0' }
+        elsif index == 1
+          host['platform'] = Beaker::Platform.new('windows-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host1' }
+        elsif index == 2
+          host['platform'] = Beaker::Platform.new('osx-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host2' }
+        elsif index == 3
+          host['platform'] = Beaker::Platform.new('eos-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host3' }
+        end
+        allow(host).to receive(:puppet_agent_dev_package_info).with(any_args).and_return(%w[test blah])
+      end
+
+      expect(subject).to receive(:add_role).with(any_args).exactly(mhosts.length).times
+
+      expect(subject).to receive(:fetch_http_file).with(any_args).exactly(3).times
+      expect(subject).to receive(:scp_to).with(any_args).exactly(3).times
+
+      expect(subject).to receive(:install_msi_on).with(mhosts[1], 'xyz', {}, anything).exactly(1).times
+      expect(mhosts[0]).to receive(:solaris_install_local_package).with('blah', '/host0').exactly(1).times
+      expect(mhosts[2]).to receive(:install_package).with(any_args).exactly(1).times
+      expect(mhosts[3]).to receive(:install_from_file).with('blah').exactly(1).times
+
+      result = object_double(Beaker::Result.new({}, 'foo'), raw_output: 'xyz')
+      allow(subject).to receive(:on).with(mhosts[1], anything).and_return(result)
+
+      expect(subject).to receive(:configure_type_defaults_on).with(any_args).exactly(mhosts.length).times
+
+      subject.install_puppet_agent_dev_repo_on(mhosts, opts.merge({ puppet_agent_version: '1.0.0' }))
+    end
+
+    it 'installs on different hosts with options specifying :copy_dir_external' do
+      mhosts = hosts
+      mhosts[3] = eoshost
+
+      mhosts.each_with_index do |host, index|
+        if index == 0
+          host['platform'] = Beaker::Platform.new('solaris-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host0' }
+        elsif index == 1
+          host['platform'] = Beaker::Platform.new('windows-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host1' }
+        elsif index == 2
+          host['platform'] = Beaker::Platform.new('osx-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host2' }
+        elsif index == 3
+          host['platform'] = Beaker::Platform.new('eos-5-x4')
+          allow(host).to receive(:external_copy_base) { '/host3' }
+        end
+        allow(host).to receive(:puppet_agent_dev_package_info).with(any_args).and_return(['test', '/blah'])
+      end
+
+      expect(subject).to receive(:add_role).with(any_args).exactly(mhosts.length).times
+
+      expect(subject).to receive(:fetch_http_file).with(any_args).exactly(3).times
+      expect(subject).to receive(:scp_to).with(any_args).exactly(3).times
+
+      expect(subject).to receive(:install_msi_on).with(mhosts[1], 'xyz', {}, anything).exactly(1).times
+      expect(mhosts[0]).to receive(:solaris_install_local_package).with('/blah', '/tmp').exactly(1).times
+      expect(mhosts[2]).to receive(:install_package).with(any_args).exactly(1).times
+      expect(mhosts[3]).to receive(:install_from_file).with('/blah').exactly(1).times
+      expect(mhosts[0]).to receive(:external_copy_base).with(no_args).exactly(0).times
+      expect(mhosts[1]).to receive(:external_copy_base).with(no_args).exactly(0).times
+      expect(mhosts[2]).to receive(:external_copy_base).with(no_args).exactly(0).times
+      expect(mhosts[3]).to receive(:external_copy_base).with(no_args).exactly(0).times
+
+      result = object_double(Beaker::Result.new({}, 'foo'), raw_output: 'xyz')
+      allow(subject).to receive(:on).with(mhosts[1], anything).and_return(result)
+
+      expect(subject).to receive(:configure_type_defaults_on).with(any_args).exactly(mhosts.length).times
+
+      subject.install_puppet_agent_dev_repo_on(mhosts,
+                                               opts.merge({ puppet_agent_version: '1.0.0', copy_dir_external: '/tmp' }))
+    end
+  end
+
   describe '#install_puppetserver_on' do
     let(:host) { make_host('master', platform: 'el-7-x86_64') }
 
@@ -1238,6 +1541,83 @@ describe ClassMixedWithDSLInstallUtils do
     let(:debian6) { make_host('debian-6-amd64', platform: 'debian-6-amd64') }
     it 'raises error on unsupported platforms' do
       expect { subject.remove_puppet_on(debian6) }.to raise_error(RuntimeError, /unsupported platform/)
+    end
+  end
+
+  describe '#puppet_agent_dev_package_info' do
+    let(:download_opts) {{download_url: 'http://trust.me'}}
+
+    # These platforms are consistent across puppet collections
+    shared_examples 'consistent platforms' do |puppet_collection, puppet_agent_version|
+      platforms = { 'solaris-10-x86_64' => ["solaris/10/#{puppet_collection}", "puppet-agent-#{puppet_agent_version}-1.i386.pkg.gz"],
+                    'solaris-11-x86_64' => ["solaris/11/#{puppet_collection}", "puppet-agent@#{puppet_agent_version},5.11-1.i386.p5p"],
+                    'sles-11-x86_64' => ["sles/11/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.sles11.x86_64.rpm"],
+                    'opensuse-15-x86_64' => ["sles/15/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.sles15.x86_64.rpm"],
+                    'aix-6.1-power' => ["aix/6.1/#{puppet_collection}/ppc", "puppet-agent-#{puppet_agent_version}-1.aix6.1.ppc.rpm"],
+                    'el-7-x86_64' => ["el/7/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el7.x86_64.rpm"],
+                    'centos-7-x86_64' => ["el/7/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el7.x86_64.rpm"],
+                    'oracle-7-x86_64' => ["el/7/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el7.x86_64.rpm"],
+                    'redhat-7-x86_64' => ["el/7/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el7.x86_64.rpm"],
+                    'scientific-7-x86_64' => ["el/7/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el7.x86_64.rpm"],
+                    'el-8-x86_64' => ["el/8/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el8.x86_64.rpm"],
+                    'centos-8-x86_64' => ["el/8/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el8.x86_64.rpm"],
+                    'oracle-8-x86_64' => ["el/8/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el8.x86_64.rpm"],
+                    'redhat-8-x86_64' => ["el/8/#{puppet_collection}/x86_64", "puppet-agent-#{puppet_agent_version}-1.el8.x86_64.rpm"],
+                  }
+      platforms.each do |p, v|
+        it "accomodates platform #{p} without erroring" do
+          @opts = {'platform' => Beaker::Platform.new(p)}
+          allow( instance ).to receive(:link_exists?).and_return(true)
+          expect( instance.puppet_agent_dev_package_info(puppet_collection, puppet_agent_version, download_opts) ).to eq(v)
+        end
+      end
+    end
+
+    # AIX platform/package pairs differ accross collections
+    shared_examples 'aix platform' do |package_version, platform_version, puppet_collection, puppet_agent_version|
+      it "selects AIX #{package_version} packages for AIX #{platform_version}" do
+        @opts = { 'platform' => Beaker::Platform.new("aix-#{platform_version}-power") }
+        allow( instance ).to receive(:link_exists?).and_return(true)
+        expect( instance.puppet_agent_dev_package_info(puppet_collection, puppet_agent_version, download_opts) )
+          .to eq(["aix/#{package_version}/#{puppet_collection}/ppc", "puppet-agent-#{puppet_agent_version}-1.aix#{package_version}.ppc.rpm"])
+      end
+    end
+
+    context 'with puppet-agent 1.y.z' do
+      puppet_collection = 'PC1'
+      puppet_agent_version = '1.2.3'
+
+      include_examples 'consistent platforms', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '5.3', '5.3', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '7.1', '7.1', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '7.1', '7.2', puppet_collection, puppet_agent_version
+    end
+
+    context 'with puppet-agent 5.y.z' do
+      puppet_collection = 'puppet5'
+      puppet_agent_version = '5.4.3'
+
+      include_examples 'consistent platforms', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '7.1', '7.1', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '7.1', '7.2', puppet_collection, puppet_agent_version
+    end
+
+    context 'with puppet-agent 5.99.z' do
+      puppet_collection = 'puppet6'
+      puppet_agent_version = '5.99.0'
+
+      include_examples 'consistent platforms', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '6.1', '7.1', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '6.1', '7.2', puppet_collection, puppet_agent_version
+    end
+
+    context 'with puppet6' do
+      puppet_collection = 'puppet6'
+      puppet_agent_version = '6.6.6'
+
+      include_examples 'consistent platforms', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '6.1', '7.1', puppet_collection, puppet_agent_version
+      include_examples 'aix platform', '6.1', '7.2', puppet_collection, puppet_agent_version
     end
   end
 end
