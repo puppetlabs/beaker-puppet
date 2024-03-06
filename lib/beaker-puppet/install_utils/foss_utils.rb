@@ -1148,7 +1148,7 @@ module Beaker
                                         repo_configs_dir = nil,
                                         opts = options)
           variant, version, arch, codename = host['platform'].to_array
-          if variant !~ /^(fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
+          if variant !~ /^(amazon|fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
             raise "No repository installation step for #{variant} yet..."
           end
 
@@ -1162,7 +1162,7 @@ module Beaker
           # url type
           _, protocol, hostname = opts[:dev_builds_url].partition %r{.*://}
           dev_builds_url = protocol + hostname
-          dev_builds_url = opts[:dev_builds_url] if variant =~ /^(fedora|el|redhat|centos)$/
+          dev_builds_url = opts[:dev_builds_url] if variant =~ /^(amazon|fedora|el|redhat|centos)$/
 
           install_repo_configs(host, dev_builds_url, package_name,
                                build_version, platform_configs_dir)
