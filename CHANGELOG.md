@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0](https://github.com/voxpupuli/beaker-puppet/tree/2.1.0) (2024-03-19)
+
+[Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/2.0.0...2.1.0)
+
+**Implemented enhancements:**
+
+- \[PA-6181\]: Fix acceptance test failure caused due to addition of Amazon Linux 2023 in pe-client-tools for orchestrator client pipeline [\#250](https://github.com/puppetlabs/beaker-puppet/pull/250) ([span786](https://github.com/span786))
+
 ## [2.0.0](https://github.com/voxpupuli/beaker-puppet/tree/2.0.0) (2023-05-05)
 
 [Full Changelog](https://github.com/voxpupuli/beaker-puppet/compare/1.29.0...2.0.0)
