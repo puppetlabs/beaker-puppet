@@ -840,26 +840,6 @@ describe ClassMixedWithDSLInstallUtils do
         subject.install_puppetlabs_release_repo_on(host)
       end
     end
-
-    context 'on cisco platforms' do
-      context 'version 5' do
-        let(:platform) { Beaker::Platform.new('cisco_nexus-7-x86_64') }
-
-        it 'calls host.install_package' do
-          expect(host).to receive(:install_package).with(/\.rpm$/)
-          subject.install_puppetlabs_release_repo_on(host)
-        end
-      end
-
-      context 'version 7' do
-        let(:platform) { Beaker::Platform.new('cisco_ios_xr-6-x86_64') }
-
-        it 'uses yum localinstall to install the package' do
-          expect(subject).to receive(:on).with(host, /^yum.*localinstall.*\.rpm$/)
-          subject.install_puppetlabs_release_repo_on(host)
-        end
-      end
-    end
   end
 
   describe '#install_puppetlabs_dev_repo' do
@@ -884,6 +864,8 @@ describe ClassMixedWithDSLInstallUtils do
         allow(rez).to receive(:exit_code) { 0 }
         allow(subject).to receive(:link_exists?).and_return(true)
         expect(subject).to receive(:scp_to).with(host, repo_config, /.*/).ordered
+        allow(File).to receive(:read).and_call_original
+        allow(File).to receive(:read).with('repoconfig').and_return('')
         subject.install_puppetlabs_dev_repo host, package_name, package_version
       end
     end

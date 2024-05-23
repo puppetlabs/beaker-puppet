@@ -120,9 +120,7 @@ module HostHelpers
 end
 
 module PlatformHelpers
-  DEBIANPLATFORMS = %w[debian
-                       ubuntu
-                       huaweios]
+  DEBIANPLATFORMS = %w[debian ubuntu]
 
   FEDORASYSTEMD    = (14..29).to_a.collect! { |i| "fedora-#{i}" }
 
