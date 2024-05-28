@@ -303,7 +303,7 @@ module Beaker
                 family = ::Regexp.last_match(1)
                 relver = ::Regexp.last_match(2)
                 install_puppet_from_rpm_on(host, opts.merge(release: relver, family: family))
-              elsif host['platform'] =~ /(ubuntu|debian|huaweios)/
+              elsif host['platform'] =~ /(ubuntu|debian)/
                 install_puppet_from_deb_on(host, opts)
               elsif host['platform'] =~ /windows/
                 relver = opts[:version]
@@ -406,10 +406,10 @@ module Beaker
               end
 
               case host['platform']
-              when /amazon|el-|redhat|fedora|sles|centos|cisco_/
+              when /amazon|el-|redhat|fedora|sles|centos/
                 package_name = 'puppet-agent'
                 package_name << "-#{opts[:puppet_agent_version]}" if opts[:puppet_agent_version]
-              when /debian|ubuntu|huaweios/
+              when /debian|ubuntu/
                 package_name = 'puppet-agent'
                 if opts[:puppet_agent_version]
                   package_name << "=#{opts[:puppet_agent_version]}-1#{host['platform'].codename}"
@@ -921,9 +921,9 @@ module Beaker
 
             unless host.check_for_command('gem')
               gempkg = case host['platform']
-                       when /solaris-11/                            then 'ruby-18'
-                       when /ubuntu-14/                             then 'ruby'
-                       when /solaris-10|ubuntu|debian|el-|huaweios/ then 'rubygems'
+                       when /solaris-11/                   then 'ruby-18'
+                       when /ubuntu-14/                    then 'ruby'
+                       when /solaris-10|ubuntu|debian|el-/ then 'rubygems'
                        when /openbsd/ then 'ruby'
                        else
                          raise 'install_puppet() called with default_action ' +
@@ -937,7 +937,7 @@ module Beaker
             # Link 'gem' to /usr/bin instead of adding /opt/csw/bin to PATH.
             on host, 'ln -s /opt/csw/bin/gem /usr/bin/gem' if is_solaris10
 
-            if host['platform'] =~ /debian|ubuntu|solaris|huaweios/
+            if host['platform'] =~ /debian|ubuntu|solaris/
               gem_env = YAML.load(on(host, 'gem environment').stdout)
               gem_paths_array = gem_env['RubyGems Environment'].find { |h| h['GEM PATHS'] != nil }['GEM PATHS']
               path_with_gem = 'export PATH=' + gem_paths_array.join(':') + ':${PATH}'
@@ -993,16 +993,8 @@ module Beaker
             opts = sanitize_opts(opts)
 
             case variant
-            when /^(amazon|fedora|el|redhat|centos|sles|cisco_nexus|cisco_ios_xr)$/
+            when /^(amazon|fedora|el|redhat|centos|sles)$/
               variant_url_value = (%w[redhat centos].include?(::Regexp.last_match(1)) ? 'el' : ::Regexp.last_match(1))
-              if variant == 'cisco_nexus'
-                variant_url_value = 'cisco-wrlinux'
-                version = '5'
-              end
-              if variant == 'cisco_ios_xr'
-                variant_url_value = 'cisco-wrlinux'
-                version = '7'
-              end
               if repo_name.match(/puppet\d*/)
                 url = if repo_name.match(/-nightly$/)
                         opts[:nightly_yum_repo_url]
@@ -1028,19 +1020,11 @@ module Beaker
                 end
               end
 
-              if variant == 'cisco_nexus'
-                # cisco nexus requires using yum to install the repo
-                host.install_package(remote)
-              elsif variant == 'cisco_ios_xr'
-                # cisco ios xr requires using yum to localinstall the repo
-                on host, "yum -y localinstall #{remote}"
-              else
-                opts[:package_proxy] ||= false
-                host.install_package_with_rpm(remote, '--replacepkgs',
-                                              { package_proxy: opts[:package_proxy] })
-              end
+              opts[:package_proxy] ||= false
+              host.install_package_with_rpm(remote, '--replacepkgs',
+                                            { package_proxy: opts[:package_proxy] })
 
-            when /^(debian|ubuntu|huaweios)$/
+            when /^(debian|ubuntu)$/
               if repo_name.match(/puppet\d*/)
                 url = if repo_name.match(/-nightly$/)
                         opts[:nightly_apt_repo_url]
@@ -1111,14 +1095,10 @@ module Beaker
             File.write(repo, contents)
           end
 
-          to_path = if host[:platform] =~ /cisco_nexus/
-                      "#{host.package_config_dir}/#{File.basename(repo)}"
-                    else
-                      host.package_config_dir
-                    end
+          to_path = host.package_config_dir
           scp_to(host, repo, to_path)
 
-          on(host, 'apt-get update') if host['platform'] =~ /ubuntu-|debian-|huaweios-/
+          on(host, 'apt-get update') if host['platform'] =~ /ubuntu-|debian-/
           nil
         end
 
@@ -1148,7 +1128,7 @@ module Beaker
                                         repo_configs_dir = nil,
                                         opts = options)
           variant, version, arch, codename = host['platform'].to_array
-          if variant !~ /^(amazon|fedora|el|redhat|centos|debian|ubuntu|huaweios|cisco_nexus|cisco_ios_xr|sles)$/
+          if variant !~ /^(amazon|fedora|el|redhat|centos|debian|ubuntu|sles)$/
             raise "No repository installation step for #{variant} yet..."
           end
 
@@ -1181,7 +1161,7 @@ module Beaker
         # @note This method is paired to be run directly after {#install_puppetlabs_dev_repo}
         #
         def install_packages_from_local_dev_repo(host, package_name)
-          if host['platform'] =~ /debian|ubuntu|huaweios/
+          if host['platform'] =~ /debian|ubuntu/
             find_filename = '*.deb'
             find_command  = 'dpkg -i'
           elsif host['platform'] =~ /fedora|el|redhat|centos/
@@ -1269,7 +1249,7 @@ module Beaker
 
           # We have to do some silly version munging if we're on a deb-based platform
           case host['platform']
-          when /debian|ubuntu|huaweios/
+          when /debian|ubuntu/
             opts[:version] = "#{opts[:version]}-1#{host['platform'].codename}" if opts[:version]
           end
 
@@ -1291,7 +1271,7 @@ module Beaker
             cmdline_args = ''
             # query packages
             case host[:platform]
-            when /huaweios|ubuntu/
+            when /ubuntu/
               pkgs = on(host, "dpkg-query -l  | awk '{print $2}' | grep -E '(^pe-|puppet)'",
                         acceptable_exit_codes: [0, 1]).stdout.chomp.split(/\n+/)
             when /aix|sles|el|redhat|centos|oracle|scientific/
