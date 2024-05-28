@@ -818,28 +818,6 @@ describe ClassMixedWithDSLInstallUtils do
         subject.install_puppetlabs_release_repo_on(host)
       end
     end
-
-    context 'on debian 8' do
-      let(:platform) { Beaker::Platform.new('debian-8-i386') }
-      it 'returns the correct url when repo is set to puppet4' do
-        expect(subject).to receive(:on).with(host, /puppet4-release-jessie\.deb$/).once
-        expect(subject).to receive(:on).with(host, 'dpkg -i --force-all /tmp/puppet.deb').once
-        expect(subject).to receive(:on).with(host, 'apt-get update').once
-        subject.install_puppetlabs_release_repo_on(host, 'puppet4')
-      end
-      it 'returns the correct url when opts[:puppet_collection] is set to puppet7' do
-        expect(subject).to receive(:on).with(host, /puppet7-release-jessie\.deb$/).once
-        expect(subject).to receive(:on).with(host, 'dpkg -i --force-all /tmp/puppet.deb').once
-        expect(subject).to receive(:on).with(host, 'apt-get update').once
-        subject.install_puppetlabs_release_repo_on(host, nil, { puppet_collection: 'puppet7' })
-      end
-      it 'returns the correct url when both repo and opts[:puppet_collection] are nil' do
-        expect(subject).to receive(:on).with(host, /puppet-release-jessie\.deb$/).once
-        expect(subject).to receive(:on).with(host, 'dpkg -i --force-all /tmp/puppet.deb').once
-        expect(subject).to receive(:on).with(host, 'apt-get update').once
-        subject.install_puppetlabs_release_repo_on(host)
-      end
-    end
   end
 
   describe '#install_puppetlabs_dev_repo' do
@@ -1090,10 +1068,10 @@ describe ClassMixedWithDSLInstallUtils do
       version = '6.6.6'
 
       context 'on deb-based platform' do
-        let(:host) { make_host('master', platform: Beaker::Platform.new('ubuntu-16.04-amd64')) }
-        it 'munges the version on ubuntu 16.04' do
+        let(:host) { make_host('master', platform: Beaker::Platform.new('ubuntu-24.04-amd64')) }
+        it 'munges the version on ubuntu 24.04' do
           expect(subject).to receive(:install_puppetlabs_release_repo_on).with(host, 'puppet', anything)
-          expect(subject).to receive(:install_package).with(host, 'puppetserver', "#{version}-1xenial")
+          expect(subject).to receive(:install_package).with(host, 'puppetserver', "#{version}-1noble")
           allow(subject).to receive(:dev_builds_accessible_on?).with(host, anything).and_return false
           subject.install_puppetserver_on(host, version: version)
         end
