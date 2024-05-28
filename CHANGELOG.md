@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0](https://github.com/puppetlabs/beaker-puppet/tree/4.0.0) (2024-05-28)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/3.0.1...4.0.0)
+
+**Breaking changes:**
+
+- Add support for Beaker 6 [\#255](https://github.com/puppetlabs/beaker-puppet/pull/255) ([mhashizume](https://github.com/mhashizume))
+- Remove unsupported network platforms [\#254](https://github.com/puppetlabs/beaker-puppet/pull/254) ([mhashizume](https://github.com/mhashizume))
+
 ## [3.0.1](https://github.com/puppetlabs/beaker-puppet/tree/3.0.1) (2024-03-12)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/3.0.0...3.0.1)
