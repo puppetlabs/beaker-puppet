@@ -920,7 +920,7 @@ describe ClassMixedWithDSLInstallUtils do
     end
 
     it 'fails correctly for systems not accounted for' do
-      @platform = 'eos-1-3'
+      @platform = 'freebsd-1-3'
       expect { subject.install_packages_from_local_dev_repo(host, package_name) }.to raise_error RuntimeError
     end
   end
