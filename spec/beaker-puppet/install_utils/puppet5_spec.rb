@@ -12,7 +12,7 @@ end
 describe ClassMixedWithDSLInstallUtils do
   let(:hosts) do
     make_hosts({ pe_ver: '3.0',
-                 platform: 'linux',
+                 platform: Beaker::Platform.new('redhat-9-x86_64'),
                  roles: ['agent'],
                  type: 'foss', }, 4)
   end
@@ -361,6 +361,23 @@ describe ClassMixedWithDSLInstallUtils do
       expect do
         subject.install_from_build_data_url('project_name', sha_yaml_url)
       end.to raise_error(Beaker::DSL::Outcomes::FailTest, /project_name.*#{sha_yaml_url}/)
+    end
+
+    it 'installs the artifact on newer Ubuntu hosts' do
+      artifact_url = 'https://builds.example.com/puppet-agent.deb'
+      project_name = 'fake_project_66'
+      allow(subject).to receive(:fetch_build_details)
+      allow(subject).to receive(:configure_type_defaults_on)
+      allow(subject).to receive(:host_urls) { [artifact_url, ''] }
+
+      hosts = [make_host('host.example.com', platform: Beaker::Platform.new('ubuntu-24.04-x86_64'))]
+      allow(subject).to receive(:hosts).and_return(hosts)
+      hosts.each do |host|
+        allow(host).to receive(:tmpfile).and_return('/tmp/puppet-agent.GcHvLR')
+        allow(subject).to receive(:on).with(host, /^curl/)
+        expect(host).to receive(:install_local_package).with('/tmp/puppet-agent.GcHvLR')
+      end
+      subject.install_from_build_data_url(project_name, 'sha_yaml_url')
     end
 
     it 'runs host.install_package instead of #install_artifact_on if theres a repo_config' do
