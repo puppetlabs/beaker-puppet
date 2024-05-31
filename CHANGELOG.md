@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.0](https://github.com/puppetlabs/beaker-puppet/tree/4.1.0) (2024-05-31)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.0.0...4.1.0)
+
+**Implemented enhancements:**
+
+- Add support for Ubuntu 24.04 [\#257](https://github.com/puppetlabs/beaker-puppet/pull/257) ([joshcooper](https://github.com/joshcooper))
+
 ## [4.0.0](https://github.com/puppetlabs/beaker-puppet/tree/4.0.0) (2024-05-28)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/3.0.1...4.0.0)
@@ -58,6 +66,14 @@ All notable changes to this project will be documented in this file.
 - rubocop: Update to voxpupuli-rubocop 2.1.0 [\#230](https://github.com/puppetlabs/beaker-puppet/pull/230) ([bastelfreak](https://github.com/bastelfreak))
 - Bump actions/checkout from 3 to 4 [\#227](https://github.com/puppetlabs/beaker-puppet/pull/227) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update voxpupuli-rubocop requirement from ~\> 1.2 to ~\> 2.0 [\#226](https://github.com/puppetlabs/beaker-puppet/pull/226) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [2.1.0](https://github.com/puppetlabs/beaker-puppet/tree/2.1.0) (2024-03-19)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/2.0.0...2.1.0)
+
+**Implemented enhancements:**
+
+- \[PA-6181\]: Fix acceptance test failure caused due to addition of Amazon Linux 2023 in pe-client-tools for orchestrator client pipeline [\#250](https://github.com/puppetlabs/beaker-puppet/pull/250) ([span786](https://github.com/span786))
 
 ## [2.0.0](https://github.com/puppetlabs/beaker-puppet/tree/2.0.0) (2023-05-05)
 
