@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.1](https://github.com/puppetlabs/beaker-puppet/tree/4.1.1) (2024-05-31)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.1.0...4.1.1)
+
+**Implemented enhancements:**
+
+- \[PA-6886\]: Add DigiCertGlobalRootG2 to Solaris image [\#260](https://github.com/puppetlabs/beaker-puppet/pull/260)
+
 ## [4.1.0](https://github.com/puppetlabs/beaker-puppet/tree/4.1.0) (2024-05-31)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.0.0...4.1.0)
