@@ -3,6 +3,7 @@ require 'beaker'
 require 'in_parallel'
 require 'beaker-puppet/version'
 require 'beaker-puppet/wrappers'
+require 'beaker-puppet/inifile'
 
 require 'beaker-puppet/helpers/rake_helpers'
 

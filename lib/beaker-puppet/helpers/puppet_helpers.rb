@@ -1,5 +1,4 @@
 require 'timeout'
-require 'inifile'
 require 'resolv'
 
 module Beaker
@@ -293,7 +292,7 @@ module Beaker
         # @!visibility private
         def puppet_conf_for(host, conf_opts)
           puppetconf = host.exec(Command.new("cat #{puppet_config(host, 'config', section: 'master')}")).stdout
-          IniFile.new(default: 'main', content: puppetconf).merge(conf_opts)
+          BeakerPuppet::IniFile.new(default: 'main', content: puppetconf).merge(conf_opts)
         end
 
         # Restarts the named puppet service
