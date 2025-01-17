@@ -1,14 +1,24 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [4.2.0](https://github.com/puppetlabs/beaker-puppet/tree/4.2.0) (2025-01-17)
 
-## [4.1.1](https://github.com/puppetlabs/beaker-puppet/tree/4.1.1) (2024-05-31)
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.1.1...4.2.0)
+
+**Implemented enhancements:**
+
+- \(PA-7091\) Add support for Ruby 3.2 and 3.3 [\#262](https://github.com/puppetlabs/beaker-puppet/pull/262) ([joshcooper](https://github.com/joshcooper))
+
+**Fixed bugs:**
+
+- \(PA-6897\) Get rubocop working again [\#263](https://github.com/puppetlabs/beaker-puppet/pull/263) ([joshcooper](https://github.com/joshcooper))
+
+## [4.1.1](https://github.com/puppetlabs/beaker-puppet/tree/4.1.1) (2024-08-15)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.1.0...4.1.1)
 
 **Implemented enhancements:**
 
-- \[PA-6886\]: Add DigiCertGlobalRootG2 to Solaris image [\#260](https://github.com/puppetlabs/beaker-puppet/pull/260)
+- \(PA-6886\) Add DigiCertGlobalRootG2 to Solaris image [\#260](https://github.com/puppetlabs/beaker-puppet/pull/260) ([AriaXLi](https://github.com/AriaXLi))
 
 ## [4.1.0](https://github.com/puppetlabs/beaker-puppet/tree/4.1.0) (2024-05-31)
 
@@ -18,7 +28,7 @@ All notable changes to this project will be documented in this file.
 
 - Add support for Ubuntu 24.04 [\#257](https://github.com/puppetlabs/beaker-puppet/pull/257) ([joshcooper](https://github.com/joshcooper))
 
-## [4.0.0](https://github.com/puppetlabs/beaker-puppet/tree/4.0.0) (2024-05-28)
+## [4.0.0](https://github.com/puppetlabs/beaker-puppet/tree/4.0.0) (2024-05-29)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/3.0.1...4.0.0)
 
