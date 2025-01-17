@@ -1,6 +1,5 @@
 require 'hocon'
 require 'hocon/config_error'
-require 'inifile'
 
 module Beaker
   module DSL
@@ -70,7 +69,7 @@ module Beaker
           end
 
           begin
-            return IniFile.new(content: string)
+            return BeakerPuppet::IniFile.new(content: string)
           rescue IniFile::Error
             nil
           end
