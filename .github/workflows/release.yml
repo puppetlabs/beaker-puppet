@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'puppetlabs'
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Ruby 3.0
+      - uses: actions/checkout@v6
+      - name: Install Ruby 3.1
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.0'
+          ruby-version: '3.1'
         env:
           BUNDLE_WITHOUT: release
       - name: Build gem

@@ -655,12 +655,6 @@ RSpec/SpecFilePathFormat:
     - 'spec/beaker-puppet/install_utils/windows_utils_spec.rb'
     - 'spec/beaker-puppet/wrappers_spec.rb'
 
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-RSpec/StringAsInstanceDoubleConstant:
-  Exclude:
-    - 'spec/beaker-puppet/install_utils/module_utils_spec.rb'
-
 # Offense count: 88
 RSpec/StubbedMock:
   Exclude:

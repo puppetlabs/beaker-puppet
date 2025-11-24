@@ -313,7 +313,7 @@ describe ClassMixedWithDSLInstallUtils do
       subject.instance_variable_set(:@metadata, {})
       version = subject.find_git_repo_versions(host, path, repository)
 
-      expect(version).to be == { 'name' => '2' } # rubocop:ignore RSpec/Eq
+      expect(version).to be == { 'name' => '2' } # rubocop:disable RSpec/Eq
     end
   end
 
