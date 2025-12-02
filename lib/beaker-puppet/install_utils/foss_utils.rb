@@ -139,7 +139,7 @@ module Beaker
         def order_packages(packages_array)
           puppet = packages_array.select { |e| e[:name] == 'puppet' }
           puppet_depends_on = packages_array.select do |e|
-            e[:name] == 'hiera' or e[:name] == 'facter'
+            e[:name].include?('hiera') || e[:name].include?('facter')
           end
           depends_on_puppet = (packages_array - puppet) - puppet_depends_on
           [puppet_depends_on, puppet, depends_on_puppet].flatten
