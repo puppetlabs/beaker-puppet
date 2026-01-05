@@ -11,3 +11,6 @@ group :coverage, optional: ENV['COVERAGE'] != 'yes' do
   gem 'codecov', require: false
   gem 'simplecov-console', require: false
 end
+
+gem 'irb', '< 2' # development dependency for fakefs
+gem 'logger', '< 2' # dependency from net-ssh
