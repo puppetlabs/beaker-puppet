@@ -1,5 +1,16 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+## [4.3.0](https://github.com/puppetlabs/beaker-puppet/tree/4.3.0) (2026-01-06)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.2.0...4.3.0)
+
+**Implemented enhancements:**
+
+- Add Ruby 4.0 support [\#271](https://github.com/puppetlabs/beaker-puppet/pull/271) ([bastelfreak](https://github.com/bastelfreak))
+- Add Ruby 3.4 support [\#269](https://github.com/puppetlabs/beaker-puppet/pull/269) ([bastelfreak](https://github.com/bastelfreak))
+
 ## [4.2.0](https://github.com/puppetlabs/beaker-puppet/tree/4.2.0) (2025-01-17)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.1.1...4.2.0)
