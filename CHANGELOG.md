@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.0](https://github.com/puppetlabs/beaker-puppet/tree/4.4.0) (2026-02-24)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.3.0...4.4.0)
+
+**Implemented enhancements:**
+
+- beaker: Allow 7.x [\#272](https://github.com/puppetlabs/beaker-puppet/pull/272) ([bastelfreak](https://github.com/bastelfreak))
+
 ## [4.3.0](https://github.com/puppetlabs/beaker-puppet/tree/4.3.0) (2026-01-06)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.2.0...4.3.0)
