@@ -21,5 +21,12 @@ step 'Verify host times' do
 end
 
 step 'Configure gem mirror' do
-  configure_gem_mirror(hosts)
+  # Skip if RELEASE_STREAM is 'puppet9' and platform is aix or solaris
+  release_stream = ENV['RELEASE_STREAM']
+  skip_platforms = /aix|solaris/i
+  if release_stream == 'puppet9' && hosts.any? { |host| host['platform'] =~ skip_platforms }
+    logger.info 'Skipping configure_gem_mirror for puppet9 on aix/solaris, issue with rubygems 4.0'
+  else
+    configure_gem_mirror(hosts)
+  end
 end
