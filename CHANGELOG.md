@@ -2,11 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.1](https://github.com/puppetlabs/beaker-puppet/tree/4.4.1) (2026-03-19)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.4.0...4.4.1)
+
+**Merged pull requests:**
+
+- \(PA-8312\) Skip gem source add for Solaris & AIX [\#274](https://github.com/puppetlabs/beaker-puppet/pull/274) ([cthorn42](https://github.com/cthorn42))
+
 ## [4.4.0](https://github.com/puppetlabs/beaker-puppet/tree/4.4.0) (2026-02-24)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.3.0...4.4.0)
 
-**Implemented enhancements:**
+**Merged pull requests:**
 
 - beaker: Allow 7.x [\#272](https://github.com/puppetlabs/beaker-puppet/pull/272) ([bastelfreak](https://github.com/bastelfreak))
 
@@ -18,6 +26,14 @@ All notable changes to this project will be documented in this file.
 
 - Add Ruby 4.0 support [\#271](https://github.com/puppetlabs/beaker-puppet/pull/271) ([bastelfreak](https://github.com/bastelfreak))
 - Add Ruby 3.4 support [\#269](https://github.com/puppetlabs/beaker-puppet/pull/269) ([bastelfreak](https://github.com/bastelfreak))
+
+**Closed issues:**
+
+- Drop inifile dependency [\#206](https://github.com/puppetlabs/beaker-puppet/issues/206)
+
+**Merged pull requests:**
+
+-  \(maint\) Update tests [\#268](https://github.com/puppetlabs/beaker-puppet/pull/268) ([mhashizume](https://github.com/mhashizume))
 
 ## [4.2.0](https://github.com/puppetlabs/beaker-puppet/tree/4.2.0) (2025-01-17)
 
@@ -47,14 +63,19 @@ All notable changes to this project will be documented in this file.
 
 - Add support for Ubuntu 24.04 [\#257](https://github.com/puppetlabs/beaker-puppet/pull/257) ([joshcooper](https://github.com/joshcooper))
 
+**Merged pull requests:**
+
 ## [4.0.0](https://github.com/puppetlabs/beaker-puppet/tree/4.0.0) (2024-05-29)
 
-[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/3.0.1...4.0.0)
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/2.1.0...4.0.0)
 
 **Breaking changes:**
 
 - Add support for Beaker 6 [\#255](https://github.com/puppetlabs/beaker-puppet/pull/255) ([mhashizume](https://github.com/mhashizume))
 - Remove unsupported network platforms [\#254](https://github.com/puppetlabs/beaker-puppet/pull/254) ([mhashizume](https://github.com/mhashizume))
+
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/3.0.1...2.1.0)
 
 ## [3.0.1](https://github.com/puppetlabs/beaker-puppet/tree/3.0.1) (2024-03-12)
 
@@ -103,14 +124,6 @@ All notable changes to this project will be documented in this file.
 - rubocop: Update to voxpupuli-rubocop 2.1.0 [\#230](https://github.com/puppetlabs/beaker-puppet/pull/230) ([bastelfreak](https://github.com/bastelfreak))
 - Bump actions/checkout from 3 to 4 [\#227](https://github.com/puppetlabs/beaker-puppet/pull/227) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update voxpupuli-rubocop requirement from ~\> 1.2 to ~\> 2.0 [\#226](https://github.com/puppetlabs/beaker-puppet/pull/226) ([dependabot[bot]](https://github.com/apps/dependabot))
-
-## [2.1.0](https://github.com/puppetlabs/beaker-puppet/tree/2.1.0) (2024-03-19)
-
-[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/2.0.0...2.1.0)
-
-**Implemented enhancements:**
-
-- \[PA-6181\]: Fix acceptance test failure caused due to addition of Amazon Linux 2023 in pe-client-tools for orchestrator client pipeline [\#250](https://github.com/puppetlabs/beaker-puppet/pull/250) ([span786](https://github.com/span786))
 
 ## [2.0.0](https://github.com/puppetlabs/beaker-puppet/tree/2.0.0) (2023-05-05)
 
@@ -512,8 +525,8 @@ All notable changes to this project will be documented in this file.
 
 - \(maint\) Bump version of puppet-agent to test against to 6.0.0 [\#109](https://github.com/puppetlabs/beaker-puppet/pull/109) ([melissa](https://github.com/melissa))
 - \(maint\) Remove assumption that we have runtime on docker [\#108](https://github.com/puppetlabs/beaker-puppet/pull/108) ([melissa](https://github.com/melissa))
-- \(maint\) Added debian 10 or higher to allow insecure repo [\#107](https://github.com/puppetlabs/beaker-puppet/pull/107) ([loopinu](https://github.com/loopinu))
-- \(MAINT\) Fix test:acceptance:pkg [\#106](https://github.com/puppetlabs/beaker-puppet/pull/106) ([smcelmurry](https://github.com/smcelmurry))
+- \(maint\) Added debian 10 or higher to allow insecure repo [\#107](https://github.com/puppetlabs/beaker-puppet/pull/107) ([alexandru-d-popa](https://github.com/alexandru-d-popa))
+- \(MAINT\) Fix test:acceptance:pkg [\#106](https://github.com/puppetlabs/beaker-puppet/pull/106) ([junebug-spencer](https://github.com/junebug-spencer))
 - \(maint\) Exclude tmp directory on module installation [\#101](https://github.com/puppetlabs/beaker-puppet/pull/101) ([glennsarti](https://github.com/glennsarti))
 - \(maint\) Enable acceptance testing with puppet-agent installed from ni… [\#98](https://github.com/puppetlabs/beaker-puppet/pull/98) ([melissa](https://github.com/melissa))
 
@@ -659,10 +672,6 @@ All notable changes to this project will be documented in this file.
 ## [1.3.0](https://github.com/puppetlabs/beaker-puppet/tree/1.3.0) (2018-09-11)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/1.2.0...1.3.0)
-
-**Merged pull requests:**
-
-- pass hiera\_config argument to puppet\_apply [\#63](https://github.com/puppetlabs/beaker-puppet/pull/63) ([lmayorga1980](https://github.com/lmayorga1980))
 
 ## [1.2.0](https://github.com/puppetlabs/beaker-puppet/tree/1.2.0) (2018-09-11)
 
@@ -859,7 +868,7 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- \(maint\) Add beaker-abs to Gemfile [\#21](https://github.com/puppetlabs/beaker-puppet/pull/21) ([smcelmurry](https://github.com/smcelmurry))
+- \(maint\) Add beaker-abs to Gemfile [\#21](https://github.com/puppetlabs/beaker-puppet/pull/21) ([junebug-spencer](https://github.com/junebug-spencer))
 
 ## [0.8.0](https://github.com/puppetlabs/beaker-puppet/tree/0.8.0) (2017-10-13)
 
