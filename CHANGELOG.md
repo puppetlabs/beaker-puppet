@@ -1,22 +1,25 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [4.4.2](https://github.com/puppetlabs/beaker-puppet/tree/4.4.2) (2026-08-12)
 
-## [4.4.1](https://github.com/puppetlabs/beaker-puppet/tree/4.4.1) (2026-03-19)
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.4.1...4.4.2)
+
+**Fixed bugs:**
+
+- \(PE-45697\) Fall back to the ssl check when PuppetDB's cleartext status port is unavailable [\#278](https://github.com/puppetlabs/beaker-puppet/pull/278) ([jonathannewman](https://github.com/jonathannewman))
+- \(maint\) Update GitHubSig to current GitHub RSA host key [\#277](https://github.com/puppetlabs/beaker-puppet/pull/277) ([Magisus](https://github.com/Magisus))
+
+## [4.4.1](https://github.com/puppetlabs/beaker-puppet/tree/4.4.1) (2026-03-20)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.4.0...4.4.1)
 
-**Merged pull requests:**
+**Fixed bugs:**
 
 - \(PA-8312\) Skip gem source add for Solaris & AIX [\#274](https://github.com/puppetlabs/beaker-puppet/pull/274) ([cthorn42](https://github.com/cthorn42))
 
 ## [4.4.0](https://github.com/puppetlabs/beaker-puppet/tree/4.4.0) (2026-02-24)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.3.0...4.4.0)
-
-**Merged pull requests:**
-
-- beaker: Allow 7.x [\#272](https://github.com/puppetlabs/beaker-puppet/pull/272) ([bastelfreak](https://github.com/bastelfreak))
 
 ## [4.3.0](https://github.com/puppetlabs/beaker-puppet/tree/4.3.0) (2026-01-06)
 
@@ -30,10 +33,6 @@ All notable changes to this project will be documented in this file.
 **Closed issues:**
 
 - Drop inifile dependency [\#206](https://github.com/puppetlabs/beaker-puppet/issues/206)
-
-**Merged pull requests:**
-
--  \(maint\) Update tests [\#268](https://github.com/puppetlabs/beaker-puppet/pull/268) ([mhashizume](https://github.com/mhashizume))
 
 ## [4.2.0](https://github.com/puppetlabs/beaker-puppet/tree/4.2.0) (2025-01-17)
 
@@ -63,8 +62,6 @@ All notable changes to this project will be documented in this file.
 
 - Add support for Ubuntu 24.04 [\#257](https://github.com/puppetlabs/beaker-puppet/pull/257) ([joshcooper](https://github.com/joshcooper))
 
-**Merged pull requests:**
-
 ## [4.0.0](https://github.com/puppetlabs/beaker-puppet/tree/4.0.0) (2024-05-29)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/2.1.0...4.0.0)
@@ -74,6 +71,7 @@ All notable changes to this project will be documented in this file.
 - Add support for Beaker 6 [\#255](https://github.com/puppetlabs/beaker-puppet/pull/255) ([mhashizume](https://github.com/mhashizume))
 - Remove unsupported network platforms [\#254](https://github.com/puppetlabs/beaker-puppet/pull/254) ([mhashizume](https://github.com/mhashizume))
 
+## [2.1.0](https://github.com/puppetlabs/beaker-puppet/tree/2.1.0) (2024-03-19)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/3.0.1...2.1.0)
 
@@ -111,17 +109,6 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Release prep [\#248](https://github.com/puppetlabs/beaker-puppet/pull/248) ([mhashizume](https://github.com/mhashizume))
-- Update excluded label to "maintenance" [\#247](https://github.com/puppetlabs/beaker-puppet/pull/247) ([mhashizume](https://github.com/mhashizume))
-- Add changelog generator configuration file [\#246](https://github.com/puppetlabs/beaker-puppet/pull/246) ([mhashizume](https://github.com/mhashizume))
-- Update release-prep script [\#245](https://github.com/puppetlabs/beaker-puppet/pull/245) ([mhashizume](https://github.com/mhashizume))
-- Update branch for github workflow testing [\#244](https://github.com/puppetlabs/beaker-puppet/pull/244) ([tvpartytonight](https://github.com/tvpartytonight))
-- Add release prep script [\#243](https://github.com/puppetlabs/beaker-puppet/pull/243) ([mhashizume](https://github.com/mhashizume))
-- Move to Puppet release GitHub Actions [\#242](https://github.com/puppetlabs/beaker-puppet/pull/242) ([mhashizume](https://github.com/mhashizume))
-- README: remove obsolete transfer notice, update badges [\#241](https://github.com/puppetlabs/beaker-puppet/pull/241) ([kenyon](https://github.com/kenyon))
-- Add Unicorn to CODEONWERS [\#235](https://github.com/puppetlabs/beaker-puppet/pull/235) ([cthorn42](https://github.com/cthorn42))
-- Update CODEOWNERS [\#234](https://github.com/puppetlabs/beaker-puppet/pull/234) ([cthorn42](https://github.com/cthorn42))
-- rubocop: Update to voxpupuli-rubocop 2.1.0 [\#230](https://github.com/puppetlabs/beaker-puppet/pull/230) ([bastelfreak](https://github.com/bastelfreak))
 - Bump actions/checkout from 3 to 4 [\#227](https://github.com/puppetlabs/beaker-puppet/pull/227) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update voxpupuli-rubocop requirement from ~\> 1.2 to ~\> 2.0 [\#226](https://github.com/puppetlabs/beaker-puppet/pull/226) ([dependabot[bot]](https://github.com/apps/dependabot))
 
@@ -146,14 +133,12 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- release 2.0.0 [\#224](https://github.com/puppetlabs/beaker-puppet/pull/224) ([bastelfreak](https://github.com/bastelfreak))
 - Update fakefs requirement from \>= 0.6, \< 2.0 to \>= 0.6, \< 3.0 [\#222](https://github.com/puppetlabs/beaker-puppet/pull/222) ([dependabot[bot]](https://github.com/apps/dependabot))
 - rubocop: fix layout cops [\#221](https://github.com/puppetlabs/beaker-puppet/pull/221) ([bastelfreak](https://github.com/bastelfreak))
 - rubocop: fix style violations [\#220](https://github.com/puppetlabs/beaker-puppet/pull/220) ([bastelfreak](https://github.com/bastelfreak))
 - CI: Build gems with strictness and verbosity & dependencies: Add version constraints [\#219](https://github.com/puppetlabs/beaker-puppet/pull/219) ([bastelfreak](https://github.com/bastelfreak))
 - CI: apply Vox Pupuli best practices [\#217](https://github.com/puppetlabs/beaker-puppet/pull/217) ([bastelfreak](https://github.com/bastelfreak))
 - Drop in-parallel dependency [\#214](https://github.com/puppetlabs/beaker-puppet/pull/214) ([ekohl](https://github.com/ekohl))
-- Update in-parallel requirement from ~\> 0.1 to \>= 0.1, \< 2.0 [\#213](https://github.com/puppetlabs/beaker-puppet/pull/213) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump actions/checkout from 2 to 3 [\#211](https://github.com/puppetlabs/beaker-puppet/pull/211) ([dependabot[bot]](https://github.com/apps/dependabot))
 - tests: Always set the platform as a Beaker::Platform instance [\#209](https://github.com/puppetlabs/beaker-puppet/pull/209) ([ekohl](https://github.com/ekohl))
 - dependabot: check for github actions [\#208](https://github.com/puppetlabs/beaker-puppet/pull/208) ([bastelfreak](https://github.com/bastelfreak))
@@ -172,7 +157,6 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Release 1.29.0 [\#203](https://github.com/puppetlabs/beaker-puppet/pull/203) ([yachub](https://github.com/yachub))
 - \(maint\) Uses RFC 5737 IP space in example [\#200](https://github.com/puppetlabs/beaker-puppet/pull/200) ([mhashizume](https://github.com/mhashizume))
 
 ## [1.28.0](https://github.com/puppetlabs/beaker-puppet/tree/1.28.0) (2022-09-08)
@@ -182,10 +166,6 @@ All notable changes to this project will be documented in this file.
 **Implemented enhancements:**
 
 - \(PA-4552\) Create ci:test:setup step for iterative workflow [\#194](https://github.com/puppetlabs/beaker-puppet/pull/194) ([joshcooper](https://github.com/joshcooper))
-
-**Merged pull requests:**
-
-- Release 1.28.0 [\#201](https://github.com/puppetlabs/beaker-puppet/pull/201) ([joshcooper](https://github.com/joshcooper))
 
 ## [1.27.0](https://github.com/puppetlabs/beaker-puppet/tree/1.27.0) (2022-08-31)
 
@@ -221,7 +201,6 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Release 1.26.2 [\#192](https://github.com/puppetlabs/beaker-puppet/pull/192) ([joshcooper](https://github.com/joshcooper))
 - \(PA-4178\) Only clear and add non-default gem sources [\#190](https://github.com/puppetlabs/beaker-puppet/pull/190) ([joshcooper](https://github.com/joshcooper))
 
 ## [1.26.1](https://github.com/puppetlabs/beaker-puppet/tree/1.26.1) (2022-03-24)
@@ -238,8 +217,6 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Release 1.26.1 [\#189](https://github.com/puppetlabs/beaker-puppet/pull/189) ([mhashizume](https://github.com/mhashizume))
-- Release 1.26.0 [\#187](https://github.com/puppetlabs/beaker-puppet/pull/187) ([mhashizume](https://github.com/mhashizume))
 - \(PA-4332\) Changes download links to HTTPS [\#185](https://github.com/puppetlabs/beaker-puppet/pull/185) ([mhashizume](https://github.com/mhashizume))
 
 ## [1.26.0](https://github.com/puppetlabs/beaker-puppet/tree/1.26.0) (2022-03-23)
@@ -258,10 +235,6 @@ All notable changes to this project will be documented in this file.
 
 - \(PA-4331\) Fix the logic to only run on older solaris versions [\#183](https://github.com/puppetlabs/beaker-puppet/pull/183) ([cthorn42](https://github.com/cthorn42))
 
-**Merged pull requests:**
-
-- Release 1.25.0 [\#184](https://github.com/puppetlabs/beaker-puppet/pull/184) ([bastelfreak](https://github.com/bastelfreak))
-
 ## [1.24.0](https://github.com/puppetlabs/beaker-puppet/tree/1.24.0) (2022-03-04)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/1.23.0...1.24.0)
@@ -272,11 +245,9 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Release 1.24.0 [\#181](https://github.com/puppetlabs/beaker-puppet/pull/181) ([bastelfreak](https://github.com/bastelfreak))
 - gemspec: fix typo in Apache-2.0 license [\#180](https://github.com/puppetlabs/beaker-puppet/pull/180) ([bastelfreak](https://github.com/bastelfreak))
 - Add Ruby 3.1 to CI [\#179](https://github.com/puppetlabs/beaker-puppet/pull/179) ([bastelfreak](https://github.com/bastelfreak))
 - Depend on Ruby 2.4 or newer in gemspec [\#178](https://github.com/puppetlabs/beaker-puppet/pull/178) ([bastelfreak](https://github.com/bastelfreak))
-- Release 1.23.0 [\#175](https://github.com/puppetlabs/beaker-puppet/pull/175) ([cthorn42](https://github.com/cthorn42))
 
 ## [1.23.0](https://github.com/puppetlabs/beaker-puppet/tree/1.23.0) (2022-02-23)
 
@@ -297,7 +268,6 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Release 1.22.2 [\#171](https://github.com/puppetlabs/beaker-puppet/pull/171) ([bastelfreak](https://github.com/bastelfreak))
 - Fix install\_puppet\_on on el8 [\#170](https://github.com/puppetlabs/beaker-puppet/pull/170) ([gcampbell12](https://github.com/gcampbell12))
 
 ## [1.22.1](https://github.com/puppetlabs/beaker-puppet/tree/1.22.1) (2021-08-19)
@@ -306,7 +276,6 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Prep for 1.22.1 release [\#169](https://github.com/puppetlabs/beaker-puppet/pull/169) ([tvpartytonight](https://github.com/tvpartytonight))
 - Revert "Use the built-in Resolv::IPv4::Regex" [\#168](https://github.com/puppetlabs/beaker-puppet/pull/168) ([kenyon](https://github.com/kenyon))
 
 ## [1.22.0](https://github.com/puppetlabs/beaker-puppet/tree/1.22.0) (2021-08-17)
@@ -320,10 +289,8 @@ All notable changes to this project will be documented in this file.
 
 **Merged pull requests:**
 
-- Regenerate v1.22 changelog [\#167](https://github.com/puppetlabs/beaker-puppet/pull/167) ([bastelfreak](https://github.com/bastelfreak))
 - Remove mentions of Beaker 3 [\#165](https://github.com/puppetlabs/beaker-puppet/pull/165) ([ekohl](https://github.com/ekohl))
 - Use the built-in Resolv::IPv4::Regex [\#164](https://github.com/puppetlabs/beaker-puppet/pull/164) ([ekohl](https://github.com/ekohl))
-- release 1.22.0 [\#163](https://github.com/puppetlabs/beaker-puppet/pull/163) ([bastelfreak](https://github.com/bastelfreak))
 - Implement codecov; update README.md [\#162](https://github.com/puppetlabs/beaker-puppet/pull/162) ([bastelfreak](https://github.com/bastelfreak))
 - Add both GPG keys when installing repos on SLES [\#157](https://github.com/puppetlabs/beaker-puppet/pull/157) ([GabrielNagy](https://github.com/GabrielNagy))
 
@@ -335,16 +302,10 @@ All notable changes to this project will be documented in this file.
 
 - Fix Arch Linux support [\#154](https://github.com/puppetlabs/beaker-puppet/pull/154) ([bastelfreak](https://github.com/bastelfreak))
 
-**Closed issues:**
-
-- Useless 'PATH' string prepended to PATH environment variable [\#151](https://github.com/puppetlabs/beaker-puppet/issues/151)
-
 **Merged pull requests:**
 
 - \(\#151\) Remove useless 'PATH' string from system PATH [\#152](https://github.com/puppetlabs/beaker-puppet/pull/152) ([silug](https://github.com/silug))
-- Release 1.21.0 with proper changelog [\#150](https://github.com/puppetlabs/beaker-puppet/pull/150) ([bastelfreak](https://github.com/bastelfreak))
 - \(maint\) replace use of deprecated method `get_puppet_collection` [\#149](https://github.com/puppetlabs/beaker-puppet/pull/149) ([ciprianbadescu](https://github.com/ciprianbadescu))
-- Convert workflow to Github Actions [\#148](https://github.com/puppetlabs/beaker-puppet/pull/148) ([ekohl](https://github.com/ekohl))
 - \(maint\) Make latest the latest stable instead of nightly [\#147](https://github.com/puppetlabs/beaker-puppet/pull/147) ([GabrielNagy](https://github.com/GabrielNagy))
 - \(maint\) Remove deprecated gem install flags [\#146](https://github.com/puppetlabs/beaker-puppet/pull/146) ([gimmyxd](https://github.com/gimmyxd))
 - \(maint\) redhat-8-arm64 builds access check [\#145](https://github.com/puppetlabs/beaker-puppet/pull/145) ([ciprianbadescu](https://github.com/ciprianbadescu))
