@@ -1034,96 +1034,119 @@ describe ClassMixedWithDSLHelpers do
       allow(subject).to receive(:version_is_less).and_return(true)
     end
 
-    it 'uses the default ports if none given, checking ssl before nonssl' do
+    it 'content-validates over the ssl status port and, on success, never touches the cleartext port' do
       host = hosts[0]
-      expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once.ordered
-      expect(subject).to receive(:retry_on).with(anything, /8080/, anything).once.ordered
+      expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/}, { max_retries: 60 }).once
+      expect(subject).not_to receive(:curl_with_retries)
+      expect(subject).not_to receive(:retry_on).with(anything, %r{http://localhost:8080/}, anything)
+
       subject.sleep_until_puppetdb_started(host)
-    end
-
-    it 'allows setting the nonssl_port' do
-      host = hosts[0]
-      expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once.ordered
-      expect(subject).to receive(:retry_on).with(anything, /8084/, anything).once.ordered
-
-      subject.sleep_until_puppetdb_started(host, 8084)
     end
 
     it 'allows setting the ssl_port' do
       host = hosts[0]
-      expect(subject).to receive(:curl_with_retries).with(anything, anything, /8085/, anything).once.ordered
-      expect(subject).to receive(:retry_on).with(anything, /8080/, anything).once.ordered
+      expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8085/}, { max_retries: 60 }).once
 
       subject.sleep_until_puppetdb_started(host, nil, 8085)
     end
 
-    context 'when the cleartext status port never responds (e.g. disabled by default)' do
-      it 'swallows the failure once ssl liveness is already confirmed' do
-        host = hosts[0]
-        expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once.ordered
-        expect(subject).to receive(:retry_on).with(anything, anything, { max_retries: 5 }).once.ordered do |_host, command, _opts|
-          raise "Command `#{command}` failed."
-        end
-
-        expect { subject.sleep_until_puppetdb_started(host) }.not_to raise_error
-      end
-    end
-
-    context 'when the ssl check itself fails' do
-      it 'raises without ever attempting the nonssl check' do
-        host = hosts[0]
-        expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once
-                                                      .and_raise('Command `curl -m 1 https://.../` failed.')
-        expect(subject).not_to receive(:retry_on)
-
-        expect { subject.sleep_until_puppetdb_started(host) }.to raise_error(/https/)
-      end
-    end
-
-    context 'when retry_on raises a RuntimeError unrelated to exhausted retries' do
-      it 'propagates the error rather than treating it as a disabled port' do
-        host = hosts[0]
-        expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once.ordered
-        expect(subject).to receive(:retry_on).with(anything, /8080/, anything).once.ordered
-                                             .and_raise('Host unreachable: no route to host')
-
-        expect { subject.sleep_until_puppetdb_started(host) }.to raise_error(/Host unreachable/)
-      end
-    end
-
-    context 'when retry_on raises a RuntimeError formatted like the templated failure but for a different command' do
-      it 'propagates the error rather than treating it as a disabled port' do
-        host = hosts[0]
-        expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once.ordered
-        expect(subject).to receive(:retry_on).with(anything, /8080/, anything).once.ordered
-                                             .and_raise('Command `some other command` failed.')
-
-        expect { subject.sleep_until_puppetdb_started(host) }.to raise_error(/some other command/)
-      end
-    end
-
     context 'when pe_ver is less than 2016.1.0' do
-      it 'uses the version endpoint' do
+      it 'content-validates the version endpoint over ssl' do
         host = hosts[0]
         host['pe_ver'] = '2015.3.3'
-        expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once.ordered
-        expect(subject).to receive(:retry_on).with(anything, %r{pdb/meta/v1/version}, anything).once.ordered
-
         expect(subject).to receive(:version_is_less).with(host['pe_ver'], '2016.1.0').and_return(true)
+        expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/pdb/meta/v1/version},
+                                                   { max_retries: 60 }).once
+
         subject.sleep_until_puppetdb_started(host)
       end
     end
 
     context 'when pe_ver is greater than 2015.9.9' do
-      it 'uses the status endpoint' do
+      it 'content-validates the status endpoint over ssl' do
         host = hosts[0]
         host['pe_ver'] = '2016.1.0'
-        expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, anything).once.ordered
-        expect(subject).to receive(:retry_on).with(anything, %r{status/v1/services/puppetdb-status},
-                                                   anything).once.ordered
-
         expect(subject).to receive(:version_is_less).with(host['pe_ver'], '2016.1.0').and_return(false)
+        expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/status/v1/services/puppetdb-status},
+                                                   { max_retries: 60 }).once
+
         subject.sleep_until_puppetdb_started(host)
+      end
+    end
+
+    context 'when the ssl status endpoint does not serve unauthenticated content' do
+      # Older/nonstandard configs: degrade to the previous behaviour rather
+      # than failing -- a bare ssl liveness probe plus a best-effort nonssl
+      # content check.
+      it 'falls back to an ssl liveness probe and a nonssl content check' do
+        host = hosts[0]
+        expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/}, { max_retries: 60 }).once.ordered do |_host, command, _opts|
+          raise "Command `#{command}` failed."
+        end
+        expect(subject).to receive(:curl_with_retries).with(anything, anything, %r{https://[^/]*:8081}, [35, 60]).once.ordered
+        expect(subject).to receive(:retry_on).with(anything, %r{http://localhost:8080/}, { max_retries: 5 }).once.ordered
+
+        expect { subject.sleep_until_puppetdb_started(host) }.not_to raise_error
+      end
+
+      it 'allows setting the nonssl_port in the fallback path' do
+        host = hosts[0]
+        expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/}, { max_retries: 60 }).once.ordered do |_host, command, _opts|
+          raise "Command `#{command}` failed."
+        end
+        expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, [35, 60]).once.ordered
+        expect(subject).to receive(:retry_on).with(anything, %r{http://localhost:8084/}, { max_retries: 5 }).once.ordered
+
+        subject.sleep_until_puppetdb_started(host, 8084)
+      end
+
+      context 'and the cleartext status port never responds (e.g. disabled by default)' do
+        it 'swallows the nonssl failure once ssl liveness is confirmed' do
+          host = hosts[0]
+          expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/}, { max_retries: 60 }).once.ordered do |_host, command, _opts|
+            raise "Command `#{command}` failed."
+          end
+          expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, [35, 60]).once.ordered
+          expect(subject).to receive(:retry_on).with(anything, %r{http://localhost:8080/}, { max_retries: 5 }).once.ordered do |_host, command, _opts|
+            raise "Command `#{command}` failed."
+          end
+
+          expect { subject.sleep_until_puppetdb_started(host) }.not_to raise_error
+        end
+
+        it 'propagates an unrelated RuntimeError from the nonssl check' do
+          host = hosts[0]
+          expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/}, { max_retries: 60 }).once.ordered do |_host, command, _opts|
+            raise "Command `#{command}` failed."
+          end
+          expect(subject).to receive(:curl_with_retries).with(anything, anything, /8081/, [35, 60]).once.ordered
+          expect(subject).to receive(:retry_on).with(anything, %r{http://localhost:8080/}, { max_retries: 5 }).once.ordered
+                                               .and_raise('Host unreachable: no route to host')
+
+          expect { subject.sleep_until_puppetdb_started(host) }.to raise_error(/Host unreachable/)
+        end
+      end
+    end
+
+    context 'when the ssl content check raises a RuntimeError unrelated to exhausted retries' do
+      it 'propagates the error rather than falling back' do
+        host = hosts[0]
+        expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/}, { max_retries: 60 }).once
+                                             .and_raise('Host unreachable: no route to host')
+        expect(subject).not_to receive(:curl_with_retries)
+
+        expect { subject.sleep_until_puppetdb_started(host) }.to raise_error(/Host unreachable/)
+      end
+    end
+
+    context 'when the ssl content check raises the templated failure but for a different command' do
+      it 'propagates the error rather than falling back' do
+        host = hosts[0]
+        expect(subject).to receive(:retry_on).with(anything, %r{-k https://localhost:8081/}, { max_retries: 60 }).once
+                                             .and_raise('Command `some other command` failed.')
+        expect(subject).not_to receive(:curl_with_retries)
+
+        expect { subject.sleep_until_puppetdb_started(host) }.to raise_error(/some other command/)
       end
     end
   end
