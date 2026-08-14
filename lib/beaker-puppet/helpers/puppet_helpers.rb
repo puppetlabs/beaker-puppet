@@ -662,37 +662,49 @@ module Beaker
             endpoint = 'status/v1/services/puppetdb-status'
             expected_regex = '\"state\" \{0,\}: \{0,\}\"running\"'
           end
-          # The ssl status port is always enabled and is the check this method
-          # ultimately reports the result of, so use it as the primary
-          # liveness gate. Checking the nonssl port FIRST (as this method used
-          # to) meant every host with it disabled -- the default for fresh
-          # installs as of PE-45384/PE-44906 (SECVULN-1792) -- burned through
-          # 120 failed retries (~2 minutes, at retry_on's default 1s
-          # retry_interval) before ever reaching the check that actually
-          # matters (PE-45697).
-          result = curl_with_retries('start puppetdb (ssl)',
-                                     host, "https://#{host.node_name}:#{ssl_port}", [35, 60])
-
-          # Now that ssl liveness is already confirmed, the nonssl check is
-          # just a quick, best-effort secondary confirmation: a small retry
-          # budget is enough, and its absence -- by design, on a host with
-          # the cleartext listener disabled -- shouldn't fail this method.
-          nonssl_status_command = "curl -m 1 http://localhost:#{nonssl_port}/#{endpoint} | grep '#{expected_regex}'"
+          # Confirm readiness -- not just liveness -- over the ssl status port,
+          # which is always enabled. /status/v1/* (and the pre-4.0 /pdb/meta
+          # fallback) is allow-unauthenticated and PuppetDB's jetty listener is
+          # client-auth=want, so `curl -k` gets a real, content-validated body
+          # with no client cert, and it works even when the cleartext listener
+          # is disabled by default (PE-45384/PE-44906, SECVULN-1792).
+          #
+          # PE-45697 could no longer perform this running-state validation once
+          # it had to stop relying on the (now disabled-by-default) cleartext
+          # port: it fell back to a bare curl_with_retries liveness probe, which
+          # only confirms the tls port answers, not that puppetdb reports a
+          # running state -- reopening the "port up but not ready" race the
+          # nonssl content check used to guard. Restore that check over ssl.
+          ssl_status_command = "curl -m 1 -k https://localhost:#{ssl_port}/#{endpoint} | grep '#{expected_regex}'"
           begin
-            retry_on(host, nonssl_status_command, { max_retries: 5 })
+            result = retry_on(host, ssl_status_command, { max_retries: 60 })
           rescue RuntimeError => e
             # Only treat this as the known "exhausted all retries" failure
-            # retry_on itself raises for THIS command (a plain RuntimeError
-            # with this exact templated message, see beaker's
+            # retry_on itself raises for THIS command (a plain RuntimeError with
+            # this exact templated message, see beaker's
             # Beaker::DSL::Helpers::HostHelpers#retry_on) -- not any other
-            # RuntimeError, or a same-shaped error for a different command,
-            # that might surface from deeper in the retry loop (e.g. an
-            # SSH/connection error from the underlying on() call). Re-raise
-            # anything else unrecognized rather than silently reclassifying
-            # it below (PE-45697).
-            raise unless e.message == "Command `#{nonssl_status_command}` failed."
+            # RuntimeError, or a same-shaped error for a different command, that
+            # might surface from deeper in the retry loop (e.g. an SSH/connection
+            # error from the underlying on() call).
+            raise unless e.message == "Command `#{ssl_status_command}` failed."
 
-            logger.warn("sleep_until_puppetdb_started: nonssl status check on port #{nonssl_port} did not succeed (#{e.message}), but ssl status check already confirmed puppetdb is running")
+            # The ssl status endpoint didn't serve unauthenticated content
+            # (older or nonstandard config). Degrade to the previous behaviour
+            # rather than failing: a bare ssl liveness probe, plus a best-effort
+            # nonssl content check whose absence -- by design, on a host with the
+            # cleartext listener disabled -- must not fail this method.
+            logger.warn("sleep_until_puppetdb_started: ssl status content check did not confirm a running state (#{e.message}); falling back to an ssl liveness probe")
+            result = curl_with_retries('start puppetdb (ssl)',
+                                       host, "https://#{host.node_name}:#{ssl_port}", [35, 60])
+
+            nonssl_status_command = "curl -m 1 http://localhost:#{nonssl_port}/#{endpoint} | grep '#{expected_regex}'"
+            begin
+              retry_on(host, nonssl_status_command, { max_retries: 5 })
+            rescue RuntimeError => nonssl_error
+              raise unless nonssl_error.message == "Command `#{nonssl_status_command}` failed."
+
+              logger.warn("sleep_until_puppetdb_started: nonssl status check on port #{nonssl_port} did not succeed (#{nonssl_error.message}), but ssl liveness was confirmed")
+            end
           end
 
           result
