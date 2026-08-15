@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.4.3](https://github.com/puppetlabs/beaker-puppet/tree/4.4.3) (2026-08-17)
+
+[Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.4.2...4.4.3)
+
+**Merged pull requests:**
+
+- \(PE-45697\) Content-validate PuppetDB readiness over the ssl status port [\#280](https://github.com/puppetlabs/beaker-puppet/pull/280) ([steveax](https://github.com/steveax))
+
 ## [4.4.2](https://github.com/puppetlabs/beaker-puppet/tree/4.4.2) (2026-08-12)
 
 [Full Changelog](https://github.com/puppetlabs/beaker-puppet/compare/4.4.1...4.4.2)
