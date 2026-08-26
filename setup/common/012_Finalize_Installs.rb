@@ -23,7 +23,7 @@ end
 step 'Configure gem mirror' do
   # Skip if RELEASE_STREAM is 'puppet9' and platform is aix or solaris
   # Issue with Rubygems's SafeMarshal see: PA-8312
-  release_stream = ENV.fetch('RELEASE_STREAM')
+  release_stream = ENV.fetch('RELEASE_STREAM', nil)
   skip_platforms = /aix|solaris/i
   if release_stream == 'puppet9' && hosts.any? { |host| host['platform'] =~ skip_platforms }
     logger.info 'Skipping configure_gem_mirror for puppet9 on aix/solaris, issue with rubygems 4.0'
