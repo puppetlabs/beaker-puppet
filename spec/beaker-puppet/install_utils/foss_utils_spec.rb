@@ -1200,4 +1200,61 @@ describe ClassMixedWithDSLInstallUtils do
       expect { subject.remove_puppet_on(debian6) }.to raise_error(RuntimeError, /unsupported platform/)
     end
   end
+
+  describe '#configure_gem_mirror' do
+    let(:mirror) { 'https://artifactory.example.com/artifactory/api/gems/rubygems/' }
+    let(:linux_host) do
+      make_host('linuxbox', platform: 'ubuntu-22.04-x86_64', privatebindir: '/opt/puppetlabs/puppet/bin')
+    end
+    let(:windows_host) do
+      make_host('winbox', platform: 'windows-2019-64',
+                          privatebindir: '/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin')
+    end
+
+    around do |example|
+      old = ENV.fetch('GEM_SOURCE', nil)
+      ENV['GEM_SOURCE'] = mirror
+      example.run
+    ensure
+      ENV['GEM_SOURCE'] = old
+    end
+
+    it 'does nothing when GEM_SOURCE is unset' do
+      ENV.delete('GEM_SOURCE')
+      expect(subject).not_to receive(:on)
+      subject.configure_gem_mirror(linux_host)
+    end
+
+    it 'does nothing when GEM_SOURCE is rubygems.org' do
+      ENV['GEM_SOURCE'] = 'https://rubygems.org'
+      expect(subject).not_to receive(:on)
+      subject.configure_gem_mirror(linux_host)
+    end
+
+    it 'registers the mirror through RubyGems without `gem source --add`' do
+      # `gem source --add` downloads and parses the whole rubygems index
+      # (about 330 MB of Ruby heap), which runs 32-bit Windows hosts out of memory.
+      expect(subject).to receive(:on).with(linux_host, /gem source --clear-all/).ordered
+      expect(subject).to receive(:on).with(
+        linux_host,
+        %r{\Aenv PATH="/opt/puppetlabs/puppet/bin:\$\{PATH\}" ruby -e 'require "rubygems"; Gem\.sources << "#{Regexp.escape(mirror)}"; Gem\.configuration\.write'\z},
+      ).ordered
+      expect(subject).not_to receive(:on).with(anything, /gem source --add/)
+      subject.configure_gem_mirror(linux_host)
+    end
+
+    it 'uses `cmd /c` only for the gem command on windows' do
+      expect(subject).to receive(:on).with(windows_host, %r{cmd /c gem source --clear-all}).ordered
+      expect(subject).to receive(:on).with(
+        windows_host,
+        %r{\Aenv PATH="/cygdrive/c/Program Files/Puppet Labs/Puppet/puppet/bin:\$\{PATH\}" ruby -e 'require "rubygems"; Gem\.sources << "#{Regexp.escape(mirror)}"; Gem\.configuration\.write'\z},
+      ).ordered
+      subject.configure_gem_mirror(windows_host)
+    end
+
+    it 'configures every host' do
+      expect(subject).to receive(:on).exactly(4).times
+      subject.configure_gem_mirror([linux_host, windows_host])
+    end
+  end
 end

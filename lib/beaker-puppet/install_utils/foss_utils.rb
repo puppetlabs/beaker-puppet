@@ -1405,7 +1405,11 @@ module Beaker
           Array(hosts).each do |host|
             gem = gem_command(host)
             on host, "#{gem} source --clear-all"
-            on(host, "#{gem} source --add #{gem_source}")
+            # `gem source --add` downloads and parses the complete rubygems index
+            # just to check the source (about 330 MB of Ruby heap, 10-25 s), which
+            # runs 32-bit Windows hosts out of memory (NoMemoryError). Register the
+            # source through RubyGems directly: same ~/.gemrc, no index download.
+            on(host, "#{ruby_command(host)} -e 'require \"rubygems\"; Gem.sources << \"#{gem_source}\"; Gem.configuration.write'")
           end
         end
       end
