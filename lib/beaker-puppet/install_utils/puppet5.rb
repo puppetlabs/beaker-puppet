@@ -217,8 +217,10 @@ module Beaker
 
           install_targets.each do |host|
             artifact_url, repoconfig_url = host_urls(host, build_details, base_url)
-            if host.platform.variant == 'ubuntu' && host.platform.version.to_f >= 24.04
-              # install the specific artifact we built, not based on how its repos are configured
+            if project_name == 'puppet-agent' && host.platform.variant == 'ubuntu' && host.platform.version.to_f >= 24.04
+              # Ubuntu 24.04+ ships its own puppet-agent package, which uses different
+              # paths than ours. Install the specific artifact we built, not based on
+              # how its repos are configured, to ensure we get the correct package.
               tmp_file = host.tmpfile('puppet-agent')
               on(host, "curl -L --output #{tmp_file} #{artifact_url}")
               host.install_local_package(tmp_file)

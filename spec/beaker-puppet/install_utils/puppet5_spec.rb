@@ -363,9 +363,9 @@ describe ClassMixedWithDSLInstallUtils do
       end.to raise_error(Beaker::DSL::Outcomes::FailTest, /project_name.*#{sha_yaml_url}/)
     end
 
-    it 'installs the artifact on newer Ubuntu hosts' do
+    it 'installs the puppet-agent artifact on newer Ubuntu hosts' do
       artifact_url = 'https://builds.example.com/puppet-agent.deb'
-      project_name = 'fake_project_66'
+      project_name = 'puppet-agent'
       allow(subject).to receive(:fetch_build_details)
       allow(subject).to receive(:configure_type_defaults_on)
       allow(subject).to receive(:host_urls) { [artifact_url, ''] }
@@ -378,6 +378,22 @@ describe ClassMixedWithDSLInstallUtils do
         expect(host).to receive(:install_local_package).with('/tmp/puppet-agent.GcHvLR')
       end
       subject.install_from_build_data_url(project_name, 'sha_yaml_url')
+    end
+
+    it 'installs other projects through their repo on newer Ubuntu hosts' do
+      repoconfig_url = 'https://builds.example.com/puppetserver.list'
+      allow(subject).to receive(:fetch_build_details)
+      allow(subject).to receive(:configure_type_defaults_on)
+      allow(subject).to receive(:host_urls) { ['', repoconfig_url] }
+
+      hosts = [make_host('host.example.com', platform: Beaker::Platform.new('ubuntu-24.04-x86_64'))]
+      allow(subject).to receive(:hosts).and_return(hosts)
+      hosts.each do |host|
+        expect(host).not_to receive(:install_local_package)
+        expect(subject).to receive(:install_repo_configs_on).with(host, repoconfig_url)
+        expect(host).to receive(:install_package).with('puppetserver')
+      end
+      subject.install_from_build_data_url('puppetserver', 'sha_yaml_url')
     end
 
     it 'runs host.install_package instead of #install_artifact_on if theres a repo_config' do
