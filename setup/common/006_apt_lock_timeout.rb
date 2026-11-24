@@ -13,7 +13,11 @@ test_name 'Stop the background apt upgrader and make apt wait for the dpkg lock'
 #
 # 1. Mask the timers (and the unattended-upgrades service) before any package
 #    management happens, so the upgrader cannot start again during the suite.
-#    This removes the cause.
+#    This removes the cause. Masking a running timer leaves it failed ("Unit to
+#    trigger vanished"), which puts systemd in the "degraded" state. Debian's
+#    and Ubuntu's `service` then reload with `systemctl --no-block`, which exits
+#    0 even when the unit is inactive, so bounce_service would never start a
+#    stopped puppetserver. Reset the failed state right after masking.
 # 2. Keep a lock timeout for the run that may already be in progress when this
 #    step executes: masking does not release a lock that is already held, and we
 #    do not kill a running dpkg transaction. DPkg::Lock::Timeout makes every
@@ -35,7 +39,11 @@ apt_hosts.each do |host|
   # /run/systemd/system exists only when systemd is the running init; without it
   # there are no timers to mask (for example in a plain container).
   systemd_running = on(host, 'test -d /run/systemd/system', accept_all_exit_codes: true).exit_code.zero?
-  on(host, "systemctl mask --now #{APT_UPGRADER_UNITS.join(' ')}") if systemd_running
+  if systemd_running
+    on(host, "systemctl mask --now #{APT_UPGRADER_UNITS.join(' ')}")
+    # Units this image doesn't have (e.g. no unattended-upgrades) can't be reset.
+    on(host, "systemctl reset-failed #{APT_UPGRADER_UNITS.join(' ')}", accept_all_exit_codes: true)
+  end
 
   create_remote_file(host, DPKG_LOCK_TIMEOUT_FILE, "DPkg::Lock::Timeout \"#{DPKG_LOCK_TIMEOUT}\";\n")
   # create_remote_file copies the file as 0600; apt run by other users must be able to read it too.
