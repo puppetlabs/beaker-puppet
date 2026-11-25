@@ -6,13 +6,10 @@
 
 **Fixed bugs:**
 
+- \(PA-9477\) Reset the apt timers' failed state after masking them [\#285](https://github.com/puppetlabs/beaker-puppet/pull/285) ([imaqsood](https://github.com/imaqsood))
 - \(PA-8403\) Only install puppet-agent with dpkg on Ubuntu 24.04+ [\#284](https://github.com/puppetlabs/beaker-puppet/pull/284) ([imaqsood](https://github.com/imaqsood))
 - \(P4DEVOPS-16835\) Stop the background apt upgrader and make apt wait for the dpkg lock [\#283](https://github.com/puppetlabs/beaker-puppet/pull/283) ([smahajan0228](https://github.com/smahajan0228))
 - \(P4DEVOPS-16835\) Configure the gem mirror without downloading the rubygems index [\#282](https://github.com/puppetlabs/beaker-puppet/pull/282) ([smahajan0228](https://github.com/smahajan0228))
-
-**Merged pull requests:**
-
-- \(PA-9477\) Reset the apt timers' failed state after masking them [\#285](https://github.com/puppetlabs/beaker-puppet/pull/285) ([imaqsood](https://github.com/imaqsood))
 
 ## [4.4.3](https://github.com/puppetlabs/beaker-puppet/tree/4.4.3) (2026-08-17)
 
